@@ -186,7 +186,7 @@ document.querySelectorAll("[data-action]").forEach(button=>button.addEventListen
 $("open-profile").addEventListener("click",()=>{$("profile-modal").classList.remove("hidden");updatePreview();});
 $("quick-profile").addEventListener("click",()=>$("open-profile").click());
 $("save-profile").addEventListener("click",saveProfile);
-$("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
+$("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);localStorage.removeItem("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
 ["monk-name","monk-robe","monk-skin"].forEach(id=>$(id).addEventListener("input",updatePreview));
 document.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>$(button.dataset.close).classList.add("hidden")));
 $("language").value=language;$("language").addEventListener("change",async e=>{
@@ -258,6 +258,7 @@ async function start(){
  applyLanguage();
  try{await network.health();}catch{}
  await loadProfile();
+ if(profile){try{await network.saveProfile(profile,language);}catch{}}
  try{await network.visit();}catch{}
  await updateStats();setInterval(updateStats,30000);
  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
