@@ -49,9 +49,9 @@ jobs:
           head -c 900 /tmp/canonical.html
           echo
           grep -q 'id="loading"' /tmp/canonical.html
-      - name: Test existing production functions in desktop and mobile browsers
+      - name: Test current build against production APIs in desktop and mobile browsers
         env:
-          BASE_URL: https://ai-temple-world.pages.dev
+          BASE_URL: http://127.0.0.1:4173
         run: npm run test:e2e
       - name: Save browser test report
         if: always()
