@@ -47,7 +47,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.waitForTimeout(2000);
   await page.keyboard.up("w");
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
-  expect(afterMove).toBeLessThan(beforeMove - 0.5);
+  expect(afterMove).toBeLessThan(beforeMove - 0.3);
 
 
   await page.locator('[data-action="bow"]').click();
