@@ -162,7 +162,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.moveVelocity=new THREE.Vector2();this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -308,21 +308,29 @@ export class TempleWorld{
   }
   const topSpeed=direction?(input.run?5.2:2.8):0;
   const desired=new THREE.Vector2(direction?.x||0,direction?.z||0).multiplyScalar(topSpeed);
-  // Ease into motion and stop promptly: keyboard and touch controls feel deliberate without wall jitter.
   const response=1-Math.exp(-dt*(direction?13:19));
   this.moveVelocity.lerp(desired,response);
   if(this.moveVelocity.length()<.012)this.moveVelocity.set(0,0);
   const moving=this.moveVelocity.length()>.03;
-  let result={x:this.local.root.position.x,y:this.local.root.position.y,z:this.local.root.position.z,blocked:false};
+  let result={x:this.local.root.position.x,y:groundHeightAt(this.local.root.position.x,this.local.root.position.z,this.halls),z:this.local.root.position.z,blocked:false};
   if(moving&&canMove){
    const localPosition=this.local.root.position;
+   // Collision is resolved before vertical motion, so a jump cannot tunnel through masonry or stair edges.
    result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
-   localPosition.set(result.x,result.y,result.z);
    if(result.blocked)this.moveVelocity.multiplyScalar(.28);
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
-  const p=this.local.root.position;
-  this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,position:{x:p.x,y:p.y,z:p.z}};
+  const localPosition=this.local.root.position;
+  const groundY=groundHeightAt(result.x,result.z,this.halls);
+  const wantsJump=!!input.jump;
+  if(wantsJump&&!this.jumpHeld&&this.jumpOffset<=.001&&canMove)this.jumpVelocity=4.35;
+  this.jumpHeld=wantsJump;
+  if(this.jumpOffset>0||this.jumpVelocity>0){
+   this.jumpVelocity-=12.8*dt;this.jumpOffset+=this.jumpVelocity*dt;
+   if(this.jumpOffset<=0){this.jumpOffset=0;this.jumpVelocity=0;}
+  }
+  localPosition.set(result.x,groundY+this.jumpOffset,result.z);
+  this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,jumping:this.jumpOffset>0,position:{x:localPosition.x,y:localPosition.y,z:localPosition.z}};
   this.local.update(dt,time,moving&&this.local.pose==="walk");
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
