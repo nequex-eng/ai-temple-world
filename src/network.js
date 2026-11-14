@@ -13,10 +13,10 @@ export class TempleNetwork {
     this.playerId = getPlayerId();
     const params = new URLSearchParams(location.search);
     const requestedRoom = (params.get("room") || "main").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 24);
-    const requestedRegion = (params.get("region") || "auto").toLowerCase();
+    const requestedRegion = (params.get("region") || "apac").toLowerCase();
     this.room = requestedRoom || "main";
     this.instance = Math.max(0, Math.min(99, Math.floor(Number(params.get("instance")) || 0)));
-    this.region = ["auto","wnam","enam","sam","weur","eeur","apac","apac-ne","apac-se","oc","afr","me"].includes(requestedRegion) ? requestedRegion : "auto";
+    this.region = ["auto","wnam","enam","sam","weur","eeur","apac","apac-ne","apac-se","oc","afr","me"].includes(requestedRegion) ? requestedRegion : "apac";
     const roomLabel = document.getElementById("room-label");
     if (roomLabel) roomLabel.textContent = this.room.toUpperCase() + " · " + this.region.toUpperCase() + " · " + this.instance;
     this.onStatus = onStatus;
