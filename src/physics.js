@@ -10,7 +10,8 @@ export function createTempleCollision(halls) {
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
     circle(8, 0, 1.48), circle(31, 33, 9.85),
-    circle(-29, 29, 1.05), circle(0, -39.5, 2.2)
+    circle(-29, 29, 1.05), circle(0, -39.5, 2.2),
+    circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
   for (const h of halls) {
     const l = h.x - h.w / 2, r = h.x + h.w / 2;
