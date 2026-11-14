@@ -1,0 +1,14 @@
+name: One-time production asset upload
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/upload-temple-assets-once.yml"
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload current assets and print manifest
+        run: |
+          curl -fsS -X POST https://temple-pages-upload-e1a8e607.nequex.workers.dev/upload -o manifest.json
+          cat manifest.json
