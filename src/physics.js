@@ -88,17 +88,21 @@ export function groundHeightAt(x, z, halls) {
 export function moveWithCollision(position, dx, dz, world) {
   let x = position.x, z = position.z;
   let blocked = false;
-  const tryAxis = (nx, nz) => {
-    const nextY = groundHeightAt(nx, nz, world.halls);
-    const oldY = groundHeightAt(x, z, world.halls);
-    if (collidesAt(nx, nz, world) || Math.abs(nextY - oldY) > MAX_STEP) {
-      blocked = true;
-      return;
-    }
-    x = nx; z = nz;
-  };
-  // Axis separation produces reliable wall sliding without tunnelling through corners.
-  if (dx) tryAxis(x + dx, z);
-  if (dz) tryAxis(x, z + dz);
+  const count = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dz)) / 0.12));
+  const sx = dx / count, sz = dz / count;
+  for (let i = 0; i < count; i++) {
+    const tryAxis = (nx, nz) => {
+      const nextY = groundHeightAt(nx, nz, world.halls);
+      const oldY = groundHeightAt(x, z, world.halls);
+      if (collidesAt(nx, nz, world) || Math.abs(nextY - oldY) > MAX_STEP) {
+        blocked = true;
+        return;
+      }
+      x = nx; z = nz;
+    };
+    // Axis separation produces reliable wall sliding without tunnelling through corners.
+    if (sx) tryAxis(x + sx, z);
+    if (sz) tryAxis(x, z + sz);
+  }
   return { x, z, y: groundHeightAt(x, z, world.halls), blocked, moved: x !== position.x || z !== position.z };
 }
