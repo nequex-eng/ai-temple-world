@@ -14,3 +14,16 @@ jobs:
           node-version: 22
       - name: Run syntax and smoke tests
         run: npm test
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test the live desktop and mobile site
+        run: npm run test:e2e
+      - name: Save browser test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanctuary-browser-test-report
+          path: test-results/
+          if-no-files-found: ignore
