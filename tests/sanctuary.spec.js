@@ -115,8 +115,8 @@ test("two independent guests share live presence and messages", async ({ browser
       await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
     }
 
-    await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
-    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
 
     await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
     await pageA.locator("#chat-form button").click();
