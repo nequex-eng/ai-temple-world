@@ -6,9 +6,10 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeChant=null,templeBell=null,lastFootstep=0;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false;
 const world=new TempleWorld($("world"));
 Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now()),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}})}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
  onMessage:message=>handleMessage(message),
@@ -160,102 +161,140 @@ function updatePreview(){
  $("preview-body").style.background=$("monk-robe").value;
  $("preview-head").style.background=$("monk-skin").value;
 }
-function ensureAudio(){
+function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"}={}) {
+ const media=new Audio();
+ let fallbackUsed=false;
+ media.preload="auto";media.loop=loop;media.volume=volume;
+ media.addEventListener("error",()=>{
+  if(!fallbackUsed&&oggUrl){
+   fallbackUsed=true;media.src=oggUrl;media.load();
+   if(soundEnabled)media.play().catch(()=>{});
+   return;
+  }
+  if(soundEnabled&&!audioFailureShown){
+   audioFailureShown=true;
+   toast(label+"加载失败，已保留浏览器备用环境声。");
+  }
+ });
+ media.src=mp3Url;media.load();
+ return media;
+}
+async function ensureAudio(){
  try{
-  const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
-  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume().catch(()=>{});
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContextClass)throw new Error("AudioContext unavailable");
+  if(!audio){
+   audio=new AudioContextClass({latencyHint:"playback"});
+   audioMaster=audio.createGain();audioMaster.gain.value=.88;audioMaster.connect(audio.destination);
+  }
   if(!ambientNodes){
    const buffer=audio.createBuffer(1,audio.sampleRate*4,audio.sampleRate),data=buffer.getChannelData(0);
-   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
+   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.16;
    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
-   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=780;low.Q.value=.25;
-   const wind=audio.createGain();wind.gain.value=.045;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
-   const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.075;lfoGain.gain.value=.009;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
+   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=520;low.Q.value=.35;
+   const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(audioMaster);noise.start();
+   const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.065;lfoGain.gain.value=.018;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
    ambientNodes={noise,low,wind,lfo,lfoGain};
-   // Sparse, distant bird calls rather than the synthetic three-note chime used before.
-   ambientNodes.birdTimer=setInterval(()=>{if(soundEnabled&&audio?.state==="running")playBirdCall();},11500+Math.random()*9000);
   }
-  if(!templeChant){
-   templeChant=new Audio("https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg");
-   templeChant.loop=true;templeChant.preload="auto";templeChant.volume=0;
-  }
-  if(!templeBell){
-   templeBell=new Audio("https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg");
-   templeBell.preload="auto";templeBell.volume=.62;
-  }
+  if(!templeBirds)templeBirds=createTempleMedia(
+   "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3",
+   "https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",
+   {loop:true,volume:.27,label:"庭院鸟鸣"}
+  );
+  if(!templeChant)templeChant=createTempleMedia(
+   "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3",
+   "https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg",
+   {loop:true,volume:0,label:"殿内诵经"}
+  );
+  if(!templeBell)templeBell=createTempleMedia(
+   "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2c/Gong55.ogg/Gong55.ogg.mp3",
+   "https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg",
+   {loop:false,volume:.38,label:"寺院钟声"}
+  );
+  // Start media playback and resume Web Audio synchronously from the visitor's
+  // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
+  templeBirds.play().catch(()=>false);
+  templeBell.currentTime=0;templeBell.volume=.35;templeBell.play().catch(()=>false);
+  const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
+  await resumePromise;
+  if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
   soundEnabled=true;
-  const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
-  updateSoundscape();playSoundConfirmation();return true;
- }catch{return false;}
-}
-function playSoundConfirmation(){
- if(!audio)return;
- const now=audio.currentTime+.02;
- for(const [frequency,delay,volume] of [[392,0,.055],[523.25,.14,.045],[659.25,.28,.035]]){
-  const oscillator=audio.createOscillator(),gain=audio.createGain(),start=now+delay;
-  oscillator.type="sine";oscillator.frequency.setValueAtTime(frequency,start);
-  gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(volume,start+.018);gain.gain.exponentialRampToValueAtTime(.0001,start+.48);
-  oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(start);oscillator.stop(start+.5);
- }
-}
-function playBirdCall(){
- if(!audio||audio.state!=="running")return;
- const now=audio.currentTime;
- for(let i=0;i<2;i++){
-  const start=now+i*.16,osc=audio.createOscillator(),gain=audio.createGain();
-  osc.type="sine";osc.frequency.setValueAtTime(2600+Math.random()*650,start);
-  osc.frequency.exponentialRampToValueAtTime(1750+Math.random()*500,start+.16);
-  gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(.008,start+.018);gain.gain.exponentialRampToValueAtTime(.0001,start+.19);
-  osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.21);
+  audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
+  const button=$("sound-toggle");
+  if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}
+  // Retry once if an MP3 transcode failed and the original Ogg fallback has loaded.
+  if(templeBirds.paused)templeBirds.play().catch(()=>{});
+  if(templeBell.paused)templeBell.play().catch(()=>{});
+  updateSoundscape();
+  return true;
+ }catch(error){
+  console.warn("Temple audio could not be started:",error);
+  return false;
  }
 }
 function updateSoundscape(){
- if(!soundEnabled||!templeChant||!world.local)return;
+ if(!soundEnabled)return;
+ if(templeBirds){
+  templeBirds.volume=.27;
+  if(templeBirds.paused)templeBirds.play().catch(()=>{});
+ }
+ if(!templeChant||!world.local)return;
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);
- const chantVolume=Math.max(0,1-hallDistance/24)*.16;
+ const chantVolume=Math.max(0,1-hallDistance/24)*.23;
  templeChant.volume=chantVolume;
- if(chantVolume>.008){if(templeChant.paused)templeChant.play().catch(()=>{});}
+ if(chantVolume>.006){if(templeChant.paused)templeChant.play().catch(()=>{});}
  else if(!templeChant.paused)templeChant.pause();
- // A restrained distant strike makes the bell pavilion feel inhabited without interrupting the player.
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
   const distantBell=templeBell?.cloneNode(true);
-  if(distantBell){
-   distantBell.volume=Math.max(.025,Math.min(.14,(1-bellDistance/38)*.14));
-   distantBell.play().catch(()=>{});
-  }
+  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13));distantBell.play().catch(()=>{});}
   updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
  }
 }
 function playFootstep(){
- if(!audio||audio.state!=="running")return;
+ if(!soundEnabled||!audio||audio.state!=="running")return;
  const now=audio.currentTime,noise=audio.createBufferSource(),length=Math.floor(audio.sampleRate*.12),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
  for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,2);
  noise.buffer=buffer;const filter=audio.createBiquadFilter();filter.type="lowpass";filter.frequency.value=520;
  const gain=audio.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.035,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+.12);
- noise.connect(filter);filter.connect(gain);gain.connect(audio.destination);noise.start(now);noise.stop(now+.13);
+ noise.connect(filter);filter.connect(gain);gain.connect(audioMaster||audio.destination);noise.start(now);noise.stop(now+.13);
 }
 function playMuyu(){
- if(!audio||audio.state!=="running")return;
+ if(!soundEnabled||!audio||audio.state!=="running")return;
  const now=audio.currentTime;
  for(const [hz,vol,decay] of [[205,.11,.085],[318,.035,.055],[92,.045,.11]]){
   const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(hz,now);
   gain.gain.setValueAtTime(vol,now);gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
-  osc.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+decay+.01);
+  osc.connect(gain);gain.connect(audioMaster||audio.destination);osc.start(now);osc.stop(now+decay+.01);
  }
 }
-function setSound(on){
- if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
- else{
-  soundEnabled=false;
-  if(ambientNodes?.wind)ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.18);
-  if(templeChant&&!templeChant.paused){templeChant.pause();templeChant.currentTime=0;}
-  const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}
+async function setSound(on){
+ const button=$("sound-toggle");
+ if(on){
+  if(button){button.disabled=true;button.textContent="♫ 正在开启…";}
+  const ok=await ensureAudio();
+  if(button)button.disabled=false;
+  if(!ok){
+   soundEnabled=false;
+   if(button){button.classList.remove("active");button.textContent="♫ "+t().soundOff;button.setAttribute("aria-pressed","false");}
+   toast("浏览器未能启动声音，请检查设备音量后再点一次。");
+   return;
+  }
+  if(templeBirds?.paused)templeBirds.play().catch(()=>{});
+  if(button)button.setAttribute("aria-pressed","true");
+  toast("寺院环境声已开启");
+  return;
  }
+ soundEnabled=false;
+ if(audio?.state==="running"&&audioMaster)audioMaster.gain.setTargetAtTime(.0001,audio.currentTime,.12);
+ for(const media of [templeBirds,templeChant,templeBell]){
+  if(media){media.pause();try{media.currentTime=0;}catch{}}
+ }
+ if(button){button.classList.remove("active");button.textContent="♫ "+t().soundOff;button.setAttribute("aria-pressed","false");}
 }
-function playBell(){
+function playBell(force=false,volume=.62){
+ if(!soundEnabled&&!force)return;
  try{
-  if(!soundEnabled)ensureAudio();
-  if(templeBell){templeBell.currentTime=0;templeBell.play().catch(()=>{});}
+  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume;templeBell.play().catch(()=>{});}
  }catch{}
 }
 function doAction(action){
@@ -329,10 +368,7 @@ function resetStick(){stickPointer=null;joy={x:0,y:0};knob.style.transform="tran
 stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);stick.addEventListener("lostpointercapture",resetStick);
 addEventListener("blur",()=>{keys={};resetStick();});
 $("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
-$("sound-toggle").addEventListener("click",()=>setSound(!soundEnabled));
-// Browsers require a real user gesture before audio can start.
-addEventListener("pointerdown",e=>{if(!soundEnabled&&!e.target.closest("#sound-toggle"))ensureAudio();},{once:true});
-addEventListener("keydown",()=>{if(!soundEnabled)ensureAudio();},{once:true});
+$("sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
