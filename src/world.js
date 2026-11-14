@@ -424,7 +424,18 @@ export class TempleWorld{
   const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-10,index:1,key:"heaven"},{x:0,z:-37,index:2,key:"main"},{x:8,z:0,index:3,key:"incense"},{x:-28,z:2,index:4,key:"bell"},{x:28,z:-24,index:5,key:"library"},{x:-28,z:-25,index:6,key:"meditation"},{x:-29,z:31,index:7,key:"bodhi"},{x:31,z:33,index:8,key:"lotus"},{x:28,z:8,index:9,key:"dorm"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
- canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x-8,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;if(a==="meditate")return Math.abs(p.x)<6.2&&p.z>-36.8&&p.z<-30.8;return true;}
+ canAct(a){
+  const p=this.local?.root.position;if(!p)return false;
+  if(a==="incense")return Math.hypot(p.x-8,p.z)<8;
+  if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;
+  if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;
+  if(a==="sweep")return Math.hypot(p.x,p.z)<38;
+  if(a==="meditate"){
+   const cushions=[[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]];
+   return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-(-38.5+z))<2.35);
+  }
+  return true;
+ }
  update(dt,input={},time=performance.now()){
   if(!this.local)return;
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
