@@ -30,7 +30,7 @@ function applyLanguage(){
  const d=t();
  document.documentElement.lang=({zh:"zh-CN",ja:"ja",ko:"ko",th:"th"})[language];
  const labels={
-  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"location-eyebrow":d.locationEyebrow,
+  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"sound-toggle":"♫ "+d.soundOff,"location-eyebrow":d.locationEyebrow,
   "location-hint":d.locationHint,"presence-title":d.presence,"presence-sub":d.presenceSub,
   "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
@@ -171,14 +171,14 @@ function ensureAudio(){
    const wind=audio.createGain();wind.gain.value=.018;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
    const drone=audio.createOscillator(),droneGain=audio.createGain();drone.type="sine";drone.frequency.value=110;droneGain.gain.value=.006;drone.connect(droneGain);droneGain.connect(audio.destination);drone.start();
    ambientNodes={noise,low,wind,drone,droneGain};
-  }
-  soundEnabled=true;const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ 音效开启";b.setAttribute("aria-pressed","true");}
+  }else{ambientNodes.wind.gain.setTargetAtTime(.018,audio.currentTime,.2);ambientNodes.droneGain.gain.setTargetAtTime(.006,audio.currentTime,.2);}
+  soundEnabled=true;const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
   return true;
  }catch{return false;}
 }
 function setSound(on){
  if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
- else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ 开启声音";b.setAttribute("aria-pressed","false");}}
+ else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
 }
 function playBell(){
  try{
@@ -262,7 +262,7 @@ addEventListener("blur",()=>{keys={};resetStick();});
 $("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
 $("sound-toggle").addEventListener("click",()=>setSound(!soundEnabled));
 // Browsers require a real user gesture before audio can start.
-addEventListener("pointerdown",()=>{if(!soundEnabled)ensureAudio();},{once:true});
+addEventListener("pointerdown",e=>{if(!soundEnabled&&!e.target.closest("#sound-toggle"))ensureAudio();},{once:true});
 addEventListener("keydown",()=>{if(!soundEnabled)ensureAudio();},{once:true});
 function inputState(){
  return {
