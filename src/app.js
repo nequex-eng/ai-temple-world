@@ -140,7 +140,7 @@ function setProfileUI(){
  $("preview-body").style.background=profile.robe;
  $("character-name").style.color=profile.robe;
 }
-async async function saveProfile(){
+async function saveProfile(){
  profile={
   name:$("monk-name").value.trim().slice(0,18)||"行者",
   robe:$("monk-robe").value,skin:$("monk-skin").value,style:$("monk-style").value
