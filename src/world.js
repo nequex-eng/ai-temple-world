@@ -31,11 +31,29 @@ function plaqueSprite(title,subtitle){
 function pine(scene,x,z,s,m){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
  add(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,g,[0,1.55,0]);
- for(let i=0;i<4;i++)add(new THREE.ConeGeometry(1.75-i*.23,2.75,9),i%2?m.pine2:m.pine,g,[0,2.25+i*.9,0],[0,i*.22,0]);
+ for(let i=0;i<5;i++){
+  const angle=i*2.17+Math.random()*.24,offset=.12+Math.random()*.12;
+  const crown=add(new THREE.ConeGeometry(1.9-i*.29,2.9,11),i%2?m.pine2:m.pine,g,[Math.cos(angle)*offset,2.05+i*.73,Math.sin(angle)*offset],[Math.sin(angle)*.035,i*.31,Math.cos(angle)*.035]);
+  crown.scale.set(.92+Math.random()*.17,.9+Math.random()*.16,.92+Math.random()*.17);
+ }
+ for(let i=0;i<3;i++){
+  const a=i*Math.PI*2/3+.4,branch=add(new THREE.CylinderGeometry(.045,.085,1.35,6),m.bark,g,[Math.cos(a)*.46,2.1,Math.sin(a)*.46],[Math.sin(a)*.65,0,Math.cos(a)*-.65]);
+ }
 }
 function planeRoof(parent,w,d,ry,ey,side,m){
- const z=side*(d/2+1.1),v=[-w/2-1.2,ry,0,w/2+1.2,ry,0,w/2+1.8,ey,z,-w/2-1.8,ey,z];
- const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(v,3));g.setAttribute("uv",new THREE.Float32BufferAttribute([0,0,1,0,1,1,0,1],2));g.setIndex([0,1,2,0,2,3]);g.computeVertexNormals();return add(g,m,parent);
+ const nx=14,nz=7,positions=[],uvs=[],indices=[];
+ for(let j=0;j<=nz;j++){
+  const t=j/nz;
+  for(let i=0;i<=nx;i++){
+   const u=i/nx,x=(-w/2-1.2-.62*t)+u*(w+2.4+1.24*t),z=side*t*(d/2+1.1);
+   const cornerLift=Math.pow(Math.abs(u*2-1),5)*Math.pow(t,1.35)*.72;
+   const eaveLift=Math.pow(t,5)*.16;
+   const y=ry+(ey-ry)*t+cornerLift+eaveLift;
+   positions.push(x,y,z);uvs.push(u*2.8,t*2.2);
+   if(i<nx&&j<nz){const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d0=c+1;indices.push(a,c,b,b,c,d0);}
+  }
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));g.setIndex(indices);g.computeVertexNormals();return add(g,m,parent);
 }
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
@@ -225,7 +243,7 @@ export class TempleWorld{
   // Bodhi tree
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
   for(let i=0;i<7;i++){const a=i*Math.PI*2/7;add(new THREE.CylinderGeometry(.18,.34,4,8),m.bark,bodhi,[Math.cos(a)*1.4,5,Math.sin(a)*1.4],[0,0,-Math.cos(a)*.45]);}
-  for(let i=0;i<11;i++){const a=i*2.399,r=.8+Math.random()*3,c=add(new THREE.SphereGeometry(2.1,13,10),i%3===0?mat(0x5d8257,.95):mat(0x49734c,.94),bodhi,[Math.cos(a)*r,7+Math.random()*2,Math.sin(a)*r]);c.scale.set(1.25,.72,1);}
+  for(let i=0;i<24;i++){const a=i*2.399,r=.65+Math.random()*3.15,leaf=add(new THREE.IcosahedronGeometry(1.55+Math.random()*.55,1),i%3===0?m.pine2:m.pine,bodhi,[Math.cos(a)*r,6.8+Math.random()*3.0,Math.sin(a)*r],[Math.random()*.45,Math.random()*6.28,Math.random()*.45]);leaf.scale.set(1.15+Math.random()*.45,.72+Math.random()*.48,.9+Math.random()*.45);}
   // Boundary stones / decorative details
   for(const side of [-1,1]){add(new THREE.BoxGeometry(.5,.7,45),m.stone,s,[side*31,.18,-11]);for(let z=-30;z<10;z+=5)add(new THREE.BoxGeometry(.9,.9,.9),m.stoneLight,s,[side*31,.55,z]);}
   // Floating warm dust
