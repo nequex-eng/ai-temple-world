@@ -1,0 +1,12 @@
+name: One-time Pages app asset upload
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/upload-pages-app-once.yml"
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload the latest app bundle
+        run: curl -fsS -X POST https://temple-pages-upload-44e9e52f.nequex.workers.dev/upload
