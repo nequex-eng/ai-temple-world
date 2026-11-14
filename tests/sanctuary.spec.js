@@ -36,7 +36,11 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
 
-  await page.evaluate(() => document.activeElement?.blur());
+  await page.evaluate(() => {
+    document.activeElement?.blur();
+    window.__templeDebug.setYaw(0);
+    window.__templeDebug.setPosition(0, 15);
+  });
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
   await page.keyboard.down("w");
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.w)).toBe(true);
