@@ -120,7 +120,7 @@ async function updateStats(){
  }catch{}
 }
 async function loadProfile(){
- const local=JSON.parse(localStorage.getItem(LOCAL_PROFILE)||"null");
+ let local=null;try{local=JSON.parse(localStorage.getItem(LOCAL_PROFILE)||"null");}catch{localStorage.removeItem(LOCAL_PROFILE);}
  const remote=await network.loadProfile();
  profile=remote?{name:remote.name,robe:remote.robe,skin:remote.skin,style:remote.style}:local;
  if(profile){
@@ -140,7 +140,7 @@ function setProfileUI(){
  $("preview-body").style.background=profile.robe;
  $("character-name").style.color=profile.robe;
 }
-async function saveProfile(){
+async async function saveProfile(){
  profile={
   name:$("monk-name").value.trim().slice(0,18)||"行者",
   robe:$("monk-robe").value,skin:$("monk-skin").value,style:$("monk-style").value
@@ -148,9 +148,10 @@ async function saveProfile(){
  localStorage.setItem(LOCAL_PROFILE,JSON.stringify(profile));
  localStorage.setItem("temple-language",language);
  world.setLocalProfile(profile,network.playerId);setProfileUI();
- try{await network.saveProfile(profile,language);toast(t().saved);}
+ let saved=false;
+ try{await network.saveProfile(profile,language);saved=true;toast(t().saved);}
  catch{toast(t().saveFailed);}
- network.connect({...profile,language},world.getPosition());
+ network.close();network.connect({...profile,language},world.getPosition());
  $("profile-modal").classList.add("hidden");renderPresence();
 }
 function updatePreview(){
