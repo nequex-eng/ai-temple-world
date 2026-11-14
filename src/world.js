@@ -219,7 +219,8 @@ export class TempleWorld{
   if(moving&&this.local.pose==="walk"){
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw)),rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw)),dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize(),speed=input.run?7.5:4.1,p=this.local.root.position;
    const nx=clamp(p.x+dir.x*speed*dt,-79,79),nz=clamp(p.z+dir.z*speed*dt,-79,79);
-   p.x=nx;p.z=nz;
+   const obstacles=[[0,-37,13.5,9.5],[0,-10,9.5,7],[-28,2,6.2,5.8],[28,-24,8,6.5],[-28,-25,8,6.5],[28,8,7.5,6],[-29,31,7,5.8],[31,33,10,10]];
+   if(!obstacles.some(([x,z,w,d])=>Math.abs(nx-x)<w&&Math.abs(nz-z)<d)){p.x=nx;p.z=nz;}
    this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
   }
   this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);
