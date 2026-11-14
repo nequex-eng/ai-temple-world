@@ -163,7 +163,7 @@ function updatePreview(){
 function ensureAudio(){
  try{
   const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
-  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume();
+  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume().then(()=>playAmbientChime()).catch(()=>{});
   if(!ambientNodes){
    const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.32;
@@ -189,7 +189,7 @@ function playAmbientChime(){
 }
 function setSound(on){
  if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
- else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);clearInterval(ambientNodes.bellTimer);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
+ else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
 }
 function playBell(){
  try{
