@@ -1,0 +1,36 @@
+name: Validate temple world
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          set -e
+          for file in src/*.js worker/*.js; do
+            echo "Checking $file"
+            node --input-type=module --check < "$file"
+          done
+      - name: Check frontend element references
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html = fs.readFileSync('index.html', 'utf8');
+          const app = fs.readFileSync('src/app.js', 'utf8');
+          const ids = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map(m => m[1]));
+          const refs = new Set([...app.matchAll(/\\$\\("([^"]+)"\\)/g)].map(m => m[1]));
+          const missing = [...refs].filter(id => !ids.has(id));
+          if (missing.length) {
+            console.error('Missing HTML ids:', missing.join(', '));
+            process.exit(1);
+          }
+          console.log('All', refs.size, 'DOM references exist.');
+          NODE
