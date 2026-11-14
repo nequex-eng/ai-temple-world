@@ -163,6 +163,15 @@ function updatePreview(){
  $("preview-body").style.background=$("monk-robe").value;
  $("preview-head").style.background=$("monk-skin").value;
 }
+function updateAudioStatus(){
+ const state=audio?.state||"未初始化";
+ const describe=media=>!media?"未创建":media.error?"错误码"+media.error.code:media.paused?"已暂停":media.currentTime>0?"播放中":"已启动";
+ text("sound-status","音频引擎："+state+" · 庭院鸟鸣："+describe(templeBirds)+" · 殿内诵经："+describe(templeChant)+" · 钟声："+describe(templeBell)+(audioFailureReason?" · 最近错误："+audioFailureReason:""));
+}
+function mediaPlay(media,label){
+ if(!media)return Promise.resolve(false);
+ return media.play().then(()=>{updateAudioStatus();return true;}).catch(error=>{audioFailureReason=label+"播放失败："+(error?.message||error?.name||"unknown");updateAudioStatus();return false;});
+}
 function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"}={}) {
  const media=new Audio();
  let fallbackUsed=false;
@@ -215,8 +224,8 @@ async function ensureAudio(){
   );
   // Start media playback and resume Web Audio synchronously from the visitor's
   // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
-  templeBirds.play().catch(()=>false);
-  templeBell.currentTime=0;templeBell.volume=.35;templeBell.play().catch(()=>false);
+  void mediaPlay(templeBirds,"庭院鸟鸣");
+  templeBell.currentTime=0;templeBell.volume=.35*audioVolumes.effects;void mediaPlay(templeBell,"寺院钟声");
   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
   await resumePromise;
   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
@@ -224,8 +233,8 @@ async function ensureAudio(){
   audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
   for(const id of ["sound-toggle","profile-sound-toggle"]){const button=$(id);if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}}
   // Retry once if an MP3 transcode failed and the original Ogg fallback has loaded.
-  if(templeBirds.paused)templeBirds.play().catch(()=>{});
-  if(templeBell.paused)templeBell.play().catch(()=>{});
+  if(templeBirds.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
+  if(templeBell.paused)void mediaPlay(templeBell,"寺院钟声");
   updateSoundscape();
   return true;
  }catch(error){
@@ -246,11 +255,11 @@ function updateSoundscape(){
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);
  const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
- if(chantVolume>.006){if(templeChant.paused)templeChant.play().catch(()=>{});}
+ if(chantVolume>.006){if(templeChant.paused)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
   const distantBell=templeBell?.cloneNode(true);
-  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13*audioVolumes.effects));distantBell.play().catch(()=>{});}
+  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13*audioVolumes.effects));void mediaPlay(distantBell,"远处钟声");}
   updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
  }
 }
@@ -332,7 +341,7 @@ function changeAudioVolume(key,value){
  if(key==="chant"&&templeChant&&!templeChant.paused)updateSoundscape();
  if(key==="effects"&&effectsGain&&audio)effectsGain.gain.setTargetAtTime(audioVolumes.effects,audio.currentTime,.08);
 }
-$("sound-settings").addEventListener("click",()=>{$("sound-modal").classList.remove("hidden");syncAudioControls();});
+$("sound-settings").addEventListener("click",()=>{$("sound-modal").classList.remove("hidden");syncAudioControls();updateAudioStatus();});
 $("sound-ambience").addEventListener("input",e=>changeAudioVolume("ambience",e.target.value));
 $("sound-chant").addEventListener("input",e=>changeAudioVolume("chant",e.target.value));
 $("sound-effects").addEventListener("input",e=>changeAudioVolume("effects",e.target.value));
