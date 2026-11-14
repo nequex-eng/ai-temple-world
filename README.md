@@ -14,7 +14,8 @@ A browser-first, multilingual 3D sanctuary built with Three.js and Cloudflare Wo
 - Desktop: click the ground to walk to a destination; WASD or arrow keys for direct movement, Shift to run, drag to orbit, mouse wheel to zoom. Mobile: tap the ground to walk, use the virtual joystick for precise movement, and pinch/drag to look around.
 - Mobile: virtual joystick and running toggle.
 - Actions: greet, join palms, bow, meditate, offer incense, sweep, ring the bell, release a lotus lamp, and turn a 108-bead mala. Bead progress is stored locally on the visitor device and is never uploaded or ranked.
-- Four interface languages: Chinese, Japanese, Korean and Thai.\n- Quiet-by-default shared experience: chat starts collapsed; visitors can open it when they want to communicate.\n- Independent ambience, chanting and ritual-effect volume controls, with live audio-engine/source diagnostics and explicit playback errors.
+- Four interface languages: Chinese, Japanese, Korean and Thai.
+- Independent multiplayer rooms and instances, with optional Cloudflare Durable Object location hints (for example, `?room=maru&instance=0&region=apac-ne`). The default `auto` region lets Cloudflare place a new room near its first visitors; location hints are best-effort, not a guarantee.\n- Quiet-by-default shared experience: chat starts collapsed; visitors can open it when they want to communicate.\n- Independent ambience, chanting and ritual-effect volume controls, with live audio-engine/source diagnostics and explicit playback errors.
 - Shared live room: online visitors can see other avatars, movement, gestures and realtime chat.
 - Cloud-saved guest profile, daily visits, activity records and a public wish wall.
 - Guest-data deletion control removes the associated profile, activities, prayers and visit records.
