@@ -28,7 +28,9 @@ function hall(scene,cfg,m){
  add(new THREE.BoxGeometry(w+2.2,.7,d+2.2),m.stone,g,[0,.35,0]);
  add(new THREE.BoxGeometry(w,.28,2),m.stoneLight,g,[0,.14,d/2+1.45]);
  for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.58-i*1.1,.14,1.0),m.stoneLight,g,[0,.08+i*.15,d/2+2.3+i*.82]);
- add(new THREE.BoxGeometry(w,h,d),m.wall,g,[0,.7+h/2,0],[0,0,0],false);
+ add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.7+h/2,-d/2+.16],[0,0,0],false);
+ add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[-w/2+.16,.7+h/2,0],[0,0,0],false);
+ add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[w/2-.16,.7+h/2,0],[0,0,0],false);
  for(const sx of [-1,1]){
   add(new THREE.BoxGeometry(.32,h,d),m.pillar,g,[sx*(w/2-.35),.7+h/2,0]);
   add(new THREE.CylinderGeometry(.18,.22,h,10),m.pillar,g,[sx*(w/2-.35),.7+h/2,d/2-.4]);
@@ -40,7 +42,9 @@ function hall(scene,cfg,m){
   add(new THREE.CylinderGeometry(.16,.2,h,10),m.pillar,g,[px,.7+h/2,d/2-.35]);
   add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.7+h-.08,d/2-.35]);
  }
- add(new THREE.BoxGeometry(w*.38,h*.75,.22),m.darkWood,g,[0,.7+h*.38,d/2-.04]);
+ const doorW=w*.38;
+ add(new THREE.BoxGeometry(doorW*.42,h*.75,.18),m.darkWood,g,[-doorW*.29,.7+h*.38,d/2-.06],[0,-.78,0]);
+ add(new THREE.BoxGeometry(doorW*.42,h*.75,.18),m.darkWood,g,[doorW*.29,.7+h*.38,d/2-.06],[0,.78,0]);
  for(const side of [-1,1]){
   const px=side*w*.34;
   add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.7+h*.55,d/2+.02]);
@@ -215,8 +219,7 @@ export class TempleWorld{
   if(moving&&this.local.pose==="walk"){
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw)),rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw)),dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize(),speed=input.run?7.5:4.1,p=this.local.root.position;
    const nx=clamp(p.x+dir.x*speed*dt,-79,79),nz=clamp(p.z+dir.z*speed*dt,-79,79);
-   const obstacles=[[0,-37,13.5,9.5],[0,-10,9.5,7],[-28,2,6.2,5.8],[28,-24,8,6.5],[-28,-25,8,6.5],[28,8,7.5,6],[-29,31,7,5.8]];
-   if(!obstacles.some(([x,z,w,d])=>Math.abs(nx-x)<w&&Math.abs(nz-z)<d)){p.x=nx;p.z=nz;}
+   p.x=nx;p.z=nz;
    this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
   }
   this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);
