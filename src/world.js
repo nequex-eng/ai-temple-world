@@ -43,8 +43,8 @@ function hall(scene,cfg,m){
   add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.7+h-.08,d/2-.35]);
  }
  const doorW=w*.38;
- add(new THREE.BoxGeometry(doorW*.42,h*.75,.18),m.darkWood,g,[-doorW*.29,.7+h*.38,d/2-.06],[0,-.78,0]);
- add(new THREE.BoxGeometry(doorW*.42,h*.75,.18),m.darkWood,g,[doorW*.29,.7+h*.38,d/2-.06],[0,.78,0]);
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.42,.7+h*.38,d/2-.06],[0,-.78,0]);
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.42,.7+h*.38,d/2-.06],[0,.78,0]);
  for(const side of [-1,1]){
   const px=side*w*.34;
   add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.7+h*.55,d/2+.02]);
