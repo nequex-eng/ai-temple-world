@@ -131,7 +131,7 @@ function setProfileUI(){
  $("preview-body").style.background=profile.robe;
  $("character-name").style.color=profile.robe;
 }
-async function saveProfile(){
+async async function saveProfile(){
  profile={
   name:$("monk-name").value.trim().slice(0,18)||"行者",
   robe:$("monk-robe").value,skin:$("monk-skin").value,style:$("monk-style").value
@@ -247,6 +247,7 @@ async function start(){
  applyLanguage();
  try{await network.health();}catch{}
  await loadProfile();
+ try{await network.visit();}catch{}
  await updateStats();setInterval(updateStats,30000);
  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
  $("loading").classList.add("hidden");toast(t().entered);
