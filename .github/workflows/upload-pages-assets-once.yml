@@ -1,0 +1,16 @@
+name: One-time Pages asset upload
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/upload-pages-assets-once.yml"
+jobs:
+  upload-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload the fixed production asset set
+        run: |
+          curl -fsS -X POST \
+            https://temple-pages-upload-8b151130.nequex.workers.dev/upload \
+            -o /tmp/pages-assets-upload.json
+          cat /tmp/pages-assets-upload.json
