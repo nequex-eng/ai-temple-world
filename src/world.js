@@ -332,8 +332,8 @@ export class TempleWorld{
    a.update(dt,time,false);
   }
   this.updateNpcs(dt,time);
-  const p=this.local.root.position,target=new THREE.Vector3(p.x+Math.sin(this.yaw)*this.distance,p.y+3.15+Math.sin(this.pitch)*this.distance*.75,p.z+Math.cos(this.yaw)*this.distance);
-  this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(p.x,p.y+1.2,p.z);
+  const cameraTargetPosition=this.local.root.position,target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*this.distance,cameraTargetPosition.y+3.15+Math.sin(this.pitch)*this.distance*.75,cameraTargetPosition.z+Math.cos(this.yaw)*this.distance);
+  this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+1.2,cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
   for(const item of this.lotusLights){item.group.position.y=.35+Math.sin(time*.0012+item.phase)*.09;item.group.rotation.y+=dt*.16;}
   for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
