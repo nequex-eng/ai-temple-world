@@ -84,8 +84,9 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
-  await page.locator("#sound-toggle").click();
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
+  await page.locator("#sound-toggle").click();
+  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "false");
   await page.locator("#run-toggle").click();
   await expect(page.locator("#run-toggle")).toHaveClass(/active/);
   await page.locator("#run-toggle").click();
