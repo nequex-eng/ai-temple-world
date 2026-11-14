@@ -1,0 +1,257 @@
+import { TempleWorld } from "./world.js";
+import { TempleNetwork } from "./network.js";
+import { getText } from "./i18n.js";
+
+const $=id=>document.getElementById(id);
+const LOCAL_PROFILE="temple-world-profile-v2";
+let language=localStorage.getItem("temple-language")||"zh";
+if(!["zh","ja","ko","th"].includes(language))language="zh";
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null;
+const world=new TempleWorld($("world"));
+const network=new TempleNetwork({
+ onStatus:status=>setConnection(status),
+ onMessage:message=>handleMessage(message),
+ onError:error=>console.warn("Temple API:",error)
+});
+
+function t(){return getText(language);}
+function text(id,value){const el=$(id);if(el)el.textContent=value;}
+function setConnection(status){
+ const d=t();
+ text("connection-label",status==="online"?d.statusOnline:status==="offline"?d.statusOffline:d.statusConnecting);
+ $("connection-label").style.opacity=status==="online"?"1":".7";
+ $("online-count").style.opacity=status==="online"?"1":".6";
+}
+function toast(message){
+ const el=$("toast");el.textContent=message;el.classList.add("show");
+ clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),2600);
+}
+function applyLanguage(){
+ const d=t();
+ document.documentElement.lang=({zh:"zh-CN",ja:"ja",ko:"ko",th:"th"})[language];
+ const labels={
+  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"location-eyebrow":d.locationEyebrow,
+  "location-hint":d.locationHint,"presence-title":d.presence,"presence-sub":d.presenceSub,
+  "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
+  "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
+  "wishes-label":d.wishes,"character-state":d.walk,"chat-title":d.chatTitle,"chat-caption":d.chatCaption,
+  "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"desktop-hint":d.desktop,
+  "profile-title":d.profileTitle,"profile-description":d.profileDesc,"label-name":d.name,"label-style":d.style,
+  "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
+  "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
+  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot
+ };
+ for(const [id,value] of Object.entries(labels))text(id,value);
+ $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;
+ $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
+ $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
+ for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
+ updateLocation(true);renderPresence();if(profile)text("character-state",d.walk);
+}
+function updateLocation(force=false){
+ const zone=world.currentLocation(),d=t();
+ if(force||zone.index!==world.lastZone){
+  world.lastZone=zone.index;text("location-title",d.zones[zone.index][0]);
+  text("location-description",d.zones[zone.index][1]);
+ }
+}
+function renderPresence(){
+ const d=t(),list=$("presence-list"),count=onlinePlayers.size+1;
+ text("online-count",count+" "+d.visitors);text("presence-count",String(count).padStart(2,"0"));
+ list.replaceChildren();
+ const all=[{id:network.playerId,name:profile?.name||d.unknown,language,local:true},...Array.from(onlinePlayers.values()).map(p=>({id:p.id,name:p.name||d.unknown,language:p.language||"zh"}))];
+ if(!onlinePlayers.size){const empty=document.createElement("div");empty.className="presence-placeholder";empty.textContent=d.waiting;list.append(empty);}
+ for(const player of all.slice(0,10)){
+  const row=document.createElement("div");row.className="presence-person";
+  const seal=document.createElement("span");seal.className="presence-avatar";seal.textContent=(player.name||d.unknown).slice(0,1);
+  const name=document.createElement("span");name.textContent=player.name+(player.local?" · "+d.you:"");
+  const lang=document.createElement("small");lang.textContent=({zh:"中文",ja:"日本語",ko:"한국어",th:"ไทย"})[player.language]||"";
+  row.append(seal,name,lang);list.append(row);
+ }
+}
+function appendChat(player,message,languageCode){
+ const box=$("chat-messages"),welcome=$("chat-welcome");if(welcome)welcome.remove();
+ const line=document.createElement("div");line.className="chat-line";
+ const name=document.createElement("strong");name.textContent=(player?.name||t().unknown)+(player?.id===network.playerId?" · "+t().you:"");
+ const content=document.createElement("span");content.textContent=String(message||"").slice(0,220);
+ const lang=document.createElement("small");lang.textContent=t().chatOriginal;
+ line.append(name,content,lang);box.append(line);
+ while(box.children.length>45)box.firstElementChild.remove();
+ box.scrollTop=box.scrollHeight;
+}
+function handleMessage(message){
+ if(!message||!message.type)return;
+ if(message.type==="welcome"){
+  onlinePlayers.clear();
+  for(const p of message.players||[]){world.addRemote(p);onlinePlayers.set(p.id,p);}
+  renderPresence();return;
+ }
+ if(message.type==="player:join"){
+  if(message.player?.id!==network.playerId){world.addRemote(message.player);onlinePlayers.set(message.player.id,message.player);renderPresence();}
+  if(message.player?.id!==network.playerId)toast(message.player.name+" · "+t().connected);
+  return;
+ }
+ if(message.type==="player:move"||message.type==="player:action"){
+  if(message.player?.id!==network.playerId){world.updateRemote(message.player);onlinePlayers.set(message.player.id,message.player);renderPresence();}
+  return;
+ }
+ if(message.type==="player:leave"){
+  world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;
+ }
+ if(message.type==="chat"){
+  appendChat(message.player,message.message,message.player?.language);return;
+ }
+}
+async function updateStats(){
+ try{
+  const stats=await network.getStats();
+  text("today-visitors",String(stats.todayVisitors??"—"));
+  text("today-activities",String(stats.todayActivities??"—"));
+  text("wish-total",String(stats.wishes??"—"));
+ }catch{}
+}
+async function loadProfile(){
+ const local=JSON.parse(localStorage.getItem(LOCAL_PROFILE)||"null");
+ const remote=await network.loadProfile();
+ profile=remote?{name:remote.name,robe:remote.robe,skin:remote.skin,style:remote.style}:local;
+ if(profile){
+  $("monk-name").value=profile.name||"行者";$("monk-robe").value=profile.robe||"#b49a72";
+  $("monk-skin").value=profile.skin||"#d7ad87";$("monk-style").value=profile.style||"monk";
+  setProfileUI();world.setLocalProfile(profile,network.playerId);network.connect({...profile,language},world.getPosition());
+ }else{
+  profile={name:"行者",robe:"#b49a72",skin:"#d7ad87",style:"monk"};
+  $("monk-name").value="行者";$("monk-robe").value=profile.robe;$("monk-skin").value=profile.skin;
+  $("profile-modal").classList.remove("hidden");
+  updatePreview();
+  world.setLocalProfile(profile,network.playerId);
+ }
+}
+function setProfileUI(){
+ text("character-name",profile.name);text("monk-name",profile.name);text("preview-name",profile.name);
+ $("preview-body").style.background=profile.robe;
+ $("character-name").style.color=profile.robe;
+}
+async function saveProfile(){
+ profile={
+  name:$("monk-name").value.trim().slice(0,18)||"行者",
+  robe:$("monk-robe").value,skin:$("monk-skin").value,style:$("monk-style").value
+ };
+ localStorage.setItem(LOCAL_PROFILE,JSON.stringify(profile));
+ localStorage.setItem("temple-language",language);
+ world.setLocalProfile(profile,network.playerId);setProfileUI();
+ try{await network.saveProfile(profile,language);toast(t().saved);}
+ catch{toast(t().saveFailed);}
+ network.connect({...profile,language},world.getPosition());
+ $("profile-modal").classList.add("hidden");renderPresence();
+}
+function updatePreview(){
+ const name=$("monk-name").value.trim()||"行者";text("preview-name",name);
+ $("preview-body").style.background=$("monk-robe").value;
+ $("preview-head").style.background=$("monk-skin").value;
+}
+function playBell(){
+ try{
+  const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;
+  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume();
+  const now=audio.currentTime,gain=audio.createGain();gain.connect(audio.destination);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.16,now+.03);gain.gain.exponentialRampToValueAtTime(.0001,now+3.2);
+  for(const [hz,volume] of [[174,.6],[261,.24],[349,.12]]){
+   const osc=audio.createOscillator();osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.frequency.exponentialRampToValueAtTime(hz*.992,now+3);
+   const g=audio.createGain();g.gain.value=volume;osc.connect(g);g.connect(gain);osc.start(now);osc.stop(now+3.3);
+  }
+ }catch{}
+}
+function doAction(action){
+ if(!profile)return;
+ if(!world.canAct(action)){
+  const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":"lotusNear";
+  toast(t()[key]);return;
+ }
+ world.setLocalPose(action);world.addEffect(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel")?6500:2600);
+ const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
+ network.action(action);network.logActivity(action,world.currentLocation().key);
+ if(action==="bell")playBell();
+ toast(poseText);
+}
+document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
+$("open-profile").addEventListener("click",()=>{$("profile-modal").classList.remove("hidden");updatePreview();});
+$("quick-profile").addEventListener("click",()=>$("open-profile").click());
+$("save-profile").addEventListener("click",saveProfile);
+["monk-name","monk-robe","monk-skin"].forEach(id=>$(id).addEventListener("input",updatePreview));
+document.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>$(button.dataset.close).classList.add("hidden")));
+$("language").value=language;$("language").addEventListener("change",async e=>{
+ language=e.target.value;localStorage.setItem("temple-language",language);applyLanguage();
+ if(profile){try{await network.saveProfile(profile,language);}catch{}network.close();network.connect({...profile,language},world.getPosition());}
+});
+$("chat-form").addEventListener("submit",e=>{
+ e.preventDefault();const input=$("chat-input"),message=input.value.trim();if(!message)return;
+ if(network.chat(message)){input.value="";}else toast(t().chatError);
+});
+$("chat-collapse").addEventListener("click",()=>$("chat-panel").classList.toggle("collapsed"));
+$("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classList.remove("hidden");await loadPrayers();});
+async function loadPrayers(){
+ try{const prayers=await network.getPrayers();renderPrayers(prayers);}catch{renderPrayers([]);}
+}
+function renderPrayers(prayers){
+ const list=$("prayer-list");list.replaceChildren();text("prayer-count",String(prayers.length));
+ if(!prayers.length){const empty=document.createElement("div");empty.className="prayer-empty";empty.textContent=t().prayerEmpty;list.append(empty);return;}
+ for(const p of prayers){
+  const card=document.createElement("article");card.className="prayer-item";
+  const body=document.createElement("p");body.textContent=p.message;
+  const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at).toLocaleDateString();
+  card.append(body,foot);list.append(card);
+ }
+}
+$("prayer-form").addEventListener("submit",async e=>{
+ e.preventDefault();const input=$("prayer-input"),message=input.value.trim();if(message.length<2)return;
+ const submit=$("prayer-submit");submit.disabled=true;
+ try{
+  await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);await loadPrayers();await updateStats();
+ }catch(error){toast(error.message?.includes("pause")?t().prayerRate:t().prayerFailed);}
+ finally{submit.disabled=false;}
+});
+
+// Keyboard and mobile thumbstick controls
+addEventListener("keydown",e=>{
+ if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
+ const key=e.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"," "].includes(key))e.preventDefault();keys[key]=true;
+});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+const stick=$("joystick"),knob=$("joystick-knob");
+function updateStick(e){
+ const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,31/(length||1));
+ joy={x:dx*factor/31,y:dy*factor/31};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
+}
+stick.addEventListener("pointerdown",e=>{stick.setPointerCapture(e.pointerId);updateStick(e);});
+stick.addEventListener("pointermove",e=>{if(e.buttons)updateStick(e);});
+function resetStick(){joy={x:0,y:0};knob.style.transform="translate(0,0)";}
+stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);
+function inputState(){
+ return {
+  forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
+  left:keys.a||keys.arrowleft?1:0,right:keys.d||keys.arrowright?1:0,
+  run:!!keys.shift,joyX:joy.x,joyY:-joy.y
+ };
+}
+function frame(){
+ const dt=Math.min(world.clock.getDelta(),.04),now=performance.now();
+ world.update(dt,inputState(),now);updateLocation();
+ if(profile&&now-lastPositionSend>110){
+  const p=world.getPosition();network.move(p);
+  lastPositionSend=now;
+ }
+ if(now>actionUntil){text("character-state",t().walk);}
+ requestAnimationFrame(frame);
+}
+async function start(){
+ applyLanguage();
+ try{await network.health();}catch{}
+ await loadProfile();
+ await updateStats();setInterval(updateStats,30000);
+ setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
+ $("loading").classList.add("hidden");toast(t().entered);
+ if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
+ requestAnimationFrame(frame);
+}
+addEventListener("beforeunload",()=>network.close());
+start();
