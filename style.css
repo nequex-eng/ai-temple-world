@@ -53,3 +53,12 @@
 }
 
 .profile-sound-button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:38px;margin:13px 0 0;background:rgba(16,31,24,.72);border:1px solid #d7bb8266;border-radius:2px;color:#d8c59e;font-size:10px;letter-spacing:.08em;cursor:pointer;transition:background .18s,border-color .18s,color .18s}.profile-sound-button:hover,.profile-sound-button.active{background:rgba(69,88,66,.55);border-color:#d7bb82;color:#f3e5ca}.profile-sound-button:disabled{opacity:.7;cursor:wait}
+.beads-modal{width:min(520px,100%);text-align:center}
+.beads-count{display:flex;align-items:baseline;justify-content:center;gap:7px;margin:12px 0;color:#e8d8b8}
+.beads-count strong{font:42px/1 var(--serif);font-variant-numeric:tabular-nums;color:#e8c98f}
+.beads-count span{font-size:11px;color:#a99b80}
+.beads-ring{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;padding:16px;margin:8px 0 16px;border:1px solid #d7bb8233;background:radial-gradient(circle,#d4b77a0c,transparent 72%)}
+.prayer-bead{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 28%,#a98b61,#57432f 68%,#2c251d);box-shadow:inset 0 1px 2px #f1dfbd55,0 1px 2px #0008}
+.prayer-bead.passed{background:radial-gradient(circle at 32% 28%,#f1dca9,#bd9657 68%,#80603a);box-shadow:0 0 7px #e9c47c66}
+.beads-modal .primary-button{margin-top:4px}
+@media(max-width:660px){.beads-ring{gap:4px;padding:11px}.prayer-bead{min-width:0}.beads-count strong{font-size:36px}}
