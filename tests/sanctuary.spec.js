@@ -91,7 +91,7 @@ test("two independent guests share live presence and messages", async ({ browser
     await pageA.locator("#chat-form button").click();
     await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 15000 });
 
-    await pageB.locator('[data-action="greet"]').click();
+    await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
   } finally {
     await cleanTestGuest(pageA);
