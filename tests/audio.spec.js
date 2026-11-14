@@ -1,20 +1,25 @@
 import { test, expect } from "@playwright/test";
 
-test("sound button starts recorded outdoor ambience and can mute it", async ({ page }) => {
+test("new visitors can start temple ambience before creating a monk", async ({ page }) => {
   const pageErrors=[];
   page.on("pageerror",error=>pageErrors.push(error.message));
-  await page.goto("/");
-  await expect(page.locator("#sound-toggle")).toBeVisible();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed","false");
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  await expect(page.locator("#profile-modal")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#profile-sound-toggle")).toBeVisible();
+  await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","false");
 
-  // The user's click must unlock both Web Audio and the recorded bird ambience.
-  await page.locator("#sound-toggle").click();
+  // A real visitor gesture starts Web Audio and the recorded outdoor ambience.
+  await page.locator("#profile-sound-toggle").click();
+  await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","true");
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed","true");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.state())).toBe("running");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
 
-  await page.locator("#sound-toggle").click();
+  // Mute from the same first-visit dialog; both controls must stay in sync.
+  await page.locator("#profile-sound-toggle").click();
+  await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","false");
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed","false");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(true);
   expect(pageErrors).toEqual([]);

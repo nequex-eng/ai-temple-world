@@ -32,7 +32,7 @@ function applyLanguage(){
  const d=t();
  document.documentElement.lang=({zh:"zh-CN",ja:"ja",ko:"ko",th:"th"})[language];
  const labels={
-  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"sound-toggle":"♫ "+d.soundOff,"location-eyebrow":d.locationEyebrow,
+  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"profile-sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"location-eyebrow":d.locationEyebrow,
   "location-hint":d.locationHint,"presence-title":d.presence,"presence-sub":d.presenceSub,
   "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
@@ -220,8 +220,7 @@ async function ensureAudio(){
   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
   soundEnabled=true;
   audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
-  const button=$("sound-toggle");
-  if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}
+  for(const id of ["sound-toggle","profile-sound-toggle"]){const button=$(id);if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}}
   // Retry once if an MP3 transcode failed and the original Ogg fallback has loaded.
   if(templeBirds.paused)templeBirds.play().catch(()=>{});
   if(templeBell.paused)templeBell.play().catch(()=>{});
@@ -278,7 +277,7 @@ async function setSound(on){
   if(button)button.disabled=false;
   if(!ok){
    soundEnabled=false;
-   if(button){button.classList.remove("active");button.textContent="♫ "+t().soundOff;button.setAttribute("aria-pressed","false");}
+   for(const id of ["sound-toggle","profile-sound-toggle"]){const target=$(id);if(target){target.classList.remove("active");target.textContent="♫ "+t().soundOff;target.setAttribute("aria-pressed","false");}}
    toast("浏览器未能启动声音，请检查设备音量后再点一次。");
    return;
   }
@@ -292,7 +291,7 @@ async function setSound(on){
  for(const media of [templeBirds,templeChant,templeBell]){
   if(media){media.pause();try{media.currentTime=0;}catch{}}
  }
- if(button){button.classList.remove("active");button.textContent="♫ "+t().soundOff;button.setAttribute("aria-pressed","false");}
+ for(const id of ["sound-toggle","profile-sound-toggle"]){const target=$(id);if(target){target.classList.remove("active");target.textContent="♫ "+t().soundOff;target.setAttribute("aria-pressed","false");}}
 }
 function playBell(force=false,volume=.62){
  if(!soundEnabled&&!force)return;
@@ -372,6 +371,7 @@ stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointerca
 addEventListener("blur",()=>{keys={};resetStick();});
 $("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
 $("sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
+$("profile-sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
