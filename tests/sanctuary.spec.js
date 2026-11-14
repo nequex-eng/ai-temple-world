@@ -100,6 +100,30 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
 });
 
 
+test("temple walls block movement and the entrance stairs are climbable", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/);
+  await page.locator("#monk-name").fill("Collision Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+
+  await page.evaluate(() => window.__templeDebug.setPosition(8.3, -10));
+  await page.keyboard.down("d");
+  await page.waitForTimeout(850);
+  await page.keyboard.up("d");
+  const wall = await page.evaluate(() => window.__templeDebug.position());
+  expect(wall.x).toBeLessThan(8.8);
+
+  await page.evaluate(() => window.__templeDebug.setPosition(0, 0.9));
+  await page.keyboard.down("w");
+  await page.waitForTimeout(1900);
+  await page.keyboard.up("w");
+  const stairs = await page.evaluate(() => window.__templeDebug.position());
+  expect(stairs.z).toBeLessThan(-2.5);
+  expect(stairs.y).toBeGreaterThan(0.45);
+  await cleanTestGuest(page);
+});
+
 test("two independent guests share live presence and messages", async ({ browser }) => {
   const contextA = await browser.newContext();
   const contextB = await browser.newContext();
