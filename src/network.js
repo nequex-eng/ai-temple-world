@@ -98,9 +98,10 @@ export class TempleNetwork {
     socket.addEventListener("message", event => {
       try { this.onMessage(JSON.parse(event.data)); } catch {}
     });
-    socket.addEventListener("error", () => this.onStatus("offline"));
+    socket.addEventListener("error", () => { if (this.socket === socket) this.onStatus("offline"); });
     socket.addEventListener("close", () => {
-      if (this.socket === socket) this.socket = null;
+      if (this.socket !== socket) return;
+      this.socket = null;
       if (this.closedByUser) return;
       this.onStatus("offline");
       this.scheduleReconnect();
@@ -136,7 +137,8 @@ export class TempleNetwork {
     this.closedByUser = true;
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
-    this.socket?.close(1000, "Leaving the sanctuary");
+    const socket = this.socket;
     this.socket = null;
+    socket?.close(1000, "Leaving the sanctuary");
   }
 }
