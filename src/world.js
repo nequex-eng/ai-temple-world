@@ -162,7 +162,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.moveVelocity=new THREE.Vector2();this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -297,18 +297,32 @@ export class TempleWorld{
   if(!this.local)return;
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
-  const moving=Math.abs(f)+Math.abs(side)>.05;
+  const hasInput=Math.hypot(f,side)>.05;
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
-  if(moving&&["walk","greet","bow","chant"].includes(this.local.pose)){
+  const canMove=["walk","greet","bow","chant"].includes(this.local.pose);
+  let direction=null;
+  if(hasInput&&canMove){
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw));
    const rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw));
-   const dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
-   const speed=input.run?5.2:2.8,p=this.local.root.position;
-   const result=moveWithCollision(p,dir.x*speed*dt,dir.z*speed*dt,this.collision);
+   direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
+  }
+  const topSpeed=direction?(input.run?5.2:2.8):0;
+  const desired=new THREE.Vector2(direction?.x||0,direction?.z||0).multiplyScalar(topSpeed);
+  // Ease into motion and stop promptly: keyboard and touch controls feel deliberate without wall jitter.
+  const response=1-Math.exp(-dt*(direction?13:19));
+  this.moveVelocity.lerp(desired,response);
+  if(this.moveVelocity.length()<.012)this.moveVelocity.set(0,0);
+  const moving=this.moveVelocity.length()>.03;
+  let result={x:this.local.root.position.x,y:this.local.root.position.y,z:this.local.root.position.z,blocked:false};
+  if(moving&&canMove){
+   const p=this.local.root.position;
+   result=moveWithCollision(p,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
    p.set(result.x,result.y,result.z);
-   this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
-   this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,position:{x:p.x,y:p.y,z:p.z}};
-  }else this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:false,position:this.getPosition()};
+   if(result.blocked)this.moveVelocity.multiplyScalar(.28);
+   if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
+  }
+  const p=this.local.root.position;
+  this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,position:{x:p.x,y:p.y,z:p.z}};
   this.local.update(dt,time,moving&&this.local.pose==="walk");
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
