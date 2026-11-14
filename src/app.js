@@ -92,7 +92,11 @@ function handleMessage(message){
   return;
  }
  if(message.type==="player:move"||message.type==="player:action"){
-  if(message.player?.id!==network.playerId){world.updateRemote(message.player);onlinePlayers.set(message.player.id,message.player);renderPresence();}
+  if(message.player?.id!==network.playerId){
+   world.updateRemote(message.player);
+   if(message.type==="player:action")world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
+   onlinePlayers.set(message.player.id,message.player);renderPresence();
+  }
   return;
  }
  if(message.type==="player:leave"){
