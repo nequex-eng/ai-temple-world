@@ -238,6 +238,8 @@ async function ensureAudio(){
   updateSoundscape();
   return true;
  }catch(error){
+  audioFailureReason="音频引擎启动失败："+(error?.message||error?.name||"unknown");
+  updateAudioStatus();
   console.warn("Temple audio could not be started:",error);
   return false;
  }
@@ -273,11 +275,19 @@ function playFootstep(){
 }
 function playMuyu(){
  if(!soundEnabled||!audio||audio.state!=="running")return;
- const now=audio.currentTime;
- for(const [hz,vol,decay] of [[205,.11,.085],[318,.035,.055],[92,.045,.11]]){
-  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(hz,now);
+ const now=audio.currentTime,output=effectsGain||audioMaster||audio.destination;
+ // A dry wooden-fish attack: a brief mallet click followed by several
+ // inharmonic wooden resonances, rather than a plain electronic beep.
+ const length=Math.max(1,Math.floor(audio.sampleRate*.028)),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,5);
+ const hit=audio.createBufferSource(),filter=audio.createBiquadFilter(),hitGain=audio.createGain();
+ hit.buffer=buffer;filter.type="bandpass";filter.frequency.value=1050;filter.Q.value=.72;
+ hitGain.gain.setValueAtTime(.055,now);hitGain.gain.exponentialRampToValueAtTime(.0001,now+.035);
+ hit.connect(filter);filter.connect(hitGain);hitGain.connect(output);hit.start(now);
+ for(const [hz,vol,decay] of [[184,.085,.14],[276,.042,.19],[397,.021,.12],[612,.008,.075]]){
+  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.setValueAtTime(hz,now);
   gain.gain.setValueAtTime(vol,now);gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
-  osc.connect(gain);gain.connect(effectsGain||audioMaster||audio.destination);osc.start(now);osc.stop(now+decay+.01);
+  osc.connect(gain);gain.connect(output);osc.start(now);osc.stop(now+decay+.01);
  }
 }
 async function setSound(on){
@@ -304,11 +314,29 @@ async function setSound(on){
  }
  for(const id of ["sound-toggle","profile-sound-toggle"]){const target=$(id);if(target){target.classList.remove("active");target.textContent="♫ "+t().soundOff;target.setAttribute("aria-pressed","false");}}
 }
+function playBellSynthesis(volume=.62){
+ if(!audio||audio.state!=="running")return;
+ const now=audio.currentTime,output=effectsGain||audioMaster||audio.destination;
+ // Layered bronze-bell partials with a soft low body and a long natural decay.
+ for(const [hz,level,decay,detune] of [[92,.075,3.8,-2],[184,.055,3.1,1],[276,.038,2.6,-1],[369,.025,2.1,2],[493,.018,1.65,-2],[641,.012,1.25,1],[827,.007,.9,0]]){
+  const osc=audio.createOscillator(),gain=audio.createGain(),filter=audio.createBiquadFilter();
+  osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.detune.value=detune;
+  filter.type="lowpass";filter.frequency.value=1500;
+  gain.gain.setValueAtTime(Math.max(.0001,level*volume*audioVolumes.effects),now);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
+  osc.connect(filter);filter.connect(gain);gain.connect(output);osc.start(now);osc.stop(now+decay+.04);
+ }
+}
 function playBell(force=false,volume=.62){
  if(!soundEnabled&&!force)return;
- try{
-  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;void mediaPlay(templeBell,"寺院钟声");}
- }catch{}
+ if(!audio||audio.state!=="running")return;
+ if(templeBell){
+  try{templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;
+   void mediaPlay(templeBell,"寺院钟声").then(ok=>{if(!ok)playBellSynthesis(volume);});
+   return;
+  }catch{}
+ }
+ playBellSynthesis(volume);
 }
 let beadTotal=0;
 try{beadTotal=Math.max(0,Math.floor(Number(localStorage.getItem("temple-beads-total")||0)));}catch{}
