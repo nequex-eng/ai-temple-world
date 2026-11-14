@@ -99,7 +99,10 @@ export class TempleNetwork {
       robe: p.robe || "#b49a72",
       skin: p.skin || "#d7ad87",
       style: p.style || "monk",
-      language: p.language || "zh",
+      language: p.language || localStorage.getItem("temple-language") || "zh",
+      room: this.room,
+      instance: String(this.instance),
+      region: this.region,
       x: String(pos.x || 0),
       z: String(pos.z ?? 18)
     });
