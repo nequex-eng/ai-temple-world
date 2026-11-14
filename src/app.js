@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeChant=null,templeBell=null,lastFootstep=0;
 const world=new TempleWorld($("world"));
 Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>world.getPosition(),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 const network=new TempleNetwork({
@@ -99,7 +99,7 @@ function handleMessage(message){
    world.updateRemote(message.player);
    if(message.type==="player:action"){
     world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
-    if(message.player.action==="bell")playBell();
+    if(message.player.action==="bell")playBell();if(message.player.action==="chant")playMuyu();
    }
    onlinePlayers.set(message.player.id,message.player);renderPresence();
   }
@@ -163,43 +163,80 @@ function updatePreview(){
 function ensureAudio(){
  try{
   const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
-  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume().then(()=>playAmbientChime()).catch(()=>{});
+  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume().catch(()=>{});
   if(!ambientNodes){
-   const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
-   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.32;
+   const buffer=audio.createBuffer(1,audio.sampleRate*4,audio.sampleRate),data=buffer.getChannelData(0);
+   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
-   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=620;low.Q.value=.35;
-   const wind=audio.createGain();wind.gain.value=.055;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
-   const drone=audio.createOscillator(),droneGain=audio.createGain();drone.type="sine";drone.frequency.value=110;droneGain.gain.value=.012;drone.connect(droneGain);droneGain.connect(audio.destination);drone.start();
-   const bellTimer=setInterval(()=>{if(soundEnabled&&audio?.state==="running")playAmbientChime();},26000);
-   ambientNodes={noise,low,wind,drone,droneGain,bellTimer};
-  }else{ambientNodes.wind.gain.setTargetAtTime(.055,audio.currentTime,.2);ambientNodes.droneGain.gain.setTargetAtTime(.012,audio.currentTime,.2);}
-  soundEnabled=true;const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
-  playAmbientChime();return true;
+   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=780;low.Q.value=.25;
+   const wind=audio.createGain();wind.gain.value=.022;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
+   const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.075;lfoGain.gain.value=.009;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
+   ambientNodes={noise,low,wind,lfo,lfoGain};
+   // Sparse, distant bird calls rather than the synthetic three-note chime used before.
+   ambientNodes.birdTimer=setInterval(()=>{if(soundEnabled&&audio?.state==="running")playBirdCall();},11500+Math.random()*9000);
+  }
+  if(!templeChant){
+   templeChant=new Audio("https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg");
+   templeChant.loop=true;templeChant.preload="auto";templeChant.volume=0;
+  }
+  if(!templeBell){
+   templeBell=new Audio("https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg");
+   templeBell.preload="auto";templeBell.volume=.62;
+  }
+  soundEnabled=true;
+  const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
+  updateSoundscape();return true;
  }catch{return false;}
 }
-function playAmbientChime(){
+function playBirdCall(){
  if(!audio||audio.state!=="running")return;
  const now=audio.currentTime;
- for(const [hz,delay,volume] of [[659.25,0,.13],[987.77,.22,.09],[1318.5,.48,.055]]){
-  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
-  gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(volume,now+delay+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+2.4);
-  osc.connect(gain);gain.connect(audio.destination);osc.start(now+delay);osc.stop(now+delay+2.5);
+ for(let i=0;i<2;i++){
+  const start=now+i*.16,osc=audio.createOscillator(),gain=audio.createGain();
+  osc.type="sine";osc.frequency.setValueAtTime(2600+Math.random()*650,start);
+  osc.frequency.exponentialRampToValueAtTime(1750+Math.random()*500,start+.16);
+  gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(.008,start+.018);gain.gain.exponentialRampToValueAtTime(.0001,start+.19);
+  osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.21);
+ }
+}
+function updateSoundscape(){
+ if(!soundEnabled||!templeChant||!world.local)return;
+ const p=world.getPosition(),distance=Math.hypot(p.x,p.z+37);
+ const volume=Math.max(0,1-distance/22)*.14;
+ templeChant.volume=volume;
+ if(volume>.008){if(templeChant.paused)templeChant.play().catch(()=>{});}
+ else if(!templeChant.paused)templeChant.pause();
+}
+function playFootstep(){
+ if(!audio||audio.state!=="running")return;
+ const now=audio.currentTime,noise=audio.createBufferSource(),length=Math.floor(audio.sampleRate*.12),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,2);
+ noise.buffer=buffer;const filter=audio.createBiquadFilter();filter.type="lowpass";filter.frequency.value=520;
+ const gain=audio.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.035,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+.12);
+ noise.connect(filter);filter.connect(gain);gain.connect(audio.destination);noise.start(now);noise.stop(now+.13);
+}
+function playMuyu(){
+ if(!audio||audio.state!=="running")return;
+ const now=audio.currentTime;
+ for(const [hz,vol,decay] of [[205,.11,.085],[318,.035,.055],[92,.045,.11]]){
+  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(hz,now);
+  gain.gain.setValueAtTime(vol,now);gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
+  osc.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+decay+.01);
  }
 }
 function setSound(on){
  if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
- else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
+ else{
+  soundEnabled=false;
+  if(ambientNodes?.wind)ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.18);
+  if(templeChant&&!templeChant.paused){templeChant.pause();templeChant.currentTime=0;}
+  const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}
+ }
 }
 function playBell(){
  try{
-  if(!ensureAudio())return;
-  const now=audio.currentTime,gain=audio.createGain();gain.connect(audio.destination);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.22,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+7.5);
-  for(const [hz,volume,decay] of [[130.8,.7,7.2],[196,.34,5.8],[261.6,.22,4.6],[392,.11,3.4],[523.2,.06,2.8]]){
-   const osc=audio.createOscillator(),g=audio.createGain();osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.frequency.exponentialRampToValueAtTime(hz*.985,now+decay);
-   g.gain.setValueAtTime(volume,now);g.gain.exponentialRampToValueAtTime(.0001,now+decay);osc.connect(g);g.connect(gain);osc.start(now);osc.stop(now+decay+.1);
-  }
+  if(!soundEnabled)ensureAudio();
+  if(templeBell){templeBell.currentTime=0;templeBell.play().catch(()=>{});}
  }catch{}
 }
 function doAction(action){
@@ -208,7 +245,7 @@ function doAction(action){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":"lotusNear";
   toast(t()[key]);return;
  }
- world.setLocalPose(action);world.addEffect(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
+ world.setLocalPose(action);world.addEffect(action);if(action==="chant")playMuyu();actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
  network.action(action);network.logActivity(action,world.currentLocation().key);
  if(action==="bell")playBell();
@@ -286,7 +323,7 @@ function inputState(){
 }
 function frame(){
  const dt=Math.min(world.clock.getDelta(),.18),now=performance.now();
- world.update(dt,inputState(),now);updateLocation();
+ world.update(dt,inputState(),now);updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
  if(profile&&now-lastPositionSend>110){
   const p=world.getPosition();network.move(p);
   lastPositionSend=now;
