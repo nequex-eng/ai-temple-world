@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createTempleCollision, moveWithCollision, groundHeightAt } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
@@ -39,8 +40,10 @@ function planeRoof(parent,w,d,ry,ey,side,m){
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
  add(new THREE.BoxGeometry(w+2.2,.7,d+2.2),m.stone,g,[0,.35,0]);
- add(new THREE.BoxGeometry(w,.28,2),m.stoneLight,g,[0,.14,d/2+1.45]);
- for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.58-i*1.1,.14,1.0),m.stoneLight,g,[0,.08+i*.15,d/2+2.3+i*.82]);
+ // Level landing plus three broad, climbable stone treads.
+ add(new THREE.BoxGeometry(w,.54,1.3),m.stoneLight,g,[0,.27,d/2+.58]);
+ const stairHeights=[.54,.36,.18];
+ for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.62,.18,1.0),m.stoneLight,g,[0,stairHeights[i]-.09,d/2+1.72+i]);
  add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.7+h/2,-d/2+.16],[0,0,0],false);
  add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[-w/2+.16,.7+h/2,0],[0,0,0],false);
  add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[w/2-.16,.7+h/2,0],[0,0,0],false);
@@ -134,12 +137,12 @@ function avatar(scene,profile={},id="local",isLocal=false){
   id,root,body,head,arms,legs,tag,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
   setLabel(name){this.tag.material.map.dispose();root.remove(this.tag);this.tag=labelSprite(name);root.add(this.tag);},
-  setPosition(x,z,r=0){root.position.set(x,0,z);root.rotation.y=r;this.target.set(x,0,z);this.targetRotation=r;},
+  setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.pose=a;this.until=performance.now()+ms;},
   update(dt,time,moving=false){
    if(this.until&&time>this.until){this.pose="walk";this.until=0;}
-   if(!isLocal){root.position.lerp(this.target,1-Math.pow(.0001,dt));let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
+   if(!isLocal){let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
    body.rotation.x=0;head.rotation.x=0;body.position.y=0;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
    if(moving&&this.pose==="walk"){const v=Math.sin(time*.009)*.48;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
    incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
@@ -160,7 +163,7 @@ export class TempleWorld{
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
   this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
-  this.m=this.materials();this.build();this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
+  this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
  materials(){
@@ -241,8 +244,8 @@ export class TempleWorld{
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:25,z:4,route:[[25,4],[20,7],[25,11]]}
   ];
   this.npcs=roster.map((spec,index)=>{
-   const a=avatar(this.scene,spec,"npc-"+index);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
-   const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900};
+   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
+   const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
    return npc;
@@ -251,11 +254,20 @@ export class TempleWorld{
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
    const a=npc.avatar,p=a.root.position;
-   if(npc.moving&&p.distanceTo(npc.target)<.55){
-    npc.moving=false;a.setPose(["bow","greet","meditate"][Math.floor(Math.random()*3)],2200);npc.nextAt=time+2600+Math.random()*4200;
-   }else if(!npc.moving&&time>=npc.nextAt){
-    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;const target=npc.route[npc.targetIndex];npc.target=target;
-    a.setTarget({x:target.x,z:target.z,rotation:Math.atan2(target.x-p.x,target.z-p.z)});a.setPose("walk",60000);npc.moving=true;
+   if(npc.moving){
+    const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
+    if(dist<.48){npc.moving=false;a.setPose(["bow","greet","meditate"][Math.floor(Math.random()*3)],2200);npc.nextAt=time+2600+Math.random()*4200;npc.stuckAt=0;}
+    else{
+     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.collision);
+     p.set(r.x,r.y,r.z);
+     if(r.blocked){npc.stuckAt=npc.stuckAt||time;if(time-npc.stuckAt>4500){npc.moving=false;npc.nextAt=time+800;npc.stuckAt=0;}}
+     else npc.stuckAt=0;
+     a.root.rotation.y=Math.atan2(dx,dz);
+    }
+   }else if(time>=npc.nextAt){
+    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;
+    const target=npc.route[npc.targetIndex];npc.target.copy(target);
+    a.setPose("walk",60000);npc.moving=true;
    }
    a.update(dt,time,npc.moving);
   }
@@ -267,7 +279,7 @@ export class TempleWorld{
   c.addEventListener("wheel",e=>{this.distance=clamp(this.distance+Math.sign(e.deltaY)*.7,6.5,18);},{passive:true});
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.2:1.65));}this.renderer.setSize(innerWidth,innerHeight);}
- setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation);}return;}this.local=avatar(this.scene,p,id,true);this.local.setPosition(0,25,0);}
+ setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}this.local=avatar(this.scene,p,id,true);this.local.setPosition(0,25,0,groundHeightAt(0,25,this.halls));}
  addRemote(p){if(!p?.id||p.id===this.local?.id)return;if(this.remotes.has(p.id)){this.updateRemote(p);return;}const a=avatar(this.scene,p,p.id);a.setPosition(p.x,p.z,p.rotation||0);a.setTarget(p);this.remotes.set(p.id,a);}
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
@@ -280,45 +292,30 @@ export class TempleWorld{
  }
  canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;return true;}
  update(dt,input={},time=performance.now()){
-  if(!this.local)return;const f=(input.forward||0)-(input.backward||0)+(input.joyY||0),side=(input.right||0)-(input.left||0)+(input.joyX||0),moving=Math.abs(f)+Math.abs(side)>.05;let blocked=false;
+  if(!this.local)return;
+  const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
+  const side=(input.right||0)-(input.left||0)+(input.joyX||0);
+  const moving=Math.abs(f)+Math.abs(side)>.05;
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   if(moving&&["walk","greet","bow","chant"].includes(this.local.pose)){
-   const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw)),rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw)),dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize(),speed=input.run?7.5:4.1,p=this.local.root.position;
-   const nx=clamp(p.x+dir.x*speed*dt,-79,79),nz=clamp(p.z+dir.z*speed*dt,-79,79);
-   for(const hall of this.halls){
-    const left=hall.x-hall.w/2+.55,right=hall.x+hall.w/2-.55,front=hall.z+hall.d/2-.55,back=hall.z-hall.d/2+.55;
-    const wasInside=p.x>left&&p.x<right&&p.z>back&&p.z<front;
-    const willInside=nx>left&&nx<right&&nz>back&&nz<front;
-    const doorHalf=hall.w*.115;
-    if(!wasInside&&willInside){
-     const entersFront=Math.abs(nx-hall.x)<doorHalf&&p.z>=front&&nz<front;
-     if(!entersFront)blocked=true;
-    }
-    if(wasInside&&!willInside){
-     const exitsFront=Math.abs(nx-hall.x)<doorHalf&&p.z<=front&&nz>front;
-     if(!exitsFront)blocked=true;
-    }
-   }
-   if(Math.hypot(nx-31,nz-33)<9.2)blocked=true;
-   if(!blocked){p.x=nx;p.z=nz;}
-   else{
-    // Axis-separated fallback keeps movement responsive when brushing a wall or doorway.
-    let moved=false;
-    for(const [tx,tz] of [[nx,p.z],[p.x,nz]]){
-     let hit=false;
-     for(const hall of this.halls){
-      const l=hall.x-hall.w/2+.55,r=hall.x+hall.w/2-.55,fz=hall.z+hall.d/2-.55,bz=hall.z-hall.d/2+.55;
-      const inside=tx>l&&tx<r&&tz>bz&&tz<fz;
-      const was=p.x>l&&p.x<r&&p.z>bz&&p.z<fz;
-      const doorway=Math.abs(tx-hall.x)<hall.w*.115&&((p.z>=fz&&tz<fz)||(p.z<=fz&&tz>fz));
-      if(inside&&!was&&!doorway)hit=true;
-     }
-     if(Math.hypot(tx-31,tz-33)<9.2)hit=true;
-     if(!hit){p.x=tx;p.z=tz;moved=true;break;}
-    }
-   }
+   const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw));
+   const rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw));
+   const dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
+   const speed=input.run?5.2:2.8,p=this.local.root.position;
+   const result=moveWithCollision(p,dir.x*speed*dt,dir.z*speed*dt,this.collision);
+   p.set(result.x,result.y,result.z);
    this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
+   this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,position:{x:p.x,y:p.y,z:p.z}};
+  }else this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:false,position:this.getPosition()};
+  this.local.update(dt,time,moving&&this.local.pose==="walk");
+  // Remote players are also resolved against the same masonry and stair geometry.
+  for(const a of this.remotes.values()){
+   const p=a.root.position,dx=a.target.x-p.x,dz=a.target.z-p.z,len=Math.hypot(dx,dz);
+   if(len>.025){const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.collision);p.set(r.x,r.y,r.z);}
+   else p.y=groundHeightAt(p.x,p.z,this.halls);
+   a.update(dt,time,false);
   }
+  this.updateNpcs(dt,time);
   this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:!!blocked};
   this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);this.updateNpcs(dt,time);
   const p=this.local.root.position,target=new THREE.Vector3(p.x+Math.sin(this.yaw)*this.distance,p.y+3.15+Math.sin(this.pitch)*this.distance*.75,p.z+Math.cos(this.yaw)*this.distance);
