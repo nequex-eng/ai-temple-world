@@ -137,7 +137,8 @@ export class TempleRoom {
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment(player);
     const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(Boolean);
-    server.send(JSON.stringify({ type: "welcome", players: peers, online: peers.length + 1 }));
+    const offeringRows = await this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] }));
+    server.send(JSON.stringify({ type: "welcome", players: peers, online: peers.length + 1, offerings: offeringRows.results || [] }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -148,7 +149,7 @@ export class TempleRoom {
       try { ws.send(payload); } catch {}
     }
   }
-  webSocketMessage(ws, message) {
+  async webSocketMessage(ws, message) {
     let data;
     try { data = JSON.parse(message); } catch { return; }
     const player = ws.deserializeAttachment();
@@ -174,6 +175,15 @@ export class TempleRoom {
       if (data.action === "incense" && !near(0, 0, 8)) return;
       if (data.action === "bell" && !near(-28, 2, 8)) return;
       if (data.action === "lotus" && !near(31, 33, 13)) return;
+      if (data.action === "lotus") {
+        if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
+        player.lastLotusAt = Date.now();
+        try {
+          await this.env.DB.prepare("INSERT INTO offerings(id,player_id,display_name,kind,created_at) VALUES(?,?,?,?,?)")
+            .bind(crypto.randomUUID(), player.id, player.name, "lotus", now()).run();
+          await this.env.DB.prepare("DELETE FROM offerings WHERE id IN (SELECT id FROM offerings ORDER BY created_at DESC LIMIT -1 OFFSET 24)").run();
+        } catch (error) { console.error("Lotus offering save failed", error); }
+      }
       player.action = data.action;
       ws.serializeAttachment(player);
       this.broadcast({ type: "player:action", player }, ws);
