@@ -17,6 +17,11 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.state())).toBe("running");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
+  await page.locator("#sound-settings").click();
+  await expect(page.locator("#sound-modal")).not.toHaveClass(/hidden/);
+  await page.locator("#sound-ambience").fill("42");
+  await expect(page.locator("#sound-ambience-value")).toHaveText("42%");
+  await page.locator('[data-close="sound-modal"]').click();
 
   // Mute from the same first-visit dialog; both controls must stay in sync.
   await page.locator("#profile-sound-toggle").click();
