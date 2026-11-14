@@ -11,10 +11,10 @@ A browser-first, multilingual 3D sanctuary built with Three.js and Cloudflare Wo
 - Explorable 3D temple grounds with traditional halls, courtyard paths, stone lanterns, a bell pavilion, Bodhi tree and lotus pond.
 - Walk into temple halls through the main doorways; wall boundaries and the lotus pond are respected by movement checks.
 - Customizable monk avatar: name, robe color, skin tone and monk/pilgrim outfit.
-- Desktop: WASD or arrow keys, Shift to run, drag to orbit, mouse wheel to zoom.
+- Desktop: click the ground to walk to a destination; WASD or arrow keys for direct movement, Shift to run, drag to orbit, mouse wheel to zoom. Mobile: tap the ground to walk, use the virtual joystick for precise movement, and pinch/drag to look around.
 - Mobile: virtual joystick and running toggle.
-- Actions: greet, join palms, bow, meditate, offer incense, sweep, ring the bell and release a lotus lamp.
-- Four interface languages: Chinese, Japanese, Korean and Thai.
+- Actions: greet, join palms, bow, meditate, offer incense, sweep, ring the bell, release a lotus lamp, and turn a 108-bead mala. Bead progress is stored locally on the visitor device and is never uploaded or ranked.
+- Four interface languages: Chinese, Japanese, Korean and Thai.\n- Quiet-by-default shared experience: chat starts collapsed; visitors can open it when they want to communicate.\n- Independent ambience, chanting and ritual-effect volume controls, with live audio-engine/source diagnostics and explicit playback errors.
 - Shared live room: online visitors can see other avatars, movement, gestures and realtime chat.
 - Cloud-saved guest profile, daily visits, activity records and a public wish wall.
 - Guest-data deletion control removes the associated profile, activities, prayers and visit records.
@@ -36,7 +36,7 @@ A browser-first, multilingual 3D sanctuary built with Three.js and Cloudflare Wo
 - Do not post private, identifying or sensitive information on the public wish wall.
 - No payment gate, donation gate, merit leaderboard, or claims that rituals change a person's fate.
 
-## Current boundaries
+## Experience direction\n\nThe shared-room and quiet-presence interaction model is informed by the public Sansa Temple experience: walkable 3D sanctuary, simple Buddhist gestures, prayer beads, manual sound activation and unobtrusive multiplayer presence. AI Temple World remains an independent Chinese Buddhist temple world with its own architecture, locations, NPC routines, multilingual chat and extended activities.\n\n## Current boundaries
 - Chat displays each message in its original language. Automatic translation is not enabled yet.
 - The AI abbot is not enabled yet. A MiniMax key exists on a separate Worker, but public use from this site would consume that account's API quota. It will only be connected after explicit approval of the public-use quota/rate limits.
 - Guest identity is device-based; no cross-device recovery.
