@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false;
 const world=new TempleWorld($("world"));
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -35,7 +35,7 @@ function applyLanguage(){
   "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
   "wishes-label":d.wishes,"character-state":d.walk,"chat-title":d.chatTitle,"chat-caption":d.chatCaption,
-  "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"desktop-hint":d.desktop,
+  "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"run-toggle":d.run,"desktop-hint":d.desktop,
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"label-name":d.name,"label-style":d.style,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
@@ -226,11 +226,12 @@ stick.addEventListener("pointerdown",e=>{stick.setPointerCapture(e.pointerId);up
 stick.addEventListener("pointermove",e=>{if(e.buttons)updateStick(e);});
 function resetStick(){joy={x:0,y:0};knob.style.transform="translate(0,0)";}
 stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);
+$("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
 function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
   left:keys.a||keys.arrowleft?1:0,right:keys.d||keys.arrowright?1:0,
-  run:!!keys.shift,joyX:joy.x,joyY:-joy.y
+  run:!!keys.shift||mobileRunning,joyX:joy.x,joyY:-joy.y
  };
 }
 function frame(){
