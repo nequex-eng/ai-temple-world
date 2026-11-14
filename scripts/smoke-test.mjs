@@ -30,8 +30,8 @@ assert.ok(world.includes("name:\"小沙弥\"") && world.includes("name:\"守经�
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
 assert.ok(app.includes("function advanceBead()") && app.includes('localStorage.setItem("temple-beads-total"'), "108-bead practice must persist locally");
-assert.ok(html.includes('id="sound-modal"') && html.includes('id="sound-ambience"') && html.includes('id="sound-chant"') && html.includes('id="sound-effects"'), "Independent temple audio controls missing");
-assert.ok(app.includes("function changeAudioVolume(key,value)") && app.includes('localStorage.setItem("temple-audio-volumes"'), "Sound preferences must persist locally");
+assert.ok(html.includes('id="sound-modal"') && html.includes('id="sound-status"') && html.includes('id="sound-ambience"') && html.includes('id="sound-chant"') && html.includes('id="sound-effects"'), "Independent temple audio controls missing");
+assert.ok(app.includes("function changeAudioVolume(key,value)") && app.includes("function updateAudioStatus()") && app.includes("function mediaPlay(media,label)") && app.includes('localStorage.setItem("temple-audio-volumes"'), "Sound preferences must persist locally");
 assert.ok(world.includes("setClickDestination(clientX,clientY)") && world.includes("this.moveTarget=new THREE.Vector3"), "Collision-safe click-to-walk navigation missing");
 assert.ok(world.includes("collidesAt(hit.x,hit.z,this.collision)"), "Click-to-walk must reject destinations inside collision geometry");
 assert.ok(app.includes("Birds_chirping_in_a_garden.ogg") && app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Recorded courtyard birds, temple chant and gong must be wired into the audio system");
