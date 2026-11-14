@@ -6,7 +6,9 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="";
+let audioVolumes={ambience:.8,chant:.65,effects:.8};
+try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
 Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now()),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}})}),configurable:false});
@@ -41,7 +43,7 @@ function applyLanguage(){
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
-  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
+  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot,"sound-title":d.soundTitle,"sound-description":d.soundDescription,"sound-ambience-label":d.soundAmbience,"sound-chant-label":d.soundChant,"sound-effects-label":d.soundEffects,"sound-test":d.soundTest,"sound-foot":d.soundFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;
@@ -185,21 +187,21 @@ async function ensureAudio(){
   if(!AudioContextClass)throw new Error("AudioContext unavailable");
   if(!audio){
    audio=new AudioContextClass({latencyHint:"playback"});
-   audioMaster=audio.createGain();audioMaster.gain.value=.88;audioMaster.connect(audio.destination);
+   audioMaster=audio.createGain();audioMaster.gain.value=.88;audioMaster.connect(audio.destination);ambienceGain=audio.createGain();ambienceGain.gain.value=audioVolumes.ambience;ambienceGain.connect(audioMaster);effectsGain=audio.createGain();effectsGain.gain.value=audioVolumes.effects;effectsGain.connect(audioMaster);
   }
   if(!ambientNodes){
    const buffer=audio.createBuffer(1,audio.sampleRate*4,audio.sampleRate),data=buffer.getChannelData(0);
    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.16;
    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
    const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=520;low.Q.value=.35;
-   const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(audioMaster);noise.start();
+   const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(ambienceGain||audioMaster);noise.start();
    const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.065;lfoGain.gain.value=.018;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
    ambientNodes={noise,low,wind,lfo,lfoGain};
   }
   if(!templeBirds)templeBirds=createTempleMedia(
    "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3",
    "https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",
-   {loop:true,volume:.27,label:"庭院鸟鸣"}
+   {loop:true,volume:.27*audioVolumes.ambience,label:"庭院鸟鸣"}
   );
   if(!templeChant)templeChant=createTempleMedia(
    "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3",
@@ -209,7 +211,7 @@ async function ensureAudio(){
   if(!templeBell)templeBell=createTempleMedia(
    "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2c/Gong55.ogg/Gong55.ogg.mp3",
    "https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg",
-   {loop:false,volume:.38,label:"寺院钟声"}
+   {loop:false,volume:.38*audioVolumes.effects,label:"寺院钟声"}
   );
   // Start media playback and resume Web Audio synchronously from the visitor's
   // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
@@ -234,7 +236,7 @@ async function ensureAudio(){
 function updateSoundscape(){
  if(!soundEnabled)return;
  if(templeBirds){
-  templeBirds.volume=.27;
+  templeBirds.volume=.27*audioVolumes.ambience;
   if(templeBirds.paused&&performance.now()>birdRetryAt){
    birdRetryAt=performance.now()+5000;
    templeBirds.play().catch(()=>{});
@@ -242,13 +244,13 @@ function updateSoundscape(){
  }
  if(!templeChant||!world.local)return;
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);
- const chantVolume=Math.max(0,1-hallDistance/24)*.23;
+ const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
  if(chantVolume>.006){if(templeChant.paused)templeChant.play().catch(()=>{});}
  else if(!templeChant.paused)templeChant.pause();
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
   const distantBell=templeBell?.cloneNode(true);
-  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13));distantBell.play().catch(()=>{});}
+  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13*audioVolumes.effects));distantBell.play().catch(()=>{});}
   updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
  }
 }
@@ -258,7 +260,7 @@ function playFootstep(){
  for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,2);
  noise.buffer=buffer;const filter=audio.createBiquadFilter();filter.type="lowpass";filter.frequency.value=520;
  const gain=audio.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.035,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+.12);
- noise.connect(filter);filter.connect(gain);gain.connect(audioMaster||audio.destination);noise.start(now);noise.stop(now+.13);
+ noise.connect(filter);filter.connect(gain);gain.connect(effectsGain||audioMaster||audio.destination);noise.start(now);noise.stop(now+.13);
 }
 function playMuyu(){
  if(!soundEnabled||!audio||audio.state!=="running")return;
@@ -266,7 +268,7 @@ function playMuyu(){
  for(const [hz,vol,decay] of [[205,.11,.085],[318,.035,.055],[92,.045,.11]]){
   const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(hz,now);
   gain.gain.setValueAtTime(vol,now);gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
-  osc.connect(gain);gain.connect(audioMaster||audio.destination);osc.start(now);osc.stop(now+decay+.01);
+  osc.connect(gain);gain.connect(effectsGain||audioMaster||audio.destination);osc.start(now);osc.stop(now+decay+.01);
  }
 }
 async function setSound(on){
@@ -278,7 +280,7 @@ async function setSound(on){
   if(!ok){
    soundEnabled=false;
    for(const id of ["sound-toggle","profile-sound-toggle"]){const target=$(id);if(target){target.classList.remove("active");target.textContent="♫ "+t().soundOff;target.setAttribute("aria-pressed","false");}}
-   toast("浏览器未能启动声音，请检查设备音量后再点一次。");
+   toast("声音启动失败："+(audioFailureReason||"请检查设备音量与浏览器权限"));
    return;
   }
   if(templeBirds?.paused)templeBirds.play().catch(()=>{});
@@ -296,7 +298,7 @@ async function setSound(on){
 function playBell(force=false,volume=.62){
  if(!soundEnabled&&!force)return;
  try{
-  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume;templeBell.play().catch(()=>{});}
+  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;templeBell.play().catch(error=>{audioFailureReason=error?.message||"钟声播放被浏览器阻止";toast("钟声播放失败："+audioFailureReason);});}
  }catch{}
 }
 let beadTotal=0;
@@ -317,6 +319,25 @@ function advanceBead(){
 function resetBeads(){beadTotal-=beadTotal%108;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}renderBeads();}
 $("beads-advance").addEventListener("click",advanceBead);
 $("beads-reset").addEventListener("click",resetBeads);
+function syncAudioControls(){
+ for(const [key,id] of [["ambience","sound-ambience"],["chant","sound-chant"],["effects","sound-effects"]]){
+  const input=$(id),output=$(id+"-value");if(input)input.value=String(Math.round(audioVolumes[key]*100));if(output)output.textContent=Math.round(audioVolumes[key]*100)+"%";
+ }
+}
+function changeAudioVolume(key,value){
+ audioVolumes[key]=Math.max(0,Math.min(1,Number(value)/100));
+ try{localStorage.setItem("temple-audio-volumes",JSON.stringify(audioVolumes));}catch{}
+ syncAudioControls();
+ if(key==="ambience"){if(ambienceGain&&audio)ambienceGain.gain.setTargetAtTime(audioVolumes.ambience,audio.currentTime,.08);if(templeBirds)templeBirds.volume=.27*audioVolumes.ambience;}
+ if(key==="chant"&&templeChant&&!templeChant.paused)updateSoundscape();
+ if(key==="effects"&&effectsGain&&audio)effectsGain.gain.setTargetAtTime(audioVolumes.effects,audio.currentTime,.08);
+}
+$("sound-settings").addEventListener("click",()=>{$("sound-modal").classList.remove("hidden");syncAudioControls();});
+$("sound-ambience").addEventListener("input",e=>changeAudioVolume("ambience",e.target.value));
+$("sound-chant").addEventListener("input",e=>changeAudioVolume("chant",e.target.value));
+$("sound-effects").addEventListener("input",e=>changeAudioVolume("effects",e.target.value));
+$("sound-test").addEventListener("click",()=>{if(!soundEnabled){toast("请先点击“开启声音”，再试听钟声。");return;}playBell(true,.85);});
+
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
