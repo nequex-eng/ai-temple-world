@@ -256,7 +256,7 @@ export class TempleWorld{
    const a=npc.avatar,p=a.root.position;
    if(npc.moving){
     const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
-    if(dist<.48){npc.moving=false;a.setPose(["bow","greet","meditate"][Math.floor(Math.random()*3)],2200);npc.nextAt=time+2600+Math.random()*4200;npc.stuckAt=0;}
+    if(dist<.48){npc.moving=false;const idle=["bow","greet","meditate","chant","sweep"];a.setPose(idle[Math.floor(Math.random()*idle.length)],2600+Math.random()*1800);npc.nextAt=time+4200+Math.random()*5200;npc.stuckAt=0;}
     else{
      const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.collision);
      p.set(r.x,r.y,r.z);
