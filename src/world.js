@@ -122,7 +122,7 @@ function avatar(scene,profile={},id="local"){
    else if(this.pose==="incense"){arms[0].rotation.x=-.6;arms[1].rotation.x=-.6;}
    else if(this.pose==="sweep"){arms[0].rotation.x=.15;arms[1].rotation.x=-.5;arms[1].rotation.z=.5*Math.sin(time*.01);}
   },
-  dispose(){scene.remove(root);this.tag.material.map.dispose();}
+  dispose(){scene.remove(root);root.traverse(o=>{o.geometry?.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];for(const material of materials){material.map?.dispose();material.dispose();}}});}
  };
 }
 
