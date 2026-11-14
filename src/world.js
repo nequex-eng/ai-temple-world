@@ -236,12 +236,12 @@ export class TempleWorld{
   const roster=[
    {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-3,z:23,route:[[-3,18],[2,13],[3,20]]},
    {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:4,z:4,route:[[4,4],[-4,3],[-4,-1],[3,-2]]},
-   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-25,z:10,route:[[-25,10],[-21,4],[-25,-1]]},
+   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-25,z:10,route:[[-25,10],[-21,4],[-21,-1]]},
    {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[19,-15],[17,-18],[20,-20]]},
    {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-22,z:-18,route:[[-22,-18],[-19,-16],[-18,-12],[-24,-12]]},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]]},
    {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]]},
-   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[20,16],[22,12]]}
+   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]]}
   ];
   this.npcs=roster.map((spec,index)=>{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0,groundHeightAt(spec.x,spec.z,this.halls));
