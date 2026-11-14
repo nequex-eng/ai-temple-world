@@ -179,7 +179,7 @@ function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"
  media.addEventListener("error",()=>{
   if(!fallbackUsed&&oggUrl){
    fallbackUsed=true;media.src=oggUrl;media.load();
-   if(soundEnabled)media.play().catch(()=>{});
+   if(soundEnabled)void mediaPlay(media,label);
    return;
   }
   if(soundEnabled&&!audioFailureShown){
@@ -248,7 +248,7 @@ function updateSoundscape(){
   templeBirds.volume=.27*audioVolumes.ambience;
   if(templeBirds.paused&&performance.now()>birdRetryAt){
    birdRetryAt=performance.now()+5000;
-   templeBirds.play().catch(()=>{});
+   void mediaPlay(templeBirds,"庭院鸟鸣");
   }
  }
  if(!templeChant||!world.local)return;
