@@ -27,14 +27,14 @@ jobs:
           echo
           grep -q 'id="loading"' /tmp/canonical.html
           echo "Latest deployment URL:"
-          curl -sS -L -D /tmp/deployment.headers https://8b151130.ai-temple-world.pages.dev/ -o /tmp/deployment.html
+          curl -sS -L -D /tmp/deployment.headers https://939c1f2a.ai-temple-world.pages.dev/ -o /tmp/deployment.html
           cat /tmp/deployment.headers
           head -c 900 /tmp/deployment.html
           echo
           grep -q 'id="loading"' /tmp/deployment.html
       - name: Test the latest direct deployment in desktop and mobile browsers
         env:
-          BASE_URL: https://8b151130.ai-temple-world.pages.dev
+          BASE_URL: https://939c1f2a.ai-temple-world.pages.dev
         run: npm run test:e2e
       - name: Save browser test report
         if: always()
