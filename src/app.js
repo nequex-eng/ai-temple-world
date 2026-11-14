@@ -201,11 +201,20 @@ function playBirdCall(){
 }
 function updateSoundscape(){
  if(!soundEnabled||!templeChant||!world.local)return;
- const p=world.getPosition(),distance=Math.hypot(p.x,p.z+37);
- const volume=Math.max(0,1-distance/22)*.14;
- templeChant.volume=volume;
- if(volume>.008){if(templeChant.paused)templeChant.play().catch(()=>{});}
+ const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);
+ const chantVolume=Math.max(0,1-hallDistance/24)*.16;
+ templeChant.volume=chantVolume;
+ if(chantVolume>.008){if(templeChant.paused)templeChant.play().catch(()=>{});}
  else if(!templeChant.paused)templeChant.pause();
+ // A restrained distant strike makes the bell pavilion feel inhabited without interrupting the player.
+ if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
+  const distantBell=templeBell?.cloneNode(true);
+  if(distantBell){
+   distantBell.volume=Math.max(.025,Math.min(.14,(1-bellDistance/38)*.14));
+   distantBell.play().catch(()=>{});
+  }
+  updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
+ }
 }
 function playFootstep(){
  if(!audio||audio.state!=="running")return;
