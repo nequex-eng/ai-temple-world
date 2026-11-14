@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0;
 const world=new TempleWorld($("world"));
 Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now()),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}})}),configurable:false});
@@ -236,7 +236,10 @@ function updateSoundscape(){
  if(!soundEnabled)return;
  if(templeBirds){
   templeBirds.volume=.27;
-  if(templeBirds.paused)templeBirds.play().catch(()=>{});
+  if(templeBirds.paused&&performance.now()>birdRetryAt){
+   birdRetryAt=performance.now()+5000;
+   templeBirds.play().catch(()=>{});
+  }
  }
  if(!templeChant||!world.local)return;
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);

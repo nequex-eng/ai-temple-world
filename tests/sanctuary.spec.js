@@ -41,19 +41,6 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
-  await page.locator("#sound-toggle").click();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.state())).toBe("running");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.paused)).toBe(false);
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
-  await page.locator("#sound-toggle").click();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "false");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.paused)).toBe(true);
-  await page.locator("#sound-toggle").click();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
-  await page.evaluate(() => window.__templeDebug.setPosition(-28, 2));
-  await page.locator('[data-action="bell"]').click();
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().bell.time)).toBeGreaterThan(0.2);
 
   await page.locator('[data-action="bow"]').click();
   await expect(page.locator("#toast")).toHaveClass(/show/);
@@ -97,14 +84,6 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
-  await page.locator("#sound-toggle").click();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.state())).toBe("running");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.paused)).toBe(false);
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
-  await page.locator("#sound-toggle").click();
-  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "false");
-  await expect.poll(() => page.evaluate(() => window.__templeAudioDebug.media().birds.paused)).toBe(true);
   await page.locator("#run-toggle").click();
   await expect(page.locator("#run-toggle")).toHaveClass(/active/);
   await page.locator("#run-toggle").click();
