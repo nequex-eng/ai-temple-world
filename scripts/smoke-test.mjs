@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import { createTempleCollision, collidesAt, groundHeightAt, moveWithCollision } from "../src/physics.js";
 
 const read = path => fs.readFileSync(path, "utf8");
 const html = read("index.html");
@@ -25,7 +26,20 @@ assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
 assert.ok(world.includes("name:\"小沙弥\"") && world.includes("name:\"守经人\""), "Temple NPC roles missing");
-assert.ok(app.includes("playAmbientChime") && app.includes("wind.gain.value=.055"), "Audible temple ambience missing");
+assert.ok(app.includes("playBirdCall") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
+assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
+assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
+const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
+const collision = createTempleCollision(testHalls);
+assert.equal(collidesAt(4.8, 0, collision), true, "A character must not pass through a side wall");
+assert.equal(collidesAt(0, 5.5, collision), false, "The main entrance must remain open");
+assert.equal(groundHeightAt(0, 8.72, testHalls), 0.18, "Outer stair tread must have a climbable elevation");
+assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must have a climbable elevation");
+assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
+const wallMove = moveWithCollision({ x: 4.4, z: 0, y: 0 }, 0.5, 0, collision);
+assert.equal(wallMove.moved, false, "Movement must stop at a wall instead of crossing it");
+const stairMove = moveWithCollision({ x: 0, z: 9, y: 0 }, 0, -0.4, collision);
+assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread");
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
