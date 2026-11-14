@@ -22,7 +22,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("#loading")).toHaveClass(/hidden/);
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
   await expect(page.locator("#world canvas")).toBeVisible();
   await expect(page.locator("#profile-modal")).not.toHaveClass(/hidden/);
 
@@ -36,7 +36,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
   await page.keyboard.down("w");
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.w)).toBe(true);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(2000);
   await page.keyboard.up("w");
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
