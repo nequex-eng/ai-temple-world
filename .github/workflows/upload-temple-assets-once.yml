@@ -1,0 +1,13 @@
+name: One-time temple Pages asset upload
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/upload-temple-assets-once.yml"
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload assets and print deployment manifest
+        run: |
+          curl -fsS -X POST https://temple-pages-upload-20261114b.nequex.workers.dev/upload | tee manifest.json
