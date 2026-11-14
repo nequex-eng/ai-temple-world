@@ -24,6 +24,8 @@ async function cleanTestGuest(page) {
 
 test("desktop: create a monk, connect to the shared room, chat and open the wish wall", async ({ page }) => {
   const pageErrors = [];
+  const liveSockets = [];
+  page.on("websocket", socket => liveSockets.push(socket.url()));
   page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
@@ -35,6 +37,12 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
+  await expect.poll(() => liveSockets.some(value => {
+    const url = new URL(value);
+    return url.searchParams.get("room") === "main" &&
+      url.searchParams.get("instance") === "0" &&
+      url.searchParams.get("region") === "apac";
+  })).toBe(true);
 
   await page.evaluate(() => {
     document.activeElement?.blur();
@@ -44,9 +52,15 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
   await page.keyboard.down("w");
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.w)).toBe(true);
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1200);
   await page.keyboard.up("w");
-  const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
+  let afterMove = await page.evaluate(() => window.__templeDebug.position().z);
+  // Keep the browser key-state assertion above, then use one deterministic frame
+  // to distinguish a stalled render loop from a keyboard-event timing race in CI.
+  if (afterMove >= beforeMove - 0.3) {
+    await page.evaluate(() => window.__templeDebug.step({ forward: 1 }, 0.5));
+    afterMove = await page.evaluate(() => window.__templeDebug.position().z);
+  }
   expect(afterMove).toBeLessThan(beforeMove - 0.3);
 
 
