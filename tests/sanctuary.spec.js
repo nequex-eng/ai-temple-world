@@ -7,13 +7,17 @@ async function cleanTestGuest(page) {
     const id = await page.evaluate(() => localStorage.getItem("temple-world-player-id"));
     if (!id) return;
     await page.evaluate(async playerId => {
-      await fetch("https://temple-world-api.nequex.workers.dev/api/data", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_id: playerId })
-      });
-      localStorage.removeItem("temple-world-profile-v2");
-      localStorage.removeItem("temple-world-player-id");
+      try {
+        await fetch("https://temple-world-api.nequex.workers.dev/api/data", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ player_id: playerId }),
+          signal: AbortSignal.timeout(5000)
+        });
+      } finally {
+        localStorage.removeItem("temple-world-profile-v2");
+        localStorage.removeItem("temple-world-player-id");
+      }
     }, id);
   } catch {}
 }
