@@ -1,5 +1,5 @@
 const CORS = {
-  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400",
   "Vary": "Origin"
@@ -58,6 +58,17 @@ async function handleApi(request, env, url) {
       "ON CONFLICT(id) DO UPDATE SET name=excluded.name,robe=excluded.robe,skin=excluded.skin,style=excluded.style,language=excluded.language,updated_at=excluded.updated_at"
     ).bind(body.id, name, robe, skin, style, language, stamp, stamp).run();
     return reply(request, { ok: true, profile: { id: body.id, name, robe, skin, style, language } });
+  }
+  if (path === "/api/data" && request.method === "DELETE") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid request." }, 400);
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM activities WHERE player_id=?").bind(body.player_id),
+      env.DB.prepare("DELETE FROM prayers WHERE player_id=?").bind(body.player_id),
+      env.DB.prepare("DELETE FROM visits WHERE player_id=?").bind(body.player_id),
+      env.DB.prepare("DELETE FROM profiles WHERE id=?").bind(body.player_id)
+    ]);
+    return reply(request, { ok: true, deleted: true });
   }
   if (path === "/api/activity" && request.method === "POST") {
     const body = await request.json().catch(() => null);
