@@ -337,7 +337,7 @@ export class TempleWorld{
     const bloom=add(new THREE.SphereGeometry(.16,10,8),reliefMat,lotusRelief,[Math.cos(a)*.22,Math.sin(a)*.22,.01]);
     bloom.scale.set(.42,1.1,.18);bloom.rotation.z=a;
    }
-   const lantern=new THREE.Group();lantern.position.set(-side*10.92,3.75,-38.1);altar.add(lantern);
+   const lantern=new THREE.Group();lantern.position.set(side*10.92,3.75,-38.1);altar.add(lantern);
    add(new THREE.CylinderGeometry(.28,.22,.12,8),frameMat,lantern,[0,.57,0]);
    add(new THREE.CylinderGeometry(.22,.22,.82,8,1,true),mat(0xe3c98d,.7,{emissive:0x8a5b25,emissiveIntensity:.16,transparent:true,opacity:.9,side:THREE.DoubleSide}),lantern,[0,0,0]);
    add(new THREE.CylinderGeometry(.28,.28,.1,8),frameMat,lantern,[0,-.48,0]);
