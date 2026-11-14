@@ -292,7 +292,7 @@ async function setSound(on){
    toast("声音启动失败："+(audioFailureReason||"请检查设备音量与浏览器权限"));
    return;
   }
-  if(templeBirds?.paused)templeBirds.play().catch(()=>{});
+  if(templeBirds?.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
   if(button)button.setAttribute("aria-pressed","true");
   toast("寺院环境声已开启");
   return;
@@ -307,7 +307,7 @@ async function setSound(on){
 function playBell(force=false,volume=.62){
  if(!soundEnabled&&!force)return;
  try{
-  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;templeBell.play().catch(error=>{audioFailureReason=error?.message||"钟声播放被浏览器阻止";toast("钟声播放失败："+audioFailureReason);});}
+  if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;void mediaPlay(templeBell,"寺院钟声");}
  }catch{}
 }
 let beadTotal=0;
