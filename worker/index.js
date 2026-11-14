@@ -8,11 +8,12 @@ const allowedOrigin = (origin) => {
   if (!origin) return "*";
   try {
     const u = new URL(origin);
-    return u.protocol === "https:" && (
+    const localDevelopment = (u.hostname === "localhost" || u.hostname === "127.0.0.1") && (u.protocol === "http:" || u.protocol === "https:");
+    const productionPages = u.protocol === "https:" && (
       u.hostname === "ai-temple-world.pages.dev" ||
-      u.hostname.endsWith(".ai-temple-world.pages.dev") ||
-      u.hostname === "localhost" || u.hostname === "127.0.0.1"
-    ) ? origin : "https://ai-temple-world.pages.dev";
+      u.hostname.endsWith(".ai-temple-world.pages.dev")
+    );
+    return localDevelopment || productionPages ? origin : "https://ai-temple-world.pages.dev";
   } catch { return "https://ai-temple-world.pages.dev"; }
 };
 const headers = (request) => ({ ...CORS, "Access-Control-Allow-Origin": allowedOrigin(request.headers.get("Origin")), "Content-Type": "application/json; charset=utf-8" });
