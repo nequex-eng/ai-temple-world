@@ -95,7 +95,10 @@ function handleMessage(message){
  if(message.type==="player:move"||message.type==="player:action"){
   if(message.player?.id!==network.playerId){
    world.updateRemote(message.player);
-   if(message.type==="player:action")world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
+   if(message.type==="player:action"){
+    world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
+    if(message.player.action==="bell")playBell();
+   }
    onlinePlayers.set(message.player.id,message.player);renderPresence();
   }
   return;
