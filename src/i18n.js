@@ -35,7 +35,7 @@ export const TEXT = {
     prayerSuccess:"心愿已放入莲池",prayerRate:"请稍候片刻，再点亮下一盏心灯",prayerFailed:"心愿暂时没有送达，请稍后再试",
     connected:"连接成功",disconnected:"与禅境的连接中断，正在重连",chatError:"消息没有送达，请检查连接",
     entered:"欢迎来到云上禅境",online:"在线",you:"我",chatOriginal:"原文",unknown:"行者",
-    bellNear:"钟楼就在寺院北侧，可沿石径前往。",incenseNear:"香炉广场就在殿前，沿石径走近后再上香。",lotusNear:"莲花池在寺院东侧，走近池边再放莲灯。",meditateNear:"请走进大雄宝殿，靠近蒲团后再打坐。
+    bellNear:"钟楼就在寺院北侧，可沿石径前往。",incenseNear:"香炉广场就在殿前，沿石径走近后再上香。",lotusNear:"莲花池在寺院东侧，走近池边再放莲灯。",meditateNear:"请走进大雄宝殿，靠近蒲团后再打坐。"
   },
   ja: {
     soundOn:"音響オン",soundOff:"音響をオン",beadsTitle:"108珠の数珠",soundTitle:"寺院の音",soundDescription:"境内の環境音、堂内の読経、儀式の効果音を個別に調整できます。音は自分でオンにした時だけ再生されます。",soundAmbience:"境内の環境音",soundChant:"堂内の読経",soundEffects:"儀式の効果音",soundTest:"鐘の音を試聴",soundFoot:"音源の読み込みに失敗した場合は、エラーを表示します。",beadsDesc:"一粒ずつ、ゆっくりと。108粒で一周です。順位はなく、静かな時間だけを記録します。",beadsPush:"一粒進める",beadsReset:"この周をリセット",beadsFoot:"記録はこの端末内だけに保存されます。",statusConnecting:"禅境に接続中",statusOnline:"共有の禅境に入りました",statusOffline:"一時的にオフライン",visitors:"人が滞在中",
@@ -68,7 +68,7 @@ export const TEXT = {
     prayerSuccess:"願いを蓮池に灯しました",prayerRate:"次の灯をともす前に少しお待ちください",prayerFailed:"願いを送れませんでした。後でもう一度お試しください",
     connected:"接続しました",disconnected:"接続が切れました。再接続中です",chatError:"メッセージを送信できませんでした",
     entered:"雲上の禅境へようこそ",online:"オンライン",you:"自分",chatOriginal:"原文",unknown:"行者",
-    bellNear:"鐘楼は寺院の奥にあります。石畳を進んでください。",incenseNear:"香炉は本堂前の広場にあります。",lotusNear:"蓮池は寺院の東側です。池の近くまで進んでください。",meditateNear:"本堂に入り、座布団の近くで坐禅してください。
+    bellNear:"鐘楼は寺院の奥にあります。石畳を進んでください。",incenseNear:"香炉は本堂前の広場にあります。",lotusNear:"蓮池は寺院の東側です。池の近くまで進んでください。",meditateNear:"本堂に入り、座布団の近くで坐禅してください。"
   },
   ko: {
     soundOn:"소리 켜짐",soundOff:"소리 켜기",beadsTitle:"108 염주",soundTitle:"사찰 소리",soundDescription:"경내 환경음, 법당 독경, 의식 효과음을 각각 조절할 수 있습니다. 소리는 직접 켰을 때만 재생됩니다.",soundAmbience:"경내 환경음",soundChant:"법당 독경",soundEffects:"의식 효과음",soundTest:"사찰 종소리 미리 듣기",soundFoot:"음원 로딩에 실패하면 오류를 표시합니다.",beadsDesc:"한 알씩 천천히 넘겨보세요. 108알이 한 바퀴입니다. 순위 없이 고요한 시간만 기록합니다.",beadsPush:"한 알 넘기기",beadsReset:"이번 회차 초기화",beadsFoot:"기록은 이 기기에만 저장됩니다.",statusConnecting:"선경에 연결 중",statusOnline:"공유 선경에 입장했습니다",statusOffline:"일시적으로 오프라인",visitors:"명 함께 있음",
