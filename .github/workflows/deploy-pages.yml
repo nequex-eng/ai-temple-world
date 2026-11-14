@@ -2,17 +2,6 @@ name: Deploy Cloudflare Pages
 on:
   push:
     branches: [main]
-    paths:
-      - "index.html"
-      - "style.css"
-      - "src/**"
-      - "icons/**"
-      - "manifest.webmanifest"
-      - "sw.js"
-      - "_headers"
-      - "scripts/build-pages.mjs"
-      - "package.json"
-      - ".github/workflows/deploy-pages.yml"
 permissions:
   contents: read
 jobs:
