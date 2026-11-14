@@ -371,9 +371,9 @@ export class TempleWorld{
   }
   // Slow, translucent incense smoke rises continuously from the offering vessel.
   const smokeMat=new THREE.MeshBasicMaterial({color:0xe8e2d5,transparent:true,opacity:.16,depthWrite:false});
-  for(const origin of [[0,1.62,1.1],[8,1.78,0]]){
+  for(const origin of [[0,1.62,1.1]]){
    for(let i=0;i<9;i++){
-    const puff=add(new THREE.SphereGeometry(.105+(i%3)*.025,8,7),smokeMat,altar,[origin[0]+Math.sin(i*2.1)*.12,origin[1]+i*.24,origin[2]+Math.cos(i*1.7)*.1],[0,0,0],false);
+    const puff=add(new THREE.SphereGeometry(.105+(i%3)*.025,8,7),smokeMat.clone(),altar,[origin[0]+Math.sin(i*2.1)*.12,origin[1]+i*.24,origin[2]+Math.cos(i*1.7)*.1],[0,0,0],false);
     puff.userData.smoke={origin,phase:i/9,seed:i*1.71};
     this.incenseSmoke.push(puff);
    }
