@@ -379,7 +379,7 @@ function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
  if(!world.canAct(action)){
-  const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":"lotusNear";
+  const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
  }
  world.setLocalPose(action);world.addEffect(action);if(action==="chant")playMuyu();actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
