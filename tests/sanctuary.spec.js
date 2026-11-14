@@ -106,6 +106,7 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.locator("#monk-name").fill("Collision Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await page.evaluate(() => document.activeElement?.blur());
 
   await page.evaluate(() => window.__templeDebug.setYaw(0));
   await page.evaluate(() => window.__templeDebug.setPosition(8.3, -10));
