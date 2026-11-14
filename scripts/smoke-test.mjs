@@ -29,7 +29,7 @@ assert.ok(world.includes("name:\"小沙弥\"") && world.includes("name:\"守经�
 assert.ok(app.includes("playBirdCall") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
-assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)"), "Collision regression test hooks missing");
+assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(8,0,0)") && world.includes("Math.hypot(p.x-8,p.z)<8"), "Incense censer must not block the main hall stairs");
 assert.ok(worker.includes("!near(8, 0, 8)"), "Worker incense validation must match the censer location");
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
