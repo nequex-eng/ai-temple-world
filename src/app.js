@@ -8,6 +8,7 @@ let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null;
 const world=new TempleWorld($("world"));
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>world.getPosition()}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
  onMessage:message=>handleMessage(message),
