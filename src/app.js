@@ -41,7 +41,7 @@ function applyLanguage(){
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
-  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot
+  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;
@@ -299,7 +299,26 @@ function playBell(force=false,volume=.62){
   if(templeBell){templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume;templeBell.play().catch(()=>{});}
  }catch{}
 }
+let beadTotal=0;
+try{beadTotal=Math.max(0,Math.floor(Number(localStorage.getItem("temple-beads-total")||0)));}catch{}
+function renderBeads(){
+ const count=beadTotal%108|| (beadTotal>0?108:0);
+ text("beads-count",String(count));
+ text("beads-round","/ 108 · "+Math.floor(beadTotal/108)+" 周");
+ const ring=$("beads-ring");if(!ring)return;ring.replaceChildren();
+ for(let i=0;i<108;i++){const bead=document.createElement("span");bead.className="prayer-bead"+(i<count?" passed":"");bead.setAttribute("aria-hidden","true");ring.append(bead);}
+}
+function openBeads(){$("beads-modal").classList.remove("hidden");renderBeads();}
+function advanceBead(){
+ beadTotal++;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}
+ renderBeads();if(navigator.vibrate)navigator.vibrate(12);
+ if(beadTotal%108===0)toast(language==="zh"?"已完成一周108颗，愿心安住。":language==="ja"?"108粒を一周しました。心静かに。":language==="ko"?"108알 한 바퀴를 마쳤습니다.":"ครบ 108 เม็ดแล้ว ขอให้ใจสงบ");
+}
+function resetBeads(){beadTotal-=beadTotal%108;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}renderBeads();}
+$("beads-advance").addEventListener("click",advanceBead);
+$("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
+ if(action==="beads"){openBeads();return;}
  if(!profile)return;
  if(!world.canAct(action)){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":"lotusNear";
