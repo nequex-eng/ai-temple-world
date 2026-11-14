@@ -54,6 +54,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.locator('[data-close="beads-modal"]').click();
   await expect(page.locator("#beads-modal")).toHaveClass(/hidden/);
 
+  await page.locator("#chat-collapse").click();
   await page.locator("#chat-input").fill("Temple live-room smoke test");
   await page.locator("#chat-form button").click();
   await expect(page.locator("#chat-messages")).toContainText("Temple live-room smoke test");
@@ -152,6 +153,8 @@ test("two independent guests share live presence and messages", async ({ browser
     await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
     await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
 
+    await pageA.locator("#chat-collapse").click();
+    await pageB.locator("#chat-collapse").click();
     await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
     await pageA.locator("#chat-form button").click();
     await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 15000 });
