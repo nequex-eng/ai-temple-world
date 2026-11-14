@@ -169,7 +169,7 @@ function ensureAudio(){
    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
    const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=780;low.Q.value=.25;
-   const wind=audio.createGain();wind.gain.value=.022;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
+   const wind=audio.createGain();wind.gain.value=.045;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
    const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.075;lfoGain.gain.value=.009;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
    ambientNodes={noise,low,wind,lfo,lfoGain};
    // Sparse, distant bird calls rather than the synthetic three-note chime used before.
@@ -185,8 +185,18 @@ function ensureAudio(){
   }
   soundEnabled=true;
   const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
-  updateSoundscape();return true;
+  updateSoundscape();playSoundConfirmation();return true;
  }catch{return false;}
+}
+function playSoundConfirmation(){
+ if(!audio)return;
+ const now=audio.currentTime+.02;
+ for(const [frequency,delay,volume] of [[392,0,.055],[523.25,.14,.045],[659.25,.28,.035]]){
+  const oscillator=audio.createOscillator(),gain=audio.createGain(),start=now+delay;
+  oscillator.type="sine";oscillator.frequency.setValueAtTime(frequency,start);
+  gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(volume,start+.018);gain.gain.exponentialRampToValueAtTime(.0001,start+.48);
+  oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(start);oscillator.stop(start+.5);
+ }
 }
 function playBirdCall(){
  if(!audio||audio.state!=="running")return;
@@ -300,11 +310,11 @@ $("prayer-form").addEventListener("submit",async e=>{
 });
 
 // Keyboard and mobile thumbstick controls
-const movementCodes={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ArrowUp:"arrowup",ArrowDown:"arrowdown",ArrowLeft:"arrowleft",ArrowRight:"arrowright"};
+const movementCodes={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ArrowUp:"arrowup",ArrowDown:"arrowdown",ArrowLeft:"arrowleft",ArrowRight:"arrowright",Space:"jump"};
 document.addEventListener("keydown",e=>{
  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
  const key=movementCodes[e.code]||e.key.toLowerCase();
- if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"," "].includes(key)){e.preventDefault();keys[key]=true;}
+ if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","jump"," "].includes(key)){e.preventDefault();keys[key]=true;}
 },true);
 document.addEventListener("keyup",e=>{const key=movementCodes[e.code]||e.key.toLowerCase();keys[key]=false;},true);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){keys={};resetStick();}});
@@ -327,7 +337,7 @@ function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
   left:keys.a||keys.arrowleft?1:0,right:keys.d||keys.arrowright?1:0,
-  run:!!keys.shift||mobileRunning,joyX:joy.x,joyY:-joy.y
+  run:!!keys.shift||mobileRunning,joyX:joy.x,joyY:-joy.y,jump:!!keys.jump||!!keys[" "]
  };
 }
 function frame(){
