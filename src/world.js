@@ -254,7 +254,7 @@ export class TempleWorld{
    if(npc.moving&&p.distanceTo(npc.target)<.55){
     npc.moving=false;a.setPose(["bow","greet","meditate"][Math.floor(Math.random()*3)],2200);npc.nextAt=time+2600+Math.random()*4200;
    }else if(!npc.moving&&time>=npc.nextAt){
-    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;const target=npc.route[npc.targetIndex];
+    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;const target=npc.route[npc.targetIndex];npc.target=target;
     a.setTarget({x:target.x,z:target.z,rotation:Math.atan2(target.x-p.x,target.z-p.z)});a.setPose("walk",60000);npc.moving=true;
    }
    a.update(dt,time,npc.moving);
@@ -280,12 +280,11 @@ export class TempleWorld{
  }
  canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;return true;}
  update(dt,input={},time=performance.now()){
-  if(!this.local)return;const f=(input.forward||0)-(input.backward||0)+(input.joyY||0),side=(input.right||0)-(input.left||0)+(input.joyX||0),moving=Math.abs(f)+Math.abs(side)>.05;
+  if(!this.local)return;const f=(input.forward||0)-(input.backward||0)+(input.joyY||0),side=(input.right||0)-(input.left||0)+(input.joyX||0),moving=Math.abs(f)+Math.abs(side)>.05;let blocked=false;
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   if(moving&&["walk","greet","bow","chant"].includes(this.local.pose)){
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw)),rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw)),dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize(),speed=input.run?7.5:4.1,p=this.local.root.position;
    const nx=clamp(p.x+dir.x*speed*dt,-79,79),nz=clamp(p.z+dir.z*speed*dt,-79,79);
-   let blocked=false;
    for(const hall of this.halls){
     const left=hall.x-hall.w/2+.55,right=hall.x+hall.w/2-.55,front=hall.z+hall.d/2-.55,back=hall.z-hall.d/2+.55;
     const wasInside=p.x>left&&p.x<right&&p.z>back&&p.z<front;
