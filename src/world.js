@@ -3,6 +3,14 @@ import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } 
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
+const robeFabric=(()=>{
+ const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
+ const ctx=canvas.getContext("2d");ctx.fillStyle="#e8e0d0";ctx.fillRect(0,0,128,128);
+ for(let y=0;y<128;y+=3){ctx.fillStyle="rgba(75,58,39,.055)";ctx.fillRect(0,y,128,1);}
+ for(let x=0;x<128;x+=3){ctx.fillStyle="rgba(255,255,255,.18)";ctx.fillRect(x,0,1,128);}
+ for(let i=0;i<900;i++){ctx.fillStyle=i%2?"rgba(70,54,36,.045)":"rgba(255,255,255,.12)";ctx.fillRect(Math.random()*128,Math.random()*128,1,2);}
+ const map=new THREE.CanvasTexture(canvas);map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(2,3);map.colorSpace=THREE.SRGBColorSpace;return map;
+})();
 function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
  const o=new THREE.Mesh(g,m);o.position.set(pos[0],pos[1],pos[2]);o.rotation.set(rot[0],rot[1],rot[2]);o.castShadow=cast;o.receiveShadow=true;p.add(o);return o;
 }
@@ -106,7 +114,7 @@ function lantern(scene,x,z,m){
 }
 function avatar(scene,profile={},id="local",isLocal=false){
  const root=new THREE.Group();root.name="monk-"+id;scene.add(root);
- const robe=mat(profile.robe||"#b49a72",.9),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
+ const robe=mat(profile.robe||"#b49a72",.96,{map:robeFabric,bumpMap:robeFabric,bumpScale:.018}),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
  const body=new THREE.Group();root.add(body);
  add(new THREE.LatheGeometry([new THREE.Vector2(.24,.08),new THREE.Vector2(.32,.18),new THREE.Vector2(.43,.5),new THREE.Vector2(.54,1.06),new THREE.Vector2(.62,1.42),new THREE.Vector2(.52,1.55),new THREE.Vector2(.29,1.63)],24),robe,body);
  add(new THREE.ConeGeometry(.19,.9,4),trim,body,[0,.92,.27]).scale.set(.75,1,.2);
@@ -127,7 +135,9 @@ function avatar(scene,profile={},id="local",isLocal=false){
  const scalp=add(new THREE.SphereGeometry(.318,20,14),skin,head,[0,.235,-.012]);scalp.scale.set(1,.58,.96);
  // Layered kasaya robe and cloth sash make the silhouette read as a Buddhist monk.
  add(new THREE.TorusGeometry(.31,.075,9,28),trim,body,[0,1.57,.015],[Math.PI/2,0,0]);
- const sash=add(new THREE.BoxGeometry(.16,1.28,.075),trim,body,[.24,.93,.43],[0,0,-.42]);sash.scale.set(.85,1,.8);
+ const sash=add(new THREE.BoxGeometry(.18,1.3,.085),trim,body,[.24,.93,.43],[0,0,-.42]);sash.scale.set(.85,1,.8);
+ const drapeCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-.34,1.53,.24),new THREE.Vector3(-.22,1.34,.47),new THREE.Vector3(.02,1.08,.54),new THREE.Vector3(.27,.82,.49),new THREE.Vector3(.37,.53,.38)]);
+ body.add(new THREE.Mesh(new THREE.TubeGeometry(drapeCurve,24,.018,7,false),trim));
  // Natural overlapping robe folds: subtle raised seams rather than a smooth toy-like cylinder.
  const foldMaterial=new THREE.MeshStandardMaterial({color:0x493c2c,roughness:1,transparent:true,opacity:.17});
  for(let i=0;i<7;i++){
