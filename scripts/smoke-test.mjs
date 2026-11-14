@@ -28,4 +28,9 @@ assert.ok(worker.includes("export class TempleRoom"), "Durable Object class miss
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
   assert.ok(worker.includes(table), "Worker missing D1 table reference: " + table);
 }
+assert.ok(world.includes('broom.visible=this.pose==="sweep"'), "Sweeping broom prop missing");
+assert.ok(world.includes('this.pose==="chant"'), "Shared chanting pose missing");
+assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"'), "Chanting action must be translated in all four locales");
+assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting action");
+
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
