@@ -160,7 +160,7 @@ export class TempleWorld{
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
   this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
-  this.m=this.materials();this.build();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
+  this.m=this.materials();this.build();this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
  materials(){
@@ -229,6 +229,37 @@ export class TempleWorld{
   this.ambient=new THREE.Group();s.add(this.ambient);
   for(let i=0;i<90;i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
+ buildNpcs(){
+  const roster=[
+   {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-3,z:23,route:[[-3,18],[2,13],[3,20]]},
+   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:4,z:4,route:[[4,4],[-4,3],[-4,-1],[3,-2]]},
+   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-25,z:10,route:[[-25,10],[-21,4],[-25,-1]]},
+   {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[22,-27],[31,-27]]},
+   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-22,z:-18,route:[[-22,-18],[-31,-19],[-31,-27]]},
+   {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-24,z:25,route:[[-24,25],[-20,29],[-30,34]]},
+   {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]]},
+   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:25,z:4,route:[[25,4],[20,7],[25,11]]}
+  ];
+  this.npcs=roster.map((spec,index)=>{
+   const a=avatar(this.scene,spec,"npc-"+index);a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
+   const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900};
+   if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
+   if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
+   return npc;
+  });
+ }
+ updateNpcs(dt,time){
+  for(const npc of this.npcs||[]){
+   const a=npc.avatar,p=a.root.position;
+   if(npc.moving&&p.distanceTo(npc.target)<.55){
+    npc.moving=false;a.setPose(["bow","greet","meditate"][Math.floor(Math.random()*3)],2200);npc.nextAt=time+2600+Math.random()*4200;
+   }else if(!npc.moving&&time>=npc.nextAt){
+    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;const target=npc.route[npc.targetIndex];
+    a.setTarget({x:target.x,z:target.z,rotation:Math.atan2(target.x-p.x,target.z-p.z)});a.setPose("walk",60000);npc.moving=true;
+   }
+   a.update(dt,time,npc.moving);
+  }
+ }
  bindCamera(){
   const c=this.renderer.domElement;c.addEventListener("pointerdown",e=>{this.drag=true;this.last={x:e.clientX,y:e.clientY};c.setPointerCapture(e.pointerId);});
   c.addEventListener("pointerup",()=>this.drag=false);c.addEventListener("pointercancel",()=>this.drag=false);
@@ -250,7 +281,8 @@ export class TempleWorld{
  canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;return true;}
  update(dt,input={},time=performance.now()){
   if(!this.local)return;const f=(input.forward||0)-(input.backward||0)+(input.joyY||0),side=(input.right||0)-(input.left||0)+(input.joyX||0),moving=Math.abs(f)+Math.abs(side)>.05;
-  if(moving&&this.local.pose==="walk"){
+  if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
+  if(moving&&["walk","greet","bow","chant"].includes(this.local.pose)){
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw)),rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw)),dir=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize(),speed=input.run?7.5:4.1,p=this.local.root.position;
    const nx=clamp(p.x+dir.x*speed*dt,-79,79),nz=clamp(p.z+dir.z*speed*dt,-79,79);
    let blocked=false;
@@ -288,7 +320,8 @@ export class TempleWorld{
    }
    this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
   }
-  this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);
+  this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:!!blocked};
+  this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);this.updateNpcs(dt,time);
   const p=this.local.root.position,target=new THREE.Vector3(p.x+Math.sin(this.yaw)*this.distance,p.y+3.15+Math.sin(this.pitch)*this.distance*.75,p.z+Math.cos(this.yaw)*this.distance);
   this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(p.x,p.y+1.2,p.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
