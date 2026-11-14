@@ -288,7 +288,7 @@ export class TempleRoom {
       if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
       player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
-      if (data.action === "incense" && !near(0, 0, 8)) return;
+      if (data.action === "incense" && !near(8, 0, 8)) return;
       if (data.action === "bell" && !near(-28, 2, 8)) return;
       if (data.action === "lotus" && !near(31, 33, 13)) return;
       if (data.action === "lotus") {
