@@ -111,6 +111,10 @@ function avatar(scene,profile={},id="local"){
  add(new THREE.CylinderGeometry(.018,.018,.72,7),mat(0x98683a,.8),incenseStick,[0,0,0]);
  add(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:0xff9c54}),incenseStick,[0,.37,0]);
  incenseStick.position.set(.08,1.05,.52);
+ const broom=new THREE.Group();body.add(broom);broom.visible=false;
+ add(new THREE.CylinderGeometry(.026,.035,1.12,7),mat(0x765233),broom,[0,-.2,0]);
+ add(new THREE.CylinderGeometry(.19,.23,.3,9),mat(0xb59a6d),broom,[0,-.83,0]);
+ broom.position.set(.12,1.05,.52);
  const beads=new THREE.Group();body.add(beads);
  for(let i=0;i<13;i++){const a=Math.PI*.12+i*Math.PI*.76/12;add(new THREE.SphereGeometry(.032,7,6),trim,beads,[Math.sin(a)*.32,1.24+Math.cos(a)*.18,.32]);}
  if(profile.style==="pilgrim"){
@@ -129,8 +133,8 @@ function avatar(scene,profile={},id="local"){
    if(id!=="local"){root.position.lerp(this.target,1-Math.pow(.0001,dt));let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
    body.rotation.x=0;head.rotation.x=0;body.position.y=0;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
    if(moving&&this.pose==="walk"){const v=Math.sin(time*.009)*.48;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
-   incenseStick.visible=this.pose==="incense";
-   if(this.pose==="bow"||this.pose==="kneel"){body.rotation.x=.17;head.rotation.x=.26;arms[0].rotation.x=-.2;arms[1].rotation.x=-.2;arms[0].rotation.z=.65;arms[1].rotation.z=-.65;if(this.pose==="kneel"){body.position.y=-.25;legs[0].rotation.x=-.7;legs[1].rotation.x=-.7;}}
+   incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
+   if(this.pose==="bow"||this.pose==="kneel"||this.pose==="chant"){body.rotation.x=this.pose==="chant"?.08:.17;head.rotation.x=this.pose==="chant"?.13:.26;arms[0].rotation.x=-.2;arms[1].rotation.x=-.2;arms[0].rotation.z=.65;arms[1].rotation.z=-.65;if(this.pose==="kneel"){body.position.y=-.25;legs[0].rotation.x=-.7;legs[1].rotation.x=-.7;}}
    else if(this.pose==="meditate"){body.position.y=-.25;legs[0].rotation.x=-1.1;legs[1].rotation.x=-1.1;arms[0].rotation.z=-.38;arms[1].rotation.z=.38;}
    else if(this.pose==="greet"){arms[0].rotation.x=-.75;arms[1].rotation.x=-.75;arms[0].rotation.z=-.42;arms[1].rotation.z=.42;}
    else if(this.pose==="incense"){arms[0].rotation.x=-.6;arms[1].rotation.x=-.6;}
