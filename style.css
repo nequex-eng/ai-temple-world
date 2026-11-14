@@ -62,3 +62,10 @@
 .prayer-bead.passed{background:radial-gradient(circle at 32% 28%,#f1dca9,#bd9657 68%,#80603a);box-shadow:0 0 7px #e9c47c66}
 .beads-modal .primary-button{margin-top:4px}
 @media(max-width:660px){.beads-ring{gap:4px;padding:11px}.prayer-bead{min-width:0}.beads-count strong{font-size:36px}}
+
+.sound-modal{width:min(460px,100%)}
+.sound-slider{display:grid;grid-template-columns:100px 1fr 42px;align-items:center;gap:12px;margin:18px 0;color:#d9c7a5;font-size:11px}
+.sound-slider input{width:100%;accent-color:#c6a36b}
+.sound-slider output{text-align:right;color:#e6d3ac;font-variant-numeric:tabular-nums}
+.sound-modal .primary-button{margin-top:20px}
+@media(max-width:660px){.sound-slider{grid-template-columns:80px 1fr 38px;gap:8px;font-size:10px}}
