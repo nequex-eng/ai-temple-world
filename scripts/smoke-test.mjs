@@ -38,6 +38,8 @@ assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must 
 assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
 const wallMove = moveWithCollision({ x: 4.4, z: 0, y: 0 }, 0.5, 0, collision);
 assert.equal(wallMove.moved, false, "Movement must stop at a wall instead of crossing it");
+const fastWallMove = moveWithCollision({ x: 0, z: 0, y: 0 }, 8, 0, collision);
+assert.ok(fastWallMove.x < 4.7, "Large frame steps must not tunnel through walls");
 const stairMove = moveWithCollision({ x: 0, z: 9, y: 0 }, 0, -0.4, collision);
 assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread");
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
