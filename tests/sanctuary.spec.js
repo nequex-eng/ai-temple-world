@@ -67,3 +67,36 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await expect(page.locator("#run-toggle")).not.toHaveClass(/active/);
   await cleanTestGuest(page);
 });
+
+
+test("two independent guests share live presence and messages", async ({ browser }) => {
+  const contextA = await browser.newContext();
+  const contextB = await browser.newContext();
+  const pageA = await contextA.newPage();
+  const pageB = await contextB.newPage();
+  try {
+    for (const [page, name] of [[pageA, "Room Guest A"], [pageB, "Room Guest B"]]) {
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await expect(page.locator("#loading")).toHaveClass(/hidden/);
+      await page.locator("#monk-name").fill(name);
+      await page.locator("#save-profile").click();
+      await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+      await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
+    }
+
+    await expect(pageA.locator("#online-count")).toContainText("2", { timeout: 20000 });
+    await expect(pageB.locator("#online-count")).toContainText("2", { timeout: 20000 });
+
+    await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
+    await pageA.locator("#chat-form button").click();
+    await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 15000 });
+
+    await pageB.locator('[data-action="greet"]').click();
+    await expect(pageB.locator("#toast")).toHaveClass(/show/);
+  } finally {
+    await cleanTestGuest(pageA);
+    await cleanTestGuest(pageB);
+    await contextA.close();
+    await contextB.close();
+  }
+});
