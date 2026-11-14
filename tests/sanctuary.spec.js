@@ -45,6 +45,15 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.locator('[data-action="bow"]').click();
   await expect(page.locator("#toast")).toHaveClass(/show/);
 
+  await page.locator('[data-action="beads"]').click();
+  await expect(page.locator("#beads-modal")).not.toHaveClass(/hidden/);
+  await page.locator("#beads-advance").click();
+  await page.locator("#beads-advance").click();
+  await page.locator("#beads-advance").click();
+  await expect(page.locator("#beads-count")).toHaveText("3");
+  await page.locator('[data-close="beads-modal"]').click();
+  await expect(page.locator("#beads-modal")).toHaveClass(/hidden/);
+
   await page.locator("#chat-input").fill("Temple live-room smoke test");
   await page.locator("#chat-form button").click();
   await expect(page.locator("#chat-messages")).toContainText("Temple live-room smoke test");
