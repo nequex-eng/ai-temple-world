@@ -37,6 +37,9 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
+  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
+  await page.locator("#sound-toggle").click();
+  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "false");
   await page.locator("#sound-toggle").click();
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
 
