@@ -128,6 +128,13 @@ function avatar(scene,profile={},id="local",isLocal=false){
  // Layered kasaya robe and cloth sash make the silhouette read as a Buddhist monk.
  add(new THREE.TorusGeometry(.31,.075,9,28),trim,body,[0,1.57,.015],[Math.PI/2,0,0]);
  const sash=add(new THREE.BoxGeometry(.16,1.28,.075),trim,body,[.24,.93,.43],[0,0,-.42]);sash.scale.set(.85,1,.8);
+ // Natural overlapping robe folds: subtle raised seams rather than a smooth toy-like cylinder.
+ const foldMaterial=new THREE.MeshStandardMaterial({color:0x493c2c,roughness:1,transparent:true,opacity:.17});
+ for(let i=0;i<7;i++){
+  const x=-.34+i*.113;
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,.48),new THREE.Vector3(x*.8,1.02,.535),new THREE.Vector3(x,.62,.51),new THREE.Vector3(x*.88,.24,.53)]);
+  body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
+ }
  add(new THREE.TorusGeometry(.39,.055,8,32),trim,body,[0,.55,0],[Math.PI/2,0,0]);
  // Long robe hem covers the trousers; only the sandals remain visible.
  add(new THREE.CylinderGeometry(.48,.58,.42,24,1,true),robe,body,[0,.25,0]);
@@ -161,8 +168,8 @@ function avatar(scene,profile={},id="local",isLocal=false){
   update(dt,time,moving=false){
    if(this.until&&time>this.until){this.pose="walk";this.until=0;}
    if(!isLocal){let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
-   body.rotation.x=0;head.rotation.x=0;body.position.y=0;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
-   if(moving&&this.pose==="walk"){const v=Math.sin(time*.009)*.48;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
+   body.rotation.x=0;head.rotation.x=0;body.position.y=Math.sin(time*.0018)*.012;head.rotation.y=Math.sin(time*.0012)*.018;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
+   if(moving&&this.pose==="walk"){const v=Math.sin(time*.0075)*.34;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
    incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
    if(this.pose==="bow"||this.pose==="kneel"||this.pose==="chant"){body.rotation.x=this.pose==="chant"?.08:.17;head.rotation.x=this.pose==="chant"?.13:.26;arms[0].rotation.x=-.2;arms[1].rotation.x=-.2;arms[0].rotation.z=.65;arms[1].rotation.z=-.65;if(this.pose==="kneel"){body.position.y=-.25;legs[0].rotation.x=-.7;legs[1].rotation.x=-.7;}}
    else if(this.pose==="meditate"){body.position.y=-.25;legs[0].rotation.x=-1.1;legs[1].rotation.x=-1.1;arms[0].rotation.z=-.38;arms[1].rotation.z=.38;}
