@@ -177,7 +177,7 @@ function doAction(action){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":"lotusNear";
   toast(t()[key]);return;
  }
- world.setLocalPose(action);world.addEffect(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel")?6500:2600);
+ world.setLocalPose(action);world.addEffect(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
  network.action(action);network.logActivity(action,world.currentLocation().key);
  if(action==="bell")playBell();
