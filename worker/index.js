@@ -20,7 +20,7 @@ const reply = (request, data, status = 200) => new Response(JSON.stringify(data)
 const clean = (v, max = 40) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
 const validId = (v) => /^[a-f0-9-]{36}$/i.test(String(v || ""));
 const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fallback;
-const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep"]);
+const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant"]);
 const LANGS = new Set(["zh", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 
