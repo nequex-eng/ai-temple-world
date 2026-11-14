@@ -225,12 +225,77 @@ export class TempleWorld{
    {x:-28,z:2,w:10,d:10,h:4.2,label:"钟楼",subtitle:"BELL PAVILION"},{x:28,z:-24,w:13,d:11,h:4.6,label:"藏经阁",subtitle:"SUTRA LIBRARY"},
    {x:-28,z:-25,w:13,d:10,h:4.2,label:"禅房",subtitle:"MEDITATION HALL"},{x:28,z:8,w:12,d:10,h:4.1,label:"僧舍",subtitle:"MONK QUARTERS"},{x:-29,z:31,w:11,d:9,h:3.8,label:"菩提院",subtitle:"BODHI COURTYARD"}
   ];this.halls.forEach(h=>hall(s,h,m));
-  // Buddha and halo
-  const altar=new THREE.Group();altar.position.set(0,0,-38.5);s.add(altar);const bud=mat(0xb18c55,.52,{metalness:.22});
-  add(new THREE.CylinderGeometry(1.8,2.1,.65,16),m.gold,altar,[0,.33,-1]);
-  const torso=add(new THREE.SphereGeometry(1,24,18),bud,altar,[0,2.35,-1]);torso.scale.set(1,.9,.75);
-  add(new THREE.SphereGeometry(.52,20,16),bud,altar,[0,3.65,-1]);for(const x of [-1,1]){const arm=add(new THREE.SphereGeometry(.64,16,12),bud,altar,[x*.92,2.1,-1]);arm.scale.set(1,.55,.7);}
-  add(new THREE.TorusGeometry(1.35,.075,10,64),m.gold,altar,[0,3.1,-1.6]);
+  // Main sanctuary: a recognisable seated Buddha, traditional altar, and a quiet space for visitors.
+  const altar=new THREE.Group();altar.position.set(0,0,-38.5);s.add(altar);
+  const bud=mat(0xb28a4e,.48,{metalness:.32}),budDark=mat(0x76572f,.62,{metalness:.24}),goldLeaf=mat(0xd6b36f,.42,{metalness:.48});
+  const darkWood=mat(0x39271d,.72),cushion=mat(0x8f332d,.92),cushionEdge=mat(0xc29a60,.76);
+  // Raised lotus throne and carved altar tiers.
+  add(new THREE.CylinderGeometry(2.15,2.35,.42,48),darkWood,altar,[0,.76,-.9]);
+  add(new THREE.CylinderGeometry(2.02,2.18,.2,48),goldLeaf,altar,[0,1.05,-.9]);
+  add(new THREE.CylinderGeometry(1.78,1.96,.48,48),budDark,altar,[0,1.36,-.9]);
+  add(new THREE.TorusGeometry(1.72,.07,10,48),goldLeaf,altar,[0,1.57,-.9]);
+  // Lotus petals around the Buddha's seat.
+  for(let i=0;i<16;i++){
+   const a=i*Math.PI*2/16,petal=add(new THREE.SphereGeometry(.52,14,10),i%2?goldLeaf:bud,altar,[Math.cos(a)*1.12,1.76,-.9+Math.sin(a)*1.12],[0,-a,0]);
+   petal.scale.set(.48,.18,1.05);
+  }
+  // Cross-legged seated figure: broad folded legs, upright torso, shoulders and forearms.
+  const legsSeat=add(new THREE.SphereGeometry(1,28,18),bud,altar,[0,1.98,-.88]);legsSeat.scale.set(1.38,.42,.86);
+  const robeBody=add(new THREE.LatheGeometry([new THREE.Vector2(.62,0),new THREE.Vector2(.76,.22),new THREE.Vector2(.83,.72),new THREE.Vector2(.72,1.25),new THREE.Vector2(.52,1.62),new THREE.Vector2(.38,1.78)],32),bud,altar,[0,1.92,-.92]);
+  const robeSeam=mat(0x74552e,.72,{metalness:.18});
+  for(let i=0;i<9;i++){
+   const x=-.58+i*.145;
+   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.55,3.47,-.31),new THREE.Vector3(x*.85,3.0,-.22),new THREE.Vector3(x,2.45,-.15),new THREE.Vector3(x*.9,2.1,-.2)]);
+   altar.add(new THREE.Mesh(new THREE.TubeGeometry(curve,16,.014,6,false),robeSeam));
+  }
+  // Left and right arms rest naturally over the lap; hands meet in meditation mudra.
+  for(const side of [-1,1]){
+   const shoulder=add(new THREE.SphereGeometry(.39,18,14),bud,altar,[side*.72,3.28,-.91]);shoulder.scale.set(.92,1.15,.86);
+   const upper=add(new THREE.CapsuleGeometry(.19,.56,6,12),bud,altar,[side*.77,2.92,-.48],[side*.18,0,side*-.13]);
+   const forearm=add(new THREE.CapsuleGeometry(.17,.62,6,12),bud,altar,[side*.43,2.46,-.12],[Math.PI/2,0,side*.25]);
+   add(new THREE.SphereGeometry(.18,16,12),bud,altar,[side*.13,2.35,.02]).scale.set(1.25,.62,.65);
+  }
+  // Neck, calm face, long earlobes, curled hair texture and ushnisha.
+  add(new THREE.CylinderGeometry(.22,.27,.38,18),bud,altar,[0,3.67,-.94]);
+  const face=add(new THREE.SphereGeometry(.48,28,22),bud,altar,[0,4.12,-.95]);face.scale.set(.84,1.12,.78);
+  for(const side of [-1,1]){
+   add(new THREE.SphereGeometry(.105,14,12),bud,altar,[side*.43,3.91,-.92]).scale.set(.72,1.55,.6);
+   add(new THREE.SphereGeometry(.035,10,8),budDark,altar,[side*.19,4.18,-.25]).scale.set(1,.55,.5);
+   const brow=add(new THREE.TorusGeometry(.13,.018,6,18,Math.PI),budDark,altar,[side*.18,4.27,-.25],[0,0,side*.06]);brow.rotation.x=Math.PI/2;
+  }
+  add(new THREE.SphereGeometry(.035,10,8),goldLeaf,altar,[0,4.12,-.22]);
+  add(new THREE.SphereGeometry(.19,18,14),bud,altar,[0,4.62,-.95]).scale.set(.72,1,.72);
+  // Fine raised curls on the scalp catch the warm interior lighting.
+  for(let row=0;row<4;row++)for(let col=0;col<11;col++){
+   const x=(col-5)*.064,y=4.39+row*.075,z=-.95-Math.sqrt(Math.max(.04,.19-x*x-(y-4.42)*(y-4.42)))*.72;
+   if(Number.isFinite(z))add(new THREE.SphereGeometry(.026,7,6),budDark,altar,[x,y,z]);
+  }
+  // Twin halo rings and a restrained radial aureole behind the head.
+  const halo=new THREE.Group();halo.position.set(0,4.12,-1.66);altar.add(halo);
+  add(new THREE.TorusGeometry(1.13,.055,10,72),goldLeaf,halo);
+  add(new THREE.TorusGeometry(1.32,.022,8,72),bud,halo);
+  for(let i=0;i<24;i++){const a=i*Math.PI*2/24,ray=add(new THREE.CylinderGeometry(.012,.022,.23,6),goldLeaf,halo,[Math.cos(a)*1.23,Math.sin(a)*1.23,0],[0,0,-a]);}
+  // Small offering table, incense vessel and paired butter lamps.
+  add(new THREE.BoxGeometry(3.1,.18,.92),darkWood,altar,[0,1.05,1.12]);
+  add(new THREE.BoxGeometry(2.85,.16,.72),goldLeaf,altar,[0,1.21,1.12]);
+  for(const side of [-1,1]){
+   add(new THREE.BoxGeometry(.16,.86,.16),darkWood,altar,[side*1.2,.57,1.12]);
+   const lamp=new THREE.Group();lamp.position.set(side*1.02,1.32,1.12);altar.add(lamp);
+   add(new THREE.CylinderGeometry(.13,.2,.12,16),goldLeaf,lamp,[0,0,0]);
+   add(new THREE.ConeGeometry(.055,.22,10),mat(0xffb84e,.35,{emissive:0xff8b25,emissiveIntensity:.65}),lamp,[0,.16,0]);
+   const light=new THREE.PointLight(0xffb76a,.32,4);light.position.set(0,.3,0);lamp.add(light);
+  }
+  const incenseBowl=new THREE.Group();incenseBowl.position.set(0,1.38,1.1);altar.add(incenseBowl);
+  add(new THREE.CylinderGeometry(.22,.3,.22,18),budDark,incenseBowl,[0,0,0]);
+  add(new THREE.TorusGeometry(.22,.035,8,24),goldLeaf,incenseBowl,[0,.12,0]);
+  // Individual brocade kneeling cushions on the visitor side of the altar.
+  for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]]){
+   const matGroup=new THREE.Group();matGroup.position.set(x,.58,z);altar.add(matGroup);
+   const base=add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]);base.scale.set(1,.85,1);
+   const pad=add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]);pad.scale.set(1,.8,1);
+   add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
+   for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
+  }
   // Bell tower & bronze bell
   const bell=new THREE.Group();bell.position.set(-28,0,2);s.add(bell);
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
