@@ -143,6 +143,35 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await cleanTestGuest(page);
 });
 
+test("main hall meditation uses a real cushion and mobile information panels stay compact", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  await page.locator("#monk-name").fill("Hall Meditation Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+
+  await expect(page.locator("#location-card")).toHaveClass(/collapsed/);
+  await expect(page.locator("#presence-card")).toHaveClass(/collapsed/);
+  await page.locator("#location-panel-toggle").click();
+  await expect(page.locator("#location-card")).not.toHaveClass(/collapsed/);
+  await page.locator("#location-panel-toggle").click();
+  await expect(page.locator("#location-card")).toHaveClass(/collapsed/);
+
+  await page.evaluate(() => window.__templeDebug.setPosition(0, -32.05));
+  await page.locator('[data-action="meditate"]').click();
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().pose)).toBe("meditate");
+  const seated = await page.evaluate(() => window.__templeDebug.position());
+  expect(seated.x).toBe(0);
+  expect(seated.z).toBeCloseTo(-32.05, 1);
+  expect(seated.rotation).toBeCloseTo(Math.PI, 2);
+
+  await page.evaluate(() => window.__templeDebug.setPosition(0, 0));
+  await page.locator('[data-action="meditate"]').click();
+  await expect(page.locator("#toast")).toContainText("大雄宝殿");
+  await cleanTestGuest(page);
+});
+
 test("two independent guests share live presence and messages", async ({ browser }) => {
   const contextA = await browser.newContext();
   const contextB = await browser.newContext();
