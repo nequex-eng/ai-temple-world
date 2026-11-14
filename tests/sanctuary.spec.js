@@ -107,11 +107,13 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
 
+  await page.evaluate(() => window.__templeDebug.setYaw(0));
   await page.evaluate(() => window.__templeDebug.setPosition(8.3, -10));
   await page.keyboard.down("d");
   await page.waitForTimeout(850);
   await page.keyboard.up("d");
   const wall = await page.evaluate(() => window.__templeDebug.position());
+  expect(wall.x).toBeGreaterThanOrEqual(8.2);
   expect(wall.x).toBeLessThan(8.8);
 
   await page.evaluate(() => window.__templeDebug.setPosition(0, 0.9));
