@@ -229,8 +229,8 @@ export class TempleWorld{
   for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
   this.updateEffects(dt);this.renderer.render(this.scene,this.camera);
  }
- addEffect(type){
-  const p=this.local?.root.position||new THREE.Vector3(),g=new THREE.Group();g.position.copy(p);this.scene.add(g);
+ addEffect(type,position=null){
+  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(-28,0,2);this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else if(type==="lotus"){for(let i=0;i<7;i++){const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.17,8,8),mat(0xe6c9c6,.65,{emissive:0x4f2523,emissiveIntensity:.3}),g,[Math.cos(a)*.23,.2,Math.sin(a)*.23]);petal.scale.set(.7,1.6,.55);}add(new THREE.SphereGeometry(.11,8,8),this.m.gold,g,[0,.2,0]);const l=new THREE.PointLight(0xffdca5,1.7,5);l.position.y=.8;g.add(l);g.position.set(this.pondPosition.x,.35,this.pondPosition.z);}
   else {for(let i=0;i<12;i++){const d=add(new THREE.SphereGeometry(.045,6,6),new THREE.MeshBasicMaterial({color:0xf2d59a,transparent:true,opacity:.7}),g,[(Math.random()-.5)*1.5,1.7+Math.random()*1.4,(Math.random()-.5)*.7],[0,0,0],false);d.userData.life=1.5;d.userData.vy=.35;}}
