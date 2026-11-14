@@ -154,6 +154,21 @@ function avatar(scene,profile={},id="local",isLocal=false){
   add(new THREE.SphereGeometry(.024,8,8),dark,head,[side*.105,.15,.292],[0,0,0],false);
  }
  add(new THREE.SphereGeometry(.04,8,8),skin,head,[0,.04,.3],[0,0,0],false);
+ // Fine facial structure: softly closed eyes, brow ridges, nose and a restrained mouth.
+ const feature=mat(0x59463b,.94),lip=mat(0x805c50,.9);
+ for(const side of [-1,1]){
+  const eyeCurve=new THREE.CatmullRomCurve3([
+   new THREE.Vector3(side*.19,.145,.274),new THREE.Vector3(side*.105,.125,.302),new THREE.Vector3(side*.045,.14,.31)
+  ]);
+  head.add(new THREE.Mesh(new THREE.TubeGeometry(eyeCurve,10,.009,5,false),feature));
+  const browCurve=new THREE.CatmullRomCurve3([
+   new THREE.Vector3(side*.22,.205,.255),new THREE.Vector3(side*.13,.225,.28),new THREE.Vector3(side*.055,.205,.295)
+  ]);
+  head.add(new THREE.Mesh(new THREE.TubeGeometry(browCurve,10,.012,5,false),skin));
+ }
+ add(new THREE.SphereGeometry(.035,10,8),skin,head,[0,.105,.315]).scale.set(.72,1.2,.72);
+ const mouthCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-.055,.035,.292),new THREE.Vector3(0,.027,.305),new THREE.Vector3(.055,.035,.292)]);
+ head.add(new THREE.Mesh(new THREE.TubeGeometry(mouthCurve,10,.006,5,false),lip));
  const incenseStick=new THREE.Group();body.add(incenseStick);incenseStick.visible=false;
  add(new THREE.CylinderGeometry(.018,.018,.72,7),mat(0x98683a,.8),incenseStick,[0,0,0]);
  add(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:0xff9c54}),incenseStick,[0,.37,0]);
@@ -182,7 +197,15 @@ function avatar(scene,profile={},id="local",isLocal=false){
    if(moving&&this.pose==="walk"){const v=Math.sin(time*.0075)*.34;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
    incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
    if(this.pose==="bow"||this.pose==="kneel"||this.pose==="chant"){body.rotation.x=this.pose==="chant"?.08:.17;head.rotation.x=this.pose==="chant"?.13:.26;arms[0].rotation.x=-.2;arms[1].rotation.x=-.2;arms[0].rotation.z=.65;arms[1].rotation.z=-.65;if(this.pose==="kneel"){body.position.y=-.25;legs[0].rotation.x=-.7;legs[1].rotation.x=-.7;}}
-   else if(this.pose==="meditate"){body.position.y=-.25;legs[0].rotation.x=-1.1;legs[1].rotation.x=-1.1;arms[0].rotation.z=-.38;arms[1].rotation.z=.38;}
+   else if(this.pose==="meditate"){
+    body.position.y=-.19+Math.sin(time*.00125)*.012;
+    body.rotation.x=-.025+Math.sin(time*.0008)*.008;
+    head.rotation.x=.035+Math.sin(time*.0011)*.008;
+    legs[0].rotation.x=-1.1;legs[1].rotation.x=-1.1;
+    // Both forearms rise gently and meet at the lap in a quiet meditation mudra.
+    arms[0].rotation.set(-1.02,0,.52);
+    arms[1].rotation.set(-1.02,0,-.52);
+   }
    else if(this.pose==="greet"){arms[0].rotation.x=-.75;arms[1].rotation.x=-.75;arms[0].rotation.z=-.42;arms[1].rotation.z=.42;}
    else if(this.pose==="incense"){arms[0].rotation.x=-.6;arms[1].rotation.x=-.6;}
    else if(this.pose==="sweep"){arms[0].rotation.x=.15;arms[1].rotation.x=-.5;arms[1].rotation.z=.5*Math.sin(time*.01);}
@@ -349,7 +372,7 @@ export class TempleWorld{
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
-   if(spec.stationary){a.setPose("meditate",60000);npc.stationary=true;npc.moving=false;}
+   if(spec.stationary){a.setPose("meditate",24*60*60*1000);npc.stationary=true;npc.moving=false;}
    return npc;
   });
  }
