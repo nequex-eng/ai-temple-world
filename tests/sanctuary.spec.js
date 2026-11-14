@@ -56,7 +56,7 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await expect(page.locator("#world canvas")).toBeVisible();
   await expect(page.locator("#mobile-controls")).toBeVisible();
   await expect(page.locator("#joystick")).toBeVisible();
-  await expect(page.locator("#action-dock")).toBeVisible();
+  await expect(page.locator(".action-dock")).toBeVisible();
 
   await page.locator("#monk-name").fill("Mobile Test");
   await page.locator("#save-profile").click();
