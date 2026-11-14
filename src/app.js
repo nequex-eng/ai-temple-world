@@ -8,7 +8,7 @@ let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null;
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>world.getPosition(),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>world.getPosition(),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
  onMessage:message=>handleMessage(message),
@@ -166,20 +166,30 @@ function ensureAudio(){
   audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume();
   if(!ambientNodes){
    const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
-   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
+   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.32;
    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
-   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=420;low.Q.value=.35;
-   const wind=audio.createGain();wind.gain.value=.018;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
-   const drone=audio.createOscillator(),droneGain=audio.createGain();drone.type="sine";drone.frequency.value=110;droneGain.gain.value=.006;drone.connect(droneGain);droneGain.connect(audio.destination);drone.start();
-   ambientNodes={noise,low,wind,drone,droneGain};
-  }else{ambientNodes.wind.gain.setTargetAtTime(.018,audio.currentTime,.2);ambientNodes.droneGain.gain.setTargetAtTime(.006,audio.currentTime,.2);}
+   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=620;low.Q.value=.35;
+   const wind=audio.createGain();wind.gain.value=.055;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
+   const drone=audio.createOscillator(),droneGain=audio.createGain();drone.type="sine";drone.frequency.value=110;droneGain.gain.value=.012;drone.connect(droneGain);droneGain.connect(audio.destination);drone.start();
+   const bellTimer=setInterval(()=>{if(soundEnabled&&audio?.state==="running")playAmbientChime();},26000);
+   ambientNodes={noise,low,wind,drone,droneGain,bellTimer};
+  }else{ambientNodes.wind.gain.setTargetAtTime(.055,audio.currentTime,.2);ambientNodes.droneGain.gain.setTargetAtTime(.012,audio.currentTime,.2);}
   soundEnabled=true;const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}
-  return true;
+  playAmbientChime();return true;
  }catch{return false;}
+}
+function playAmbientChime(){
+ if(!audio||audio.state!=="running")return;
+ const now=audio.currentTime;
+ for(const [hz,delay,volume] of [[659.25,0,.13],[987.77,.22,.09],[1318.5,.48,.055]]){
+  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
+  gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(volume,now+delay+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+2.4);
+  osc.connect(gain);gain.connect(audio.destination);osc.start(now+delay);osc.stop(now+delay+2.5);
+ }
 }
 function setSound(on){
  if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
- else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
+ else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);clearInterval(ambientNodes.bellTimer);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
 }
 function playBell(){
  try{
@@ -244,11 +254,13 @@ $("prayer-form").addEventListener("submit",async e=>{
 });
 
 // Keyboard and mobile thumbstick controls
-addEventListener("keydown",e=>{
+const movementCodes={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ArrowUp:"arrowup",ArrowDown:"arrowdown",ArrowLeft:"arrowleft",ArrowRight:"arrowright"};
+document.addEventListener("keydown",e=>{
  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
- const key=e.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"," "].includes(key))e.preventDefault();keys[key]=true;
-});
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+ const key=movementCodes[e.code]||e.key.toLowerCase();
+ if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"," "].includes(key)){e.preventDefault();keys[key]=true;}
+},true);
+document.addEventListener("keyup",e=>{const key=movementCodes[e.code]||e.key.toLowerCase();keys[key]=false;},true);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){keys={};resetStick();}});
 const stick=$("joystick"),knob=$("joystick-knob");
 function updateStick(e){
