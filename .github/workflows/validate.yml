@@ -18,6 +18,18 @@ jobs:
         run: |
           npm install --no-save --package-lock=false @playwright/test@1.56.1
           npx playwright install --with-deps chromium
+      - name: Inspect the public Pages response
+        run: |
+          echo "Canonical Pages domain:"
+          curl -sS -L -D /tmp/canonical.headers https://ai-temple-world.pages.dev/ -o /tmp/canonical.html
+          cat /tmp/canonical.headers
+          head -c 900 /tmp/canonical.html
+          echo
+          echo "Latest deployment URL:"
+          curl -sS -L -D /tmp/deployment.headers https://3f4b9c98.ai-temple-world.pages.dev/ -o /tmp/deployment.html
+          cat /tmp/deployment.headers
+          head -c 900 /tmp/deployment.html
+          echo
       - name: Test the live desktop and mobile site
         run: npm run test:e2e
       - name: Save browser test report
