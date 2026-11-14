@@ -28,6 +28,13 @@ async function handleApi(request, env, url) {
   const path = url.pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(request) });
   if (path === "/api/health") return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: true, timestamp: now() });
+  if (path === "/api/session" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid session." }, 400);
+    const stamp = now();
+    await env.DB.prepare("INSERT OR IGNORE INTO visits(day,player_id,created_at) VALUES(date(?),?,?)").bind(stamp, body.player_id, stamp).run();
+    return reply(request, { ok: true });
+  }
   if (path === "/api/profile" && request.method === "GET") {
     const id = url.searchParams.get("id");
     if (!validId(id)) return reply(request, { error: "A valid player id is required." }, 400);
@@ -59,7 +66,7 @@ async function handleApi(request, env, url) {
   }
   if (path === "/api/stats" && request.method === "GET") {
     const [visits, activity, prayers] = await Promise.all([
-      env.DB.prepare("SELECT COUNT(DISTINCT player_id) AS total FROM activities WHERE date(created_at)=date('now')").first(),
+      env.DB.prepare("SELECT COUNT(*) AS total FROM visits WHERE day=date('now')").first(),
       env.DB.prepare("SELECT COUNT(*) AS total FROM activities WHERE date(created_at)=date('now')").first(),
       env.DB.prepare("SELECT COUNT(*) AS total FROM prayers").first()
     ]);
@@ -162,7 +169,9 @@ export class TempleRoom {
     }
     if (data.type === "chat") {
       const messageText = clean(data.message, 220);
-      if (messageText.length < 1) return;
+      if (messageText.length < 1 || (player.lastChatAt && Date.now() - player.lastChatAt < 900)) return;
+      player.lastChatAt = Date.now();
+      ws.serializeAttachment(player);
       this.broadcast({ type: "chat", id: crypto.randomUUID(), player: { id: player.id, name: player.name, language: player.language }, message: messageText, at: Date.now() });
     }
   }
