@@ -391,7 +391,7 @@ export class TempleWorld{
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]]},
    {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]]},
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]]},
-   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-2.55,z:-33.8,route:[[-2.55,-33.8]],stationary:true}
+   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-5.1,z:-35.2,route:[[-5.1,-35.2]],stationary:true}
   ];
   this.npcs=roster.map((spec,index)=>{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0,groundHeightAt(spec.x,spec.z,this.halls));
