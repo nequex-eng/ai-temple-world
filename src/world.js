@@ -241,7 +241,7 @@ export class TempleWorld{
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:25,z:4,route:[[25,4],[20,7],[25,11]]}
   ];
   this.npcs=roster.map((spec,index)=>{
-   const a=avatar(this.scene,spec,"npc-"+index);a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
+   const a=avatar(this.scene,spec,"npc-"+index);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
