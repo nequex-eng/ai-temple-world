@@ -321,6 +321,29 @@ export class TempleWorld{
   const incenseBowl=new THREE.Group();incenseBowl.position.set(0,1.38,1.1);altar.add(incenseBowl);
   add(new THREE.CylinderGeometry(.22,.3,.22,18),budDark,incenseBowl,[0,0,0]);
   add(new THREE.TorusGeometry(.22,.035,8,24),goldLeaf,incenseBowl,[0,.12,0]);
+  // Warm wall lanterns and framed lotus reliefs make the hall feel inhabited, not empty.
+  for(const side of [-1,1]){
+   const wallDecor=new THREE.Group();wallDecor.position.set(side*11.72,0,-38.1);altar.add(wallDecor);
+   const frameMat=mat(0x493326,.78),reliefMat=mat(0xb58c52,.72,{metalness:.18});
+   add(new THREE.BoxGeometry(.12,2.05,.12),frameMat,wallDecor,[0,3.65,0]);
+   add(new THREE.BoxGeometry(.12,2.05,.12),frameMat,wallDecor,[0,3.65,.78]);
+   add(new THREE.BoxGeometry(.12,.12,.9),reliefMat,wallDecor,[0,4.66,.39]);
+   add(new THREE.BoxGeometry(.12,.12,.9),reliefMat,wallDecor,[0,2.64,.39]);
+   const panel=add(new THREE.BoxGeometry(.055,1.82,.72),mat(0x8b6a43,.9),wallDecor,[0,3.65,.39]);
+   const lotusRelief=new THREE.Group();lotusRelief.position.set(-side*.045,3.65,.39);wallDecor.add(lotusRelief);
+   add(new THREE.TorusGeometry(.25,.025,7,28),reliefMat,lotusRelief,[0,0,0],[0,0,0]);
+   for(let petal=0;petal<8;petal++){
+    const a=petal*Math.PI/4;
+    const bloom=add(new THREE.SphereGeometry(.16,10,8),reliefMat,lotusRelief,[Math.cos(a)*.22,Math.sin(a)*.22,.01]);
+    bloom.scale.set(.42,1.1,.18);bloom.rotation.z=a;
+   }
+   const lantern=new THREE.Group();lantern.position.set(-side*10.92,3.75,-38.1);altar.add(lantern);
+   add(new THREE.CylinderGeometry(.28,.22,.12,8),frameMat,lantern,[0,.57,0]);
+   add(new THREE.CylinderGeometry(.22,.22,.82,8,1,true),mat(0xe3c98d,.7,{emissive:0x8a5b25,emissiveIntensity:.16,transparent:true,opacity:.9,side:THREE.DoubleSide}),lantern,[0,0,0]);
+   add(new THREE.CylinderGeometry(.28,.28,.1,8),frameMat,lantern,[0,-.48,0]);
+   add(new THREE.ConeGeometry(.07,.22,8),goldLeaf,lantern,[0,-.64,0]);
+   const glow=new THREE.PointLight(0xffc77e,.42,5);glow.position.set(0,0,0);lantern.add(glow);
+  }
   // Individual brocade kneeling cushions on the visitor side of the altar.
   for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]]){
    const matGroup=new THREE.Group();matGroup.position.set(x,.58,z);altar.add(matGroup);
