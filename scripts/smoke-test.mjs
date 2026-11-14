@@ -25,6 +25,7 @@ assert.ok(app.includes("async function saveProfile()"), "Profile creation handle
 assert.ok(app.includes("await network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("this.room") && network.includes("this.instance") && network.includes("this.region"), "Multiplayer room parameters missing");
+assert.ok(network.includes('(params.get("region") || "apac")'), "Main room should default to APAC placement");
 assert.ok(worker.includes('idFromName("temple:" + room + ":" + instance + ":" + region)') && worker.includes("locationHint: region"), "Regional room sharding missing");
 let routedRoom = "", routedOptions = null;
 const fakeEnv = { TEMPLE_ROOMS: { idFromName: name => (routedRoom = name), get: (id, options) => { routedOptions = options; return { fetch: async () => new Response("ok") }; } } };
