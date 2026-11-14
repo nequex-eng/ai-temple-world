@@ -27,7 +27,10 @@ const now = () => new Date().toISOString();
 async function handleApi(request, env, url) {
   const path = url.pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(request) });
-  if (path === "/api/health") return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: true, timestamp: now() });
+  if (path === "/api/health") {
+    const db = await env.DB.prepare("SELECT 1 AS ok").first();
+    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, timestamp: now() });
+  }
   if (path === "/api/session" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid session." }, 400);
@@ -167,6 +170,10 @@ export class TempleRoom {
       return;
     }
     if (data.type === "action" && ACTIONS.has(data.action)) {
+      const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
+      if (data.action === "incense" && !near(0, 0, 8)) return;
+      if (data.action === "bell" && !near(-28, 2, 8)) return;
+      if (data.action === "lotus" && !near(31, 33, 13)) return;
       player.action = data.action;
       ws.serializeAttachment(player);
       this.broadcast({ type: "player:action", player }, ws);
