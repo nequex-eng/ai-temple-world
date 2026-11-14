@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { createTempleCollision, collidesAt, groundHeightAt, moveWithCollision } from "../src/physics.js";
+import templeWorker from "../worker/index.js";
 
 const read = path => fs.readFileSync(path, "utf8");
 const html = read("index.html");
@@ -23,6 +24,14 @@ for (const language of ["zh:", "ja:", "ko:", "th:"]) assert.ok(i18n.includes(lan
 assert.ok(app.includes("async function saveProfile()"), "Profile creation handler must be async");
 assert.ok(app.includes("await network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
+assert.ok(network.includes("this.room") && network.includes("this.instance") && network.includes("this.region"), "Multiplayer room parameters missing");
+assert.ok(worker.includes('idFromName("temple:" + room + ":" + instance + ":" + region)') && worker.includes("locationHint: region"), "Regional room sharding missing");
+let routedRoom = "", routedOptions = null;
+const fakeEnv = { TEMPLE_ROOMS: { idFromName: name => (routedRoom = name), get: (id, options) => { routedOptions = options; return { fetch: async () => new Response("ok") }; } } };
+await templeWorker.fetch(new Request("https://api.example/api/live?room=maru&instance=0&region=apac", { headers: { Upgrade: "websocket" } }), fakeEnv);
+assert.equal(routedRoom, "temple:maru:0:apac", "Named room and instance must create a separate Durable Object");
+assert.deepEqual(routedOptions, { locationHint: "apac" }, "APAC rooms must use the APAC placement hint");
+
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
