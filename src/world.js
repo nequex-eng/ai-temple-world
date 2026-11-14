@@ -213,9 +213,9 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
   for(const [x,z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]])lantern(s,x,z,m);
   // Incense censer
-  this.incensePosition=new THREE.Vector3(0,0,0);const censer=new THREE.Group();s.add(censer);
+  this.incensePosition=new THREE.Vector3(8,0,0);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
-  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("香炉广场","INCENSE COURTYARD");incensePlaque.scale.set(3.2,.8,1);incensePlaque.position.set(0,3.1,2.2);s.add(incensePlaque);
+  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("香炉广场","INCENSE COURTYARD");incensePlaque.scale.set(3.2,.8,1);incensePlaque.position.set(8,3.1,2.2);s.add(incensePlaque);
   // Lotus pond
   this.pondPosition=new THREE.Vector3(31,0,33);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
   add(new THREE.CylinderGeometry(10.2,10.4,.55,64),m.stone,pond,[0,-.03,0]);
@@ -287,10 +287,10 @@ export class TempleWorld{
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
   const p=this.local?.root.position||{x:0,z:25};
-  const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-10,index:1,key:"heaven"},{x:0,z:-37,index:2,key:"main"},{x:0,z:0,index:3,key:"incense"},{x:-28,z:2,index:4,key:"bell"},{x:28,z:-24,index:5,key:"library"},{x:-28,z:-25,index:6,key:"meditation"},{x:-29,z:31,index:7,key:"bodhi"},{x:31,z:33,index:8,key:"lotus"},{x:28,z:8,index:9,key:"dorm"}];
+  const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-10,index:1,key:"heaven"},{x:0,z:-37,index:2,key:"main"},{x:8,z:0,index:3,key:"incense"},{x:-28,z:2,index:4,key:"bell"},{x:28,z:-24,index:5,key:"library"},{x:-28,z:-25,index:6,key:"meditation"},{x:-29,z:31,index:7,key:"bodhi"},{x:31,z:33,index:8,key:"lotus"},{x:28,z:8,index:9,key:"dorm"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
- canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;return true;}
+ canAct(a){const p=this.local?.root.position;if(!p)return false;if(a==="incense")return Math.hypot(p.x-8,p.z)<8;if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;if(a==="sweep")return Math.hypot(p.x,p.z)<38;return true;}
  update(dt,input={},time=performance.now()){
   if(!this.local)return;
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
