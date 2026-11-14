@@ -84,6 +84,7 @@ function handleMessage(message){
  if(message.type==="welcome"){
   onlinePlayers.clear();
   for(const p of message.players||[]){world.addRemote(p);onlinePlayers.set(p.id,p);}
+  for(const offering of message.offerings||[])world.addEffect("lotus");
   renderPresence();return;
  }
  if(message.type==="player:join"){
