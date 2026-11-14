@@ -285,7 +285,7 @@ function inputState(){
  };
 }
 function frame(){
- const dt=Math.min(world.clock.getDelta(),.04),now=performance.now();
+ const dt=Math.min(world.clock.getDelta(),.18),now=performance.now();
  world.update(dt,inputState(),now);updateLocation();
  if(profile&&now-lastPositionSend>110){
   const p=world.getPosition();network.move(p);
