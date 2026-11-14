@@ -21,6 +21,7 @@ export class TempleNetwork {
     this.reconnectTimer = null;
     this.retry = 0;
     this.lastSent = 0;
+    this.lastBroadcastPosition = null;
   }
   async request(path, options = {}) {
     const response = await fetch(API_BASE + path, {
@@ -119,8 +120,13 @@ export class TempleNetwork {
   move(position, force = false) {
     this.position = position;
     const time = performance.now();
-    if (!force && time - this.lastSent < 100) return;
+    if (!force && time - this.lastSent < 110) return;
+    const previous = this.lastBroadcastPosition;
+    if (!force && previous &&
+      Math.hypot(position.x - previous.x, position.z - previous.z) < 0.035 &&
+      Math.abs(position.rotation - previous.rotation) < 0.035) return;
     this.lastSent = time;
+    this.lastBroadcastPosition = { ...position };
     this.send({ type: "move", ...position });
   }
   action(action) { this.send({ type: "action", action }); }
