@@ -39,42 +39,42 @@ function planeRoof(parent,w,d,ry,ey,side,m){
 }
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- add(new THREE.BoxGeometry(w+2.2,.7,d+2.2),m.stone,g,[0,.35,0]);
+ add(new THREE.BoxGeometry(w+2.2,.54,d+2.2),m.stone,g,[0,.27,0]);
  // Level landing plus three broad, climbable stone treads.
  add(new THREE.BoxGeometry(w,.54,1.3),m.stoneLight,g,[0,.27,d/2+.58]);
  const stairHeights=[.54,.36,.18];
  for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.62,.18,1.0),m.stoneLight,g,[0,stairHeights[i]-.09,d/2+1.72+i]);
- add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.7+h/2,-d/2+.16],[0,0,0],false);
- add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[-w/2+.16,.7+h/2,0],[0,0,0],false);
- add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[w/2-.16,.7+h/2,0],[0,0,0],false);
+ add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.54+h/2,-d/2+.16],[0,0,0],false);
+ add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[-w/2+.16,.54+h/2,0],[0,0,0],false);
+ add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[w/2-.16,.54+h/2,0],[0,0,0],false);
  for(const sx of [-1,1]){
-  add(new THREE.BoxGeometry(.32,h,d),m.pillar,g,[sx*(w/2-.35),.7+h/2,0]);
-  add(new THREE.CylinderGeometry(.18,.22,h,10),m.pillar,g,[sx*(w/2-.35),.7+h/2,d/2-.4]);
+  add(new THREE.BoxGeometry(.32,h,d),m.pillar,g,[sx*(w/2-.35),.54+h/2,0]);
+  add(new THREE.CylinderGeometry(.18,.22,h,10),m.pillar,g,[sx*(w/2-.35),.54+h/2,d/2-.4]);
  }
  const n=Math.max(4,Math.round(w/3));
  for(let i=0;i<n;i++){
   const px=-w/2+(i+.5)*w/n;
   if(Math.abs(px)<w*.2)continue;
-  add(new THREE.CylinderGeometry(.16,.2,h,10),m.pillar,g,[px,.7+h/2,d/2-.35]);
-  add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.7+h-.08,d/2-.35]);
+  add(new THREE.CylinderGeometry(.16,.2,h,10),m.pillar,g,[px,.54+h/2,d/2-.35]);
+  add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.54+h-.08,d/2-.35]);
  }
  const doorW=w*.38;
- add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.42,.7+h*.38,d/2-.06],[0,-.78,0]);
- add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.42,.7+h*.38,d/2-.06],[0,.78,0]);
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.42,.54+h*.38,d/2-.06],[0,-.78,0]);
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.42,.54+h*.38,d/2-.06],[0,.78,0]);
  for(const side of [-1,1]){
   const px=side*w*.34;
-  add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.7+h*.55,d/2+.02]);
-  for(let j=-2;j<=2;j++)add(new THREE.BoxGeometry(.035,h*.38,.05),m.goldDark,g,[px+j*w*.034,.7+h*.55,d/2+.1],[0,0,0],false);
-  for(let j=0;j<4;j++)add(new THREE.BoxGeometry(w*.17,.035,.05),m.goldDark,g,[px,.7+h*.37+j*h*.095,d/2+.1],[0,0,0],false);
+  add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.54+h*.55,d/2+.02]);
+  for(let j=-2;j<=2;j++)add(new THREE.BoxGeometry(.035,h*.38,.05),m.goldDark,g,[px+j*w*.034,.54+h*.55,d/2+.1],[0,0,0],false);
+  for(let j=0;j<4;j++)add(new THREE.BoxGeometry(w*.17,.035,.05),m.goldDark,g,[px,.54+h*.37+j*h*.095,d/2+.1],[0,0,0],false);
  }
- add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.7+h-.24,d/2+.08]);
- add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.7+h-.24,-d/2-.08]);
- const roofMat=m.roof,ry=.7+h+2.25,ey=.7+h+1.15;
+ add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.54+h-.24,d/2+.08]);
+ add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.54+h-.24,-d/2-.08]);
+ const roofMat=m.roof,ry=.54+h+2.25,ey=.54+h+1.15;
  planeRoof(g,w,d,ry,ey,1,roofMat);planeRoof(g,w,d,ry,ey,-1,roofMat);
  add(new THREE.CylinderGeometry(.12,.12,w+2.6,10),m.gold,g,[0,ry+.1,0],[0,0,Math.PI/2]);
  for(const sx of [-1,1])for(const sz of [-1,1])add(new THREE.SphereGeometry(.22,9,8),m.gold,g,[sx*(w/2+1.55),ey+.18,sz*(d/2+1.0)]);
- add(new THREE.BoxGeometry(Math.min(w*.4,5),.75,.18),m.sign,g,[0,.7+h*.7,d/2+.17]);
- const plaque=plaqueSprite(cfg.label||"佛殿",cfg.subtitle||"TEMPLE HALL");plaque.scale.set(Math.min(w*.34,4.3),.9,1);plaque.position.set(0,.7+h*.7,d/2+.29);g.add(plaque);
+ add(new THREE.BoxGeometry(Math.min(w*.4,5),.75,.18),m.sign,g,[0,.54+h*.7,d/2+.17]);
+ const plaque=plaqueSprite(cfg.label||"佛殿",cfg.subtitle||"TEMPLE HALL");plaque.scale.set(Math.min(w*.34,4.3),.9,1);plaque.position.set(0,.54+h*.7,d/2+.29);g.add(plaque);
  return g;
 }
 function lantern(scene,x,z,m){
@@ -244,7 +244,7 @@ export class TempleWorld{
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:25,z:4,route:[[25,4],[20,7],[25,11]]}
   ];
   this.npcs=roster.map((spec,index)=>{
-   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0);
+   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0,groundHeightAt(spec.x,spec.z,this.halls));
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
@@ -316,8 +316,6 @@ export class TempleWorld{
    a.update(dt,time,false);
   }
   this.updateNpcs(dt,time);
-  this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:!!blocked};
-  this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);this.updateNpcs(dt,time);
   const p=this.local.root.position,target=new THREE.Vector3(p.x+Math.sin(this.yaw)*this.distance,p.y+3.15+Math.sin(this.pitch)*this.distance*.75,p.z+Math.cos(this.yaw)*this.distance);
   this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(p.x,p.y+1.2,p.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
