@@ -69,3 +69,5 @@
 .sound-slider output{text-align:right;color:#e6d3ac;font-variant-numeric:tabular-nums}
 .sound-modal .primary-button{margin-top:20px}
 @media(max-width:660px){.sound-slider{grid-template-columns:80px 1fr 38px;gap:8px;font-size:10px}}
+
+.sound-status{margin:14px 0 0;padding:9px 10px;border:1px solid #d7bb8233;background:#101f18;color:#b9b09c;font-size:9px;line-height:1.7;overflow-wrap:anywhere}
