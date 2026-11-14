@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt } from "./physics.js";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
@@ -162,7 +162,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -273,10 +273,30 @@ export class TempleWorld{
   }
  }
  bindCamera(){
-  const c=this.renderer.domElement;c.addEventListener("pointerdown",e=>{this.drag=true;this.last={x:e.clientX,y:e.clientY};c.setPointerCapture(e.pointerId);});
-  c.addEventListener("pointerup",()=>this.drag=false);c.addEventListener("pointercancel",()=>this.drag=false);
-  c.addEventListener("pointermove",e=>{if(!this.drag)return;this.yaw-=(e.clientX-this.last.x)*.0042;this.pitch=clamp(this.pitch+(e.clientY-this.last.y)*.003,-.05,.78);this.last={x:e.clientX,y:e.clientY};});
+  const c=this.renderer.domElement;
+  c.addEventListener("pointerdown",e=>{this.drag=true;this.pointerMoved=false;this.pointerStart={x:e.clientX,y:e.clientY};this.last={x:e.clientX,y:e.clientY};c.setPointerCapture(e.pointerId);});
+  c.addEventListener("pointerup",e=>{
+   if(!this.drag)return;this.drag=false;
+   if(!this.pointerMoved&&this.local)this.setClickDestination(e.clientX,e.clientY);
+  });
+  c.addEventListener("pointercancel",()=>this.drag=false);
+  c.addEventListener("pointermove",e=>{
+   if(!this.drag)return;
+   const dx=e.clientX-this.last.x,dy=e.clientY-this.last.y;
+   if(Math.hypot(e.clientX-this.pointerStart.x,e.clientY-this.pointerStart.y)>7)this.pointerMoved=true;
+   if(this.pointerMoved){this.yaw-=dx*.0042;this.pitch=clamp(this.pitch+dy*.003,-.05,.78);}
+   this.last={x:e.clientX,y:e.clientY};
+  });
   c.addEventListener("wheel",e=>{this.distance=clamp(this.distance+Math.sign(e.deltaY)*.7,6.5,18);},{passive:true});
+ }
+ setClickDestination(clientX,clientY){
+  const rect=this.renderer.domElement.getBoundingClientRect();
+  this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
+  this.raycaster.setFromCamera(this.pointerNdc,this.camera);
+  const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
+  if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
+  this.moveTarget.set?this.moveTarget.set(hit.x,0,hit.z):this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);
+  return true;
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.2:1.65));}this.renderer.setSize(innerWidth,innerHeight);}
  setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}this.local=avatar(this.scene,p,id,true);this.local.setPosition(0,25,0,groundHeightAt(0,25,this.halls));}
@@ -297,7 +317,7 @@ export class TempleWorld{
   if(!this.local)return;
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
-  const hasInput=Math.hypot(f,side)>.05;
+  const hasInput=Math.hypot(f,side)>.05;if(hasInput)this.moveTarget=null;
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   const canMove=["walk","greet","bow","chant"].includes(this.local.pose);
   let direction=null;
@@ -305,6 +325,10 @@ export class TempleWorld{
    const fw=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw));
    const rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw));
    direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
+  }else if(this.moveTarget&&canMove){
+   const dx=this.moveTarget.x-this.local.root.position.x,dz=this.moveTarget.z-this.local.root.position.z;
+   if(Math.hypot(dx,dz)<.62)this.moveTarget=null;
+   else direction=new THREE.Vector3(dx,0,dz).normalize();
   }
   const topSpeed=direction?(input.run?5.2:2.8):0;
   const desired=new THREE.Vector2(direction?.x||0,direction?.z||0).multiplyScalar(topSpeed);
@@ -317,7 +341,7 @@ export class TempleWorld{
    const localPosition=this.local.root.position;
    // Collision is resolved before vertical motion, so a jump cannot tunnel through masonry or stair edges.
    result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
-   if(result.blocked)this.moveVelocity.multiplyScalar(.28);
+   if(result.blocked){this.moveVelocity.multiplyScalar(.28);if(this.moveTarget)this.moveTarget=null;}
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
   const localPosition=this.local.root.position;
