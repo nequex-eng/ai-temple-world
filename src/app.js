@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false;
+let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null;
 const world=new TempleWorld($("world"));
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -159,15 +159,35 @@ function updatePreview(){
  $("preview-body").style.background=$("monk-robe").value;
  $("preview-head").style.background=$("monk-skin").value;
 }
+function ensureAudio(){
+ try{
+  const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
+  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume();
+  if(!ambientNodes){
+   const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
+   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
+   const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
+   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=420;low.Q.value=.35;
+   const wind=audio.createGain();wind.gain.value=.018;noise.connect(low);low.connect(wind);wind.connect(audio.destination);noise.start();
+   const drone=audio.createOscillator(),droneGain=audio.createGain();drone.type="sine";drone.frequency.value=110;droneGain.gain.value=.006;drone.connect(droneGain);droneGain.connect(audio.destination);drone.start();
+   ambientNodes={noise,low,wind,drone,droneGain};
+  }
+  soundEnabled=true;const b=$("sound-toggle");if(b){b.classList.add("active");b.textContent="♫ 音效开启";b.setAttribute("aria-pressed","true");}
+  return true;
+ }catch{return false;}
+}
+function setSound(on){
+ if(on){if(!ensureAudio())toast("当前浏览器无法启用音效");}
+ else if(audio&&ambientNodes){ambientNodes.wind.gain.setTargetAtTime(.0001,audio.currentTime,.12);ambientNodes.droneGain.gain.setTargetAtTime(.0001,audio.currentTime,.12);soundEnabled=false;const b=$("sound-toggle");if(b){b.classList.remove("active");b.textContent="♫ 开启声音";b.setAttribute("aria-pressed","false");}}
+}
 function playBell(){
  try{
-  const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;
-  audio=audio||new AudioContext();if(audio.state==="suspended")audio.resume();
+  if(!ensureAudio())return;
   const now=audio.currentTime,gain=audio.createGain();gain.connect(audio.destination);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.16,now+.03);gain.gain.exponentialRampToValueAtTime(.0001,now+3.2);
-  for(const [hz,volume] of [[174,.6],[261,.24],[349,.12]]){
-   const osc=audio.createOscillator();osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.frequency.exponentialRampToValueAtTime(hz*.992,now+3);
-   const g=audio.createGain();g.gain.value=volume;osc.connect(g);g.connect(gain);osc.start(now);osc.stop(now+3.3);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.22,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+7.5);
+  for(const [hz,volume,decay] of [[130.8,.7,7.2],[196,.34,5.8],[261.6,.22,4.6],[392,.11,3.4],[523.2,.06,2.8]]){
+   const osc=audio.createOscillator(),g=audio.createGain();osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.frequency.exponentialRampToValueAtTime(hz*.985,now+decay);
+   g.gain.setValueAtTime(volume,now);g.gain.exponentialRampToValueAtTime(.0001,now+decay);osc.connect(g);g.connect(gain);osc.start(now);osc.stop(now+decay+.1);
   }
  }catch{}
 }
@@ -228,16 +248,22 @@ addEventListener("keydown",e=>{
  const key=e.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"," "].includes(key))e.preventDefault();keys[key]=true;
 });
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+document.addEventListener("visibilitychange",()=>{if(document.hidden){keys={};resetStick();}});
 const stick=$("joystick"),knob=$("joystick-knob");
 function updateStick(e){
- const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,31/(length||1));
- joy={x:dx*factor/31,y:dy*factor/31};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
+ const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
+ joy={x:dx*factor/(r.width*.34),y:dy*factor/(r.width*.34)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
 }
-stick.addEventListener("pointerdown",e=>{stick.setPointerCapture(e.pointerId);updateStick(e);});
-stick.addEventListener("pointermove",e=>{if(e.buttons)updateStick(e);});
-function resetStick(){joy={x:0,y:0};knob.style.transform="translate(0,0)";}
-stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);
+stick.addEventListener("pointerdown",e=>{e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);});
+stick.addEventListener("pointermove",e=>{if(stickPointer===e.pointerId)updateStick(e);});
+function resetStick(){stickPointer=null;joy={x:0,y:0};knob.style.transform="translate(0,0)";}
+stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);stick.addEventListener("lostpointercapture",resetStick);
+addEventListener("blur",()=>{keys={};resetStick();});
 $("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
+$("sound-toggle").addEventListener("click",()=>setSound(!soundEnabled));
+// Browsers require a real user gesture before audio can start.
+addEventListener("pointerdown",()=>{if(!soundEnabled)ensureAudio();},{once:true});
+addEventListener("keydown",()=>{if(!soundEnabled)ensureAudio();},{once:true});
 function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
