@@ -3,7 +3,8 @@ import { test, expect } from "@playwright/test";
 test("new visitors can start temple ambience before creating a monk", async ({ page }) => {
   const pageErrors=[];
   page.on("pageerror",error=>pageErrors.push(error.message));
-  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await page.goto("http://127.0.0.1:4173/",{waitUntil:"domcontentloaded"});
+  await expect.poll(()=>page.evaluate(()=>location.host)).toBe("127.0.0.1:4173");
   await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
   await expect(page.locator("#profile-modal")).not.toHaveClass(/hidden/);
   await expect(page.locator("#profile-sound-toggle")).toBeVisible();

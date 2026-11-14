@@ -25,9 +25,13 @@ jobs:
         run: |
           nohup node scripts/serve-pages.mjs >/tmp/temple-pages.log 2>&1 &
           for attempt in {1..30}; do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
-              echo "Local Pages preview is ready"
-              exit 0
+            if curl -fsS http://127.0.0.1:4173/ -o /tmp/local-pages.html; then
+              if grep -q 'profile-sound-toggle' /tmp/local-pages.html; then
+                echo "Local Pages preview is ready and contains the first-visit sound control"
+                exit 0
+              fi
+              echo "The generated Pages HTML is missing profile-sound-toggle"
+              exit 1
             fi
             sleep 1
           done
