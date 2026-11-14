@@ -34,6 +34,7 @@ export class TempleNetwork {
     return body;
   }
   async health() { return this.request("/api/health"); }
+  async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
   async loadProfile() {
     try {
       const data = await this.request("/api/profile?id=" + encodeURIComponent(this.playerId));
