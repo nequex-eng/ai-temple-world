@@ -60,6 +60,7 @@ export class TempleNetwork {
     const data = await this.request("/api/prayers");
     return data.prayers || [];
   }
+  async deleteMyData() { return this.request("/api/data", { method: "DELETE", body: JSON.stringify({ player_id: this.playerId }) }); }
   async postPrayer(message, language, display_name) {
     return this.request("/api/prayers", {
       method: "POST",
