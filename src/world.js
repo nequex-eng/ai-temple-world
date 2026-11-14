@@ -315,9 +315,9 @@ export class TempleWorld{
   const moving=this.moveVelocity.length()>.03;
   let result={x:this.local.root.position.x,y:this.local.root.position.y,z:this.local.root.position.z,blocked:false};
   if(moving&&canMove){
-   const p=this.local.root.position;
-   result=moveWithCollision(p,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
-   p.set(result.x,result.y,result.z);
+   const localPosition=this.local.root.position;
+   result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
+   localPosition.set(result.x,result.y,result.z);
    if(result.blocked)this.moveVelocity.multiplyScalar(.28);
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
