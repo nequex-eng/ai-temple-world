@@ -220,7 +220,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -346,6 +346,37 @@ export class TempleWorld{
    flame.scale.set(.72,1.45,.72);
    const glow=new THREE.PointLight(0xffc77e,.42,5);glow.position.set(0,0,0);lantern.add(glow);
    this.templeLanterns.push({flame,glow,phase:Math.random()*6.28});
+  }
+  // A traditional red-and-gold runner guides visitors from the entrance toward the Buddha.
+  const runnerMat=mat(0x6f2825,.98),runnerGold=mat(0xc6a56c,.78),runnerDark=mat(0x4a201e,.98);
+  const runner=new THREE.Group();runner.position.set(0,.565,0);altar.add(runner);
+  add(new THREE.BoxGeometry(4.8,.035,7.2),runnerMat,runner,[0,0,5.05]);
+  for(const side of [-1,1]){
+   add(new THREE.BoxGeometry(.095,.018,7.0),runnerGold,runner,[side*2.27,.027,5.05]);
+   for(let i=0;i<9;i++){
+    const z=1.85+i*.8;
+    add(new THREE.TorusGeometry(.19,.018,6,20),runnerGold,runner,[side*1.7,.03,z],[Math.PI/2,0,0]);
+    const flower=add(new THREE.SphereGeometry(.11,8,6),runnerGold,runner,[side*1.7,.03,z]);flower.scale.set(.65,.12,1.5);
+   }
+  }
+  for(const z of [1.55,8.55])add(new THREE.BoxGeometry(4.65,.025,.09),runnerGold,runner,[0,.03,z]);
+  // Exposed timber ceiling structure gives the sanctuary a convincing interior scale.
+  const rafters=mat(0x493326,.92),beamGold=mat(0x80613f,.82);
+  for(let z=-7;z<=7;z+=2.8){
+   add(new THREE.BoxGeometry(23.2,.24,.28),rafters,altar,[0,7.1,z]);
+   add(new THREE.BoxGeometry(.09,.035,.3),beamGold,altar,[0,7.23,z]);
+  }
+  for(const x of [-10.9,-7.2,-3.6,0,3.6,7.2,10.9]){
+   add(new THREE.BoxGeometry(.28,.24,15.8),rafters,altar,[x,7.08,0]);
+  }
+  // Slow, translucent incense smoke rises continuously from the offering vessel.
+  const smokeMat=new THREE.MeshBasicMaterial({color:0xe8e2d5,transparent:true,opacity:.16,depthWrite:false});
+  for(const origin of [[0,1.62,1.1],[8,1.78,0]]){
+   for(let i=0;i<9;i++){
+    const puff=add(new THREE.SphereGeometry(.105+(i%3)*.025,8,7),smokeMat,altar,[origin[0]+Math.sin(i*2.1)*.12,origin[1]+i*.24,origin[2]+Math.cos(i*1.7)*.1],[0,0,0],false);
+    puff.userData.smoke={origin,phase:i/9,seed:i*1.71};
+    this.incenseSmoke.push(puff);
+   }
   }
   // Individual brocade kneeling cushions on the visitor side of the altar.
   for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]]){
@@ -540,6 +571,12 @@ export class TempleWorld{
   this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+1.2,cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
   for(const item of this.lotusLights){item.group.position.y=.35+Math.sin(time*.0012+item.phase)*.09;item.group.rotation.y+=dt*.16;}
+  for(const puff of this.incenseSmoke){
+   const data=puff.userData.smoke,cycle=(time*.000085+data.phase)%1;
+   puff.position.set(data.origin[0]+Math.sin(cycle*6.28+data.seed)*(.08+cycle*.34),data.origin[1]+cycle*2.25,data.origin[2]+Math.cos(cycle*5.2+data.seed)*(.07+cycle*.25));
+   const scale=.72+cycle*1.85;puff.scale.set(scale,scale*1.12,scale);
+   puff.material.opacity=.19*(1-cycle)*(.82+.18*Math.sin(time*.002+data.seed));
+  }
   for(const item of this.templeLanterns){
    const flicker=.88+Math.sin(time*.017+item.phase)*.07+Math.sin(time*.031+item.phase*1.7)*.035;
    item.flame.scale.y=1.45*flicker;item.flame.scale.x=item.flame.scale.z=.72*(1+(1-flicker)*.6);
