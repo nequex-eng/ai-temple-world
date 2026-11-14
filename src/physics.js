@@ -9,8 +9,8 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
-    circle(0, 0, 1.48), circle(31, 33, 9.85),
-    circle(-29, 29, 1.05)
+    circle(8, 0, 1.48), circle(31, 33, 9.85),
+    circle(-29, 29, 1.05), circle(0, -39.5, 2.2)
   ];
   for (const h of halls) {
     const l = h.x - h.w / 2, r = h.x + h.w / 2;
@@ -36,7 +36,17 @@ export function createTempleCollision(halls) {
   }
   // Boundary stone walls.
   for (const side of [-1, 1]) {
-    segments.push(segment(side * 31, -33.5, side * 31, 11.5, 0.34));
+    const x = side * 31;
+    const blocked = halls
+      .filter(h => x >= h.x - h.w / 2 - 0.5 && x <= h.x + h.w / 2 + 0.5)
+      .map(h => [h.z - h.d / 2 - 0.5, h.z + h.d / 2 + 0.5])
+      .sort((a, b) => a[0] - b[0]);
+    let cursor = -33.5;
+    for (const [start, end] of blocked) {
+      if (start > cursor) segments.push(segment(x, cursor, x, start, 0.34));
+      cursor = Math.max(cursor, end);
+    }
+    if (cursor < 11.5) segments.push(segment(x, cursor, x, 11.5, 0.34));
   }
   // Lantern pedestals.
   for (const [x, z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]]) {
