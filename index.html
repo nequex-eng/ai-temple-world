@@ -72,6 +72,7 @@
     <button class="action-button" data-action="sweep"><span class="action-symbol">⌁</span><span id="action-sweep">清扫</span></button>
     <button class="action-button" data-action="bell"><span class="action-symbol">♢</span><span id="action-bell">敲钟</span></button>
     <button class="action-button" data-action="lotus"><span class="action-symbol">✿</span><span id="action-lotus">放莲灯</span></button>
+    <button class="action-button" data-action="beads"><span class="action-symbol">◉</span><span id="action-beads">念珠</span></button>
   </nav>
 
   <div class="mobile-controls" id="mobile-controls"><div class="joystick" id="joystick"><div class="joystick-knob" id="joystick-knob"></div></div><div class="mobile-control-caption" id="mobile-caption">拖动移动</div><button class="run-toggle" id="run-toggle" type="button">奔跑</button></div>
@@ -110,6 +111,19 @@
     </section>
   </div>
 
+  <div class="modal-backdrop hidden" id="beads-modal">
+    <section class="modal-card beads-modal">
+      <button class="modal-x" data-close="beads-modal" aria-label="Close">×</button>
+      <div class="modal-eyebrow">108 PRAYER BEADS</div>
+      <h2 id="beads-title">108颗念珠</h2>
+      <p id="beads-description">一颗一念，缓缓拨动。完成108颗为一周，不设排名，只记录自己的静心时刻。</p>
+      <div class="beads-count"><strong id="beads-count">0</strong><span id="beads-round">/ 108</span></div>
+      <div class="beads-ring" id="beads-ring" aria-label="108 prayer beads"></div>
+      <button class="primary-button" id="beads-advance" type="button">拨动一颗</button>
+      <button class="danger-button" id="beads-reset" type="button">重置本周</button>
+      <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
+    </section>
+  </div>
   <script type="module" src="/src/app.js"></script>
 </body>
 </html>
