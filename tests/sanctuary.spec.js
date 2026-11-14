@@ -121,6 +121,10 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.waitForTimeout(1900);
   await page.keyboard.up("w");
   const stairs = await page.evaluate(() => window.__templeDebug.position());
+  const stairDebug = await page.evaluate(() => window.__templeDebug.input());
+  console.log("stairs-regression", JSON.stringify({ wall, stairs, stairDebug }));
+  expect(stairs.x).toBeLessThan(1);
+  expect(stairs.x).toBeGreaterThan(-1);
   expect(stairs.z).toBeLessThan(-2.5);
   expect(stairs.y).toBeGreaterThan(0.45);
   await cleanTestGuest(page);
