@@ -295,7 +295,7 @@ export class TempleWorld{
   this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
-  this.moveTarget.set?this.moveTarget.set(hit.x,0,hit.z):this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);
+  this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);
   return true;
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.2:1.65));}this.renderer.setSize(innerWidth,innerHeight);}
