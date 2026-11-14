@@ -24,13 +24,112 @@ const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus",
 const LANGS = new Set(["zh", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 
+
+const LANGUAGE_NAMES = { zh: "Simplified Chinese", ja: "Japanese", ko: "Korean", th: "Thai" };
+
+async function reserveAiRequest(env, playerId, kind, dailyLimit, minIntervalMs) {
+  const recent = await env.DB.prepare(
+    "SELECT created_at FROM ai_requests WHERE player_id=? AND kind=? ORDER BY created_at DESC LIMIT 1"
+  ).bind(playerId, kind).first();
+  if (recent && Date.now() - Date.parse(recent.created_at) < minIntervalMs) return "Please wait a moment before trying again.";
+  const count = await env.DB.prepare(
+    "SELECT COUNT(*) AS total FROM ai_requests WHERE player_id=? AND kind=? AND date(created_at)=date('now')"
+  ).bind(playerId, kind).first();
+  if ((count?.total || 0) >= dailyLimit) return "The daily AI allowance for this guest has been reached.";
+  await env.DB.prepare("INSERT INTO ai_requests(id,player_id,kind,created_at) VALUES(?,?,?,?)")
+    .bind(crypto.randomUUID(), playerId, kind, now()).run();
+  return null;
+}
+
+async function minimaxChat(env, messages, maxTokens = 480) {
+  if (!env.MINIMAX_API_KEY) throw new Error("AI_NOT_CONFIGURED");
+  const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
+  const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
+  const response = await fetch(base + "/chat/completions", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
+  const raw = data?.choices?.[0]?.message?.content;
+  const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
+  if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
+  return answer.trim().slice(0, 1400);
+}
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
 async function handleApi(request, env, url) {
   const path = url.pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(request) });
   if (path === "/api/health") {
     const db = await env.DB.prepare("SELECT 1 AS ok").first();
-    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, timestamp: now() });
+    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, aiEnabled: !!env.MINIMAX_API_KEY, timestamp: now() });
   }
+
+  if (path === "/api/translate" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid player." }, 400);
+    const message = clean(body.message, 220);
+    const source = LANGS.has(body.source_language) ? body.source_language : "zh";
+    const target = LANGS.has(body.target_language) ? body.target_language : "zh";
+    if (!message) return reply(request, { error: "Message is empty." }, 400);
+    if (source === target) return reply(request, { available: true, translated: message, cached: true });
+    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, error: "Translation is not configured yet." }, 503);
+    const cacheKey = await sha256(source + "\u0000" + target + "\u0000" + message);
+    const cached = await env.DB.prepare("SELECT translated_text FROM translations WHERE cache_key=?").bind(cacheKey).first();
+    if (cached?.translated_text) return reply(request, { available: true, translated: cached.translated_text, cached: true });
+    const limitError = await reserveAiRequest(env, body.player_id, "translate", 60, 250);
+    if (limitError) return reply(request, { error: limitError }, 429);
+    try {
+      const translated = await minimaxChat(env, [
+        { role: "system", content: "Translate the user's short public chat message into " + LANGUAGE_NAMES[target] + ". Preserve the meaning, tone, names and emojis. Return only the translation, with no explanation or quotation marks." },
+        { role: "user", content: message }
+      ], 180);
+      await env.DB.prepare("INSERT OR REPLACE INTO translations(cache_key,source_language,target_language,translated_text,created_at) VALUES(?,?,?,?,?)")
+        .bind(cacheKey, source, target, translated, now()).run();
+      return reply(request, { available: true, translated, cached: false });
+    } catch (error) {
+      return reply(request, { error: clean(error.message, 220) || "Translation failed." }, 502);
+    }
+  }
+  if (path === "/api/abbot" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid player." }, 400);
+    const message = clean(body.message, 600);
+    if (message.length < 2) return reply(request, { error: "Please write a little more." }, 400);
+    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, error: "The abbot is resting until the AI service is configured." }, 503);
+    const language = LANGS.has(body.language) ? body.language : "zh";
+    const history = Array.isArray(body.history) ? body.history.slice(-8).map(item => ({
+      role: item?.role === "assistant" ? "assistant" : "user",
+      content: clean(item?.content, 500)
+    })).filter(item => item.content.length > 0) : [];
+    const location = clean(body.location, 50);
+    const limitError = await reserveAiRequest(env, body.player_id, "abbot", 20, 2200);
+    if (limitError) return reply(request, { error: limitError }, 429);
+    const system = [
+      "You are the resident guide and abbot of a peaceful online Buddhist temple.",
+      "Reply in " + LANGUAGE_NAMES[language] + ". Be warm, clear, respectful, non-sectarian and concise (roughly 60–120 words).",
+      "Explain Buddhist ideas and contemplative practices in an accessible way; distinguish traditions when relevant and admit uncertainty.",
+      "Never claim supernatural powers, guaranteed outcomes, miracles, karmic punishment or certainty about a person's fate.",
+      "Never solicit money, donations, offerings or personal information. Never pressure anyone to adopt a religion.",
+      "Do not provide medical, legal or financial instructions; encourage qualified professional help for those topics.",
+      "If a person appears at risk of immediate harm, encourage contacting local emergency services and a trusted person.",
+      "You are an AI guide in a digital environment, not a human monk and cannot perform real-world rituals.",
+      location ? "The visitor is currently exploring: " + location + "." : ""
+    ].filter(Boolean).join(" ");
+    try {
+      const answer = await minimaxChat(env, [{ role: "system", content: system }, ...history, { role: "user", content: message }], 520);
+      return reply(request, { available: true, answer });
+    } catch (error) {
+      return reply(request, { error: clean(error.message, 220) || "The abbot could not respond." }, 502);
+    }
+  }
+
   if (path === "/api/session" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid session." }, 400);
