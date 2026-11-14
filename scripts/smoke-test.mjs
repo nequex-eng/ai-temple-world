@@ -38,7 +38,7 @@ assert.ok(app.includes("Birds_chirping_in_a_garden.ogg") && app.includes("Dingju
 assert.ok(headers.includes("media-src") && headers.includes("https://upload.wikimedia.org"), "CSP must allow the Wikimedia audio recordings");
 assert.ok(app.includes("__templeAudioDebug") && app.includes("await resumePromise"), "Audio playback diagnostics and awaited AudioContext resume are required");
 assert.ok(read("index.html").includes("id=\"profile-sound-toggle\"") && app.includes('$("profile-sound-toggle").addEventListener'), "First-visit profile dialog must provide a working sound control");
-assert.ok(app.includes("templeBirds.play()") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture");
+assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture and report media errors");
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now())"), "Collision regression test hooks missing");
