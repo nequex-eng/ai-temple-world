@@ -1,0 +1,20 @@
+{
+  "name": "云上禅境 · AI Temple World",
+  "short_name": "云上禅境",
+  "description": "A shared, multilingual digital sanctuary.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#17251f",
+  "theme_color": "#17251f",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/icons/lotus.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
