@@ -24,15 +24,22 @@ export class TempleNetwork {
     this.lastBroadcastPosition = null;
   }
   async request(path, options = {}) {
-    const response = await fetch(API_BASE + path, {
-      ...options,
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-      cache: "no-store",
-      credentials: "omit"
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error || ("Request failed (" + response.status + ")"));
-    return body;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(API_BASE + path, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        cache: "no-store",
+        credentials: "omit",
+        signal: controller.signal
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || ("Request failed (" + response.status + ")"));
+      return body;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
   async health() { return this.request("/api/health"); }
   async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
