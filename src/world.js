@@ -93,8 +93,8 @@ function avatar(scene,profile={},id="local"){
  add(new THREE.TorusGeometry(.23,.04,8,28),trim,body,[0,1.53,0],[Math.PI/2,0,0]);
  const legs=[],arms=[];
  for(const side of [-1,1]){
-  const leg=add(new THREE.CapsuleGeometry(.14,.42,4,8),dark,body,[side*.2,.22,0]);legs.push(leg);
-  add(new THREE.BoxGeometry(.26,.12,.42),sandal,body,[side*.2,.07,.08]);
+  const leg=add(new THREE.CapsuleGeometry(.105,.28,4,8),dark,body,[side*.2,.19,0]);legs.push(leg);
+  add(new THREE.BoxGeometry(.28,.09,.4),sandal,body,[side*.2,.045,.08]);
   const pivot=new THREE.Group();pivot.position.set(side*.43,1.36,0);body.add(pivot);
   add(new THREE.CapsuleGeometry(.155,.62,4,8),robe,pivot,[side*.03,-.28,0],[0,0,side*.16]);
   add(new THREE.SphereGeometry(.12,10,8),skin,pivot,[side*.03,-.61,.02]);arms.push(pivot);
@@ -102,6 +102,15 @@ function avatar(scene,profile={},id="local"){
  add(new THREE.CylinderGeometry(.12,.15,.22,12),skin,body,[0,1.65,0]);
  const head=new THREE.Group();head.position.set(0,1.94,0);body.add(head);
  add(new THREE.SphereGeometry(.315,20,16),skin,head,[0,.12,0]);
+ // Smooth, clearly shaven monastic scalp (no hair cap or hairstyle).
+ const scalp=add(new THREE.SphereGeometry(.318,20,14),skin,head,[0,.235,-.012]);scalp.scale.set(1,.58,.96);
+ // Layered kasaya robe and cloth sash make the silhouette read as a Buddhist monk.
+ add(new THREE.TorusGeometry(.31,.075,9,28),trim,body,[0,1.57,.015],[Math.PI/2,0,0]);
+ const sash=add(new THREE.BoxGeometry(.16,1.28,.075),trim,body,[.24,.93,.43],[0,0,-.42]);sash.scale.set(.85,1,.8);
+ add(new THREE.TorusGeometry(.39,.055,8,32),trim,body,[0,.55,0],[Math.PI/2,0,0]);
+ // Long robe hem covers the trousers; only the sandals remain visible.
+ add(new THREE.CylinderGeometry(.48,.58,.42,24,1,true),robe,body,[0,.25,0]);
+ add(new THREE.BoxGeometry(.13,.035,.05),trim,body,[0,1.43,.49]);
  for(const side of [-1,1]){
   add(new THREE.SphereGeometry(.064,10,8),skin,head,[side*.3,.11,0]);
   add(new THREE.SphereGeometry(.024,8,8),dark,head,[side*.105,.15,.292],[0,0,0],false);
@@ -261,6 +270,22 @@ export class TempleWorld{
    }
    if(Math.hypot(nx-31,nz-33)<9.2)blocked=true;
    if(!blocked){p.x=nx;p.z=nz;}
+   else{
+    // Axis-separated fallback keeps movement responsive when brushing a wall or doorway.
+    let moved=false;
+    for(const [tx,tz] of [[nx,p.z],[p.x,nz]]){
+     let hit=false;
+     for(const hall of this.halls){
+      const l=hall.x-hall.w/2+.55,r=hall.x+hall.w/2-.55,fz=hall.z+hall.d/2-.55,bz=hall.z-hall.d/2+.55;
+      const inside=tx>l&&tx<r&&tz>bz&&tz<fz;
+      const was=p.x>l&&p.x<r&&p.z>bz&&p.z<fz;
+      const doorway=Math.abs(tx-hall.x)<hall.w*.115&&((p.z>=fz&&tz<fz)||(p.z<=fz&&tz>fz));
+      if(inside&&!was&&!doorway)hit=true;
+     }
+     if(Math.hypot(tx-31,tz-33)<9.2)hit=true;
+     if(!hit){p.x=tx;p.z=tz;moved=true;break;}
+    }
+   }
    this.local.root.rotation.y=Math.atan2(dir.x,dir.z);
   }
   this.local.update(dt,time,moving&&this.local.pose==="walk");for(const a of this.remotes.values())a.update(dt,time,false);
