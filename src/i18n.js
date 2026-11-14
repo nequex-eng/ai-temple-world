@@ -1,6 +1,6 @@
 export const TEXT = {
   zh: {
-    statusConnecting:"正在连接禅境",statusOnline:"已进入共同禅境",statusOffline:"网络暂时离线",visitors:"位访客",
+    soundOn:"音效开启",soundOff:"开启声音",statusConnecting:"正在连接禅境",statusOnline:"已进入共同禅境",statusOffline:"网络暂时离线",visitors:"位访客",
     profile:"我的小和尚",prayers:"祈愿墙",locationEyebrow:"YOU ARE HERE · 当前所在",locationHint:"缓步而行，随心探索",
     presence:"此刻同在",presenceSub:"来自不同地方的人，在此相遇",waiting:"等待远方来客……",
     todayVisitors:"今日到访",todayActivities:"今日礼敬",wishes:"祈愿灯火",
@@ -38,7 +38,7 @@ export const TEXT = {
     bellNear:"钟楼就在寺院北侧，可沿石径前往。",incenseNear:"香炉广场就在殿前，沿石径走近后再上香。",lotusNear:"莲花池在寺院东侧，走近池边再放莲灯。"
   },
   ja: {
-    statusConnecting:"禅境に接続中",statusOnline:"共有の禅境に入りました",statusOffline:"一時的にオフライン",visitors:"人が滞在中",
+    soundOn:"音響オン",soundOff:"音響をオン",statusConnecting:"禅境に接続中",statusOnline:"共有の禅境に入りました",statusOffline:"一時的にオフライン",visitors:"人が滞在中",
     profile:"自分のお坊さん",prayers:"祈りの壁",locationEyebrow:"YOU ARE HERE · 現在地",locationHint:"ゆっくり歩き、自由に探索",
     presence:"今ここにいる人",presenceSub:"世界のさまざまな場所から、ここで出会う",waiting:"遠くからの訪問者を待っています…",
     todayVisitors:"今日の訪問者",todayActivities:"今日の礼拝",wishes:"祈りの灯",
@@ -71,7 +71,7 @@ export const TEXT = {
     bellNear:"鐘楼は寺院の奥にあります。石畳を進んでください。",incenseNear:"香炉は本堂前の広場にあります。",lotusNear:"蓮池は寺院の東側です。池の近くまで進んでください。"
   },
   ko: {
-    statusConnecting:"선경에 연결 중",statusOnline:"공유 선경에 입장했습니다",statusOffline:"일시적으로 오프라인",visitors:"명 함께 있음",
+    soundOn:"소리 켜짐",soundOff:"소리 켜기",statusConnecting:"선경에 연결 중",statusOnline:"공유 선경에 입장했습니다",statusOffline:"일시적으로 오프라인",visitors:"명 함께 있음",
     profile:"나의 작은 스님",prayers:"소원 게시판",locationEyebrow:"YOU ARE HERE · 현재 위치",locationHint:"천천히 걸으며 자유롭게 둘러보세요",
     presence:"지금 함께 있는 사람",presenceSub:"서로 다른 곳에서 온 사람들이 이곳에서 만납니다",waiting:"멀리서 오는 방문자를 기다립니다…",
     todayVisitors:"오늘 방문자",todayActivities:"오늘의 예경",wishes:"소원의 등불",
@@ -104,7 +104,7 @@ export const TEXT = {
     bellNear:"종루는 사찰 안쪽에 있습니다. 돌길을 따라가세요.",incenseNear:"향로는 본당 앞 광장에 있습니다.",lotusNear:"연꽃 연못은 사찰 동쪽에 있습니다. 연못 가까이 가세요."
   },
   th: {
-    statusConnecting:"กำลังเชื่อมต่อสถานธรรม",statusOnline:"เข้าสู่สถานธรรมร่วมกันแล้ว",statusOffline:"ออฟไลน์ชั่วคราว",visitors:" คนอยู่ที่นี่",
+    soundOn:"เปิดเสียงแล้ว",soundOff:"เปิดเสียง",statusConnecting:"กำลังเชื่อมต่อสถานธรรม",statusOnline:"เข้าสู่สถานธรรมร่วมกันแล้ว",statusOffline:"ออฟไลน์ชั่วคราว",visitors:" คนอยู่ที่นี่",
     profile:"สามเณรของฉัน",prayers:"กำแพงคำอธิษฐาน",locationEyebrow:"YOU ARE HERE · สถานที่ปัจจุบัน",locationHint:"เดินช้าๆ และสำรวจได้ตามใจ",
     presence:"ผู้คน ณ ขณะนี้",presenceSub:"ผู้คนจากต่างถิ่นมาพบกันที่นี่",waiting:"รอผู้มาเยือนจากแดนไกล…",
     todayVisitors:"ผู้เยี่ยมชมวันนี้",todayActivities:"การสักการะวันนี้",wishes:"ประทีปคำอธิษฐาน",
