@@ -74,3 +74,20 @@
 
 .room-label{font-size:9px;letter-spacing:.08em;color:#c7b48d;opacity:.78;white-space:nowrap}
 @media(max-width:760px){.room-label{display:none}}
+
+
+.mobile-panel-toggle{display:none}
+@media(max-width:660px){
+ .mobile-panel-toggle{display:grid;place-items:center;position:absolute;top:6px;right:7px;width:25px;height:25px;padding:0;border:1px solid #d7bb8244;border-radius:50%;background:#14271fdd;color:#e7d3aa;font-size:16px;line-height:1;z-index:2;touch-action:manipulation}
+ .location-card,.presence-card{transition:width .18s ease,padding .18s ease,background .18s ease;min-height:0}
+ .location-card{padding:9px 34px 9px 10px}
+ .presence-card{padding:9px 34px 9px 10px}
+ .location-card .section-eyebrow{font-size:7px;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .location-card .location-title{font-size:13px;line-height:1.25;margin:3px 0 0;letter-spacing:.08em}
+ .location-card.collapsed .location-description,.location-card.collapsed .location-coordinates{display:none}
+ .presence-card .panel-heading{font-size:10px;min-height:18px}
+ .presence-card.collapsed .presence-sub,.presence-card.collapsed .presence-list,.presence-card.collapsed .stat-divider,.presence-card.collapsed .stats-grid{display:none}
+ .location-card:not(.collapsed),.presence-card:not(.collapsed){width:min(220px,calc(100vw - 24px));max-width:220px;z-index:6;background:rgba(17,31,24,.94)}
+ #sound-toggle{z-index:8;right:10px;top:67px;height:32px;padding:0 11px;font-size:9px;border-color:#d7bb8299;background:rgba(20,35,29,.94);box-shadow:0 4px 14px #0005}
+ .location-card:not(.collapsed) .mobile-panel-toggle,.presence-card:not(.collapsed) .mobile-panel-toggle{transform:rotate(180deg)}
+}
