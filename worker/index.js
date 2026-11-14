@@ -66,6 +66,7 @@ async function handleApi(request, env, url) {
       env.DB.prepare("DELETE FROM activities WHERE player_id=?").bind(body.player_id),
       env.DB.prepare("DELETE FROM prayers WHERE player_id=?").bind(body.player_id),
       env.DB.prepare("DELETE FROM visits WHERE player_id=?").bind(body.player_id),
+      env.DB.prepare("DELETE FROM offerings WHERE player_id=?").bind(body.player_id),
       env.DB.prepare("DELETE FROM profiles WHERE id=?").bind(body.player_id)
     ]);
     return reply(request, { ok: true, deleted: true });
@@ -73,6 +74,8 @@ async function handleApi(request, env, url) {
   if (path === "/api/activity" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id) || !ACTIONS.has(body.action)) return reply(request, { error: "Invalid activity." }, 400);
+    const last = await env.DB.prepare("SELECT created_at FROM activities WHERE player_id=? ORDER BY created_at DESC LIMIT 1").bind(body.player_id).first();
+    if (last && Date.now() - Date.parse(last.created_at) < 450) return reply(request, { error: "Please pause before recording another activity." }, 429);
     const location = clean(body.location, 40) || "temple";
     await env.DB.prepare("INSERT INTO activities(id,player_id,action,location,created_at) VALUES(?,?,?,?,?)")
       .bind(crypto.randomUUID(), body.player_id, body.action, location, now()).run();
@@ -182,6 +185,9 @@ export class TempleRoom {
       return;
     }
     if (data.type === "action" && ACTIONS.has(data.action)) {
+      const actionStamp = Date.now();
+      if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
+      player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       if (data.action === "incense" && !near(0, 0, 8)) return;
       if (data.action === "bell" && !near(-28, 2, 8)) return;
