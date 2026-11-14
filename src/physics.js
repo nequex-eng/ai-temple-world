@@ -89,7 +89,7 @@ export function groundHeightAt(x, z, halls) {
       { z: front + 3.72, y: 0.18 }
     ];
     if (Math.abs(x - h.x) < h.w * 0.31) {
-      for (const step of stair) if (Math.abs(z - step.z) <= 0.53) return step.y;
+      for (const step of stair) if (Math.abs(z - step.z) <= 0.56) return step.y;
     }
   }
   return 0;
