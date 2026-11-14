@@ -153,9 +153,14 @@ export class TempleRoom {
     if (data.type === "move") {
       const x = Number(data.x), z = Number(data.z), rotation = Number(data.rotation);
       if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(rotation)) return;
-      player.x = Math.max(-78, Math.min(78, x));
-      player.z = Math.max(-78, Math.min(78, z));
+      const stamp = Date.now(), elapsed = player.lastMoveAt ? Math.max(50, Math.min(1000, stamp - player.lastMoveAt)) : 1000;
+      if (player.lastMoveAt && stamp - player.lastMoveAt < 65) return;
+      const nx = Math.max(-78, Math.min(78, x)), nz = Math.max(-78, Math.min(78, z));
+      if (player.lastMoveAt && Math.hypot(nx - player.x, nz - player.z) > elapsed * .012 + 1.3) return;
+      player.x = nx;
+      player.z = nz;
       player.rotation = rotation;
+      player.lastMoveAt = stamp;
       player.action = "walk";
       ws.serializeAttachment(player);
       this.broadcast({ type: "player:move", player }, ws);
