@@ -30,6 +30,16 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
 
+  const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
+  await page.keyboard.down("w");
+  await page.waitForTimeout(700);
+  await page.keyboard.up("w");
+  const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
+  expect(afterMove).toBeLessThan(beforeMove - 0.5);
+
+  await page.locator("#sound-toggle").click();
+  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
+
   await page.locator('[data-action="bow"]').click();
   await expect(page.locator("#toast")).toHaveClass(/show/);
 
@@ -61,6 +71,18 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await page.locator("#monk-name").fill("Mobile Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  const joystick = await page.locator("#joystick").boundingBox();
+  const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
+  await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height * 0.18, { steps: 5 });
+  await page.waitForTimeout(700);
+  await page.mouse.up();
+  const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
+  expect(afterMove).toBeLessThan(beforeMove - 0.5);
+
+  await page.locator("#sound-toggle").click();
+  await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed", "true");
   await page.locator("#run-toggle").click();
   await expect(page.locator("#run-toggle")).toHaveClass(/active/);
   await page.locator("#run-toggle").click();
