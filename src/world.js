@@ -83,7 +83,7 @@ function lantern(scene,x,z,m){
  add(new THREE.ConeGeometry(.08,.34,6),m.gold,g,[0,3.26,0]);
  const l=new THREE.PointLight(0xffce8c,.48,7);l.position.set(0,2.3,0);g.add(l);
 }
-function avatar(scene,profile={},id="local"){
+function avatar(scene,profile={},id="local",isLocal=false){
  const root=new THREE.Group();root.name="monk-"+id;scene.add(root);
  const robe=mat(profile.robe||"#b49a72",.9),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
  const body=new THREE.Group();root.add(body);
@@ -139,7 +139,7 @@ function avatar(scene,profile={},id="local"){
   setPose(a,ms=2600){this.pose=a;this.until=performance.now()+ms;},
   update(dt,time,moving=false){
    if(this.until&&time>this.until){this.pose="walk";this.until=0;}
-   if(id!=="local"){root.position.lerp(this.target,1-Math.pow(.0001,dt));let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
+   if(!isLocal){root.position.lerp(this.target,1-Math.pow(.0001,dt));let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
    body.rotation.x=0;head.rotation.x=0;body.position.y=0;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
    if(moving&&this.pose==="walk"){const v=Math.sin(time*.009)*.48;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
    incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
@@ -267,7 +267,7 @@ export class TempleWorld{
   c.addEventListener("wheel",e=>{this.distance=clamp(this.distance+Math.sign(e.deltaY)*.7,6.5,18);},{passive:true});
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.2:1.65));}this.renderer.setSize(innerWidth,innerHeight);}
- setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id);this.local.setPosition(pos.x,pos.z,pos.rotation);}return;}this.local=avatar(this.scene,p,id);this.local.setPosition(0,25,0);}
+ setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation);}return;}this.local=avatar(this.scene,p,id,true);this.local.setPosition(0,25,0);}
  addRemote(p){if(!p?.id||p.id===this.local?.id)return;if(this.remotes.has(p.id)){this.updateRemote(p);return;}const a=avatar(this.scene,p,p.id);a.setPosition(p.x,p.z,p.rotation||0);a.setTarget(p);this.remotes.set(p.id,a);}
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
