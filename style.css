@@ -20,3 +20,5 @@
 @media(max-height:600px) and (min-width:661px){.location-card,.presence-card{top:75px}.chat-panel{max-height:210px;bottom:10px}.chat-messages{height:95px}.action-dock{bottom:8px}.character-chip{bottom:90px}}
 
 .run-toggle{height:43px;min-width:48px;padding:0 9px;border:1px solid #d7bb8277;background:rgba(22,38,30,.72);color:#e5d2a9;border-radius:3px;font-size:9px;letter-spacing:.08em;touch-action:manipulation}.run-toggle.active{background:#a18454;color:#fff;border-color:#f1d8a8}@media(max-width:660px){.run-toggle{height:37px;min-width:43px;font-size:8px;padding:0 7px}}
+
+.danger-button{display:block;margin:10px auto 0;padding:8px 14px;border:1px solid #c98a7a55;background:transparent;color:#d2a092;font-size:9px;letter-spacing:.06em}.danger-button:hover{background:#763d3544;border-color:#d2a092}
