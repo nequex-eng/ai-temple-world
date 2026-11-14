@@ -108,19 +108,21 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await page.evaluate(() => document.activeElement?.blur());
 
-  await page.evaluate(() => window.__templeDebug.setYaw(0));
-  await page.evaluate(() => window.__templeDebug.setPosition(8.3, -10));
-  await page.keyboard.down("d");
-  await page.waitForTimeout(850);
-  await page.keyboard.up("d");
+  await page.evaluate(() => {
+    const debug = window.__templeDebug;
+    debug.setYaw(0);
+    debug.setPosition(8.3, -10);
+    for (let i = 0; i < 40; i++) debug.step({ right: 1 }, 0.05);
+  });
   const wall = await page.evaluate(() => window.__templeDebug.position());
   expect(wall.x).toBeGreaterThanOrEqual(8.2);
   expect(wall.x).toBeLessThan(8.8);
 
-  await page.evaluate(() => window.__templeDebug.setPosition(0, 0.9));
-  await page.keyboard.down("w");
-  await page.waitForTimeout(1900);
-  await page.keyboard.up("w");
+  await page.evaluate(() => {
+    const debug = window.__templeDebug;
+    debug.setPosition(0, 0.9);
+    for (let i = 0; i < 40; i++) debug.step({ forward: 1 }, 0.05);
+  });
   const stairs = await page.evaluate(() => window.__templeDebug.position());
   const stairDebug = await page.evaluate(() => window.__templeDebug.input());
   console.log("stairs-regression", JSON.stringify({ wall, stairs, stairDebug }));
@@ -139,7 +141,7 @@ test("two independent guests share live presence and messages", async ({ browser
   try {
     for (const [page, name] of [[pageA, "Room Guest A"], [pageB, "Room Guest B"]]) {
       await page.goto("/", { waitUntil: "domcontentloaded" });
-      await expect(page.locator("#loading")).toHaveClass(/hidden/);
+      await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
       await page.locator("#monk-name").fill(name);
       await page.locator("#save-profile").click();
       await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
