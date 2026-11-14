@@ -331,19 +331,22 @@ export class TempleWorld{
    {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-22,z:-18,route:[[-22,-18],[-19,-16],[-18,-12],[-24,-12]]},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]]},
    {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]]},
-   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]]}
+   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]]},
+   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-2.55,z:-33.8,route:[[-2.55,-33.8]],stationary:true}
   ];
   this.npcs=roster.map((spec,index)=>{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0,groundHeightAt(spec.x,spec.z,this.halls));
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
+   if(spec.stationary){a.setPose("meditate",60000);npc.stationary=true;npc.moving=false;}
    return npc;
   });
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
    const a=npc.avatar,p=a.root.position;
+   if(npc.stationary){a.update(dt,time,false);continue;}
    if(npc.moving){
     const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
     if(dist<.48){npc.moving=false;const idle=["bow","greet","meditate","chant","sweep"];a.setPose(idle[Math.floor(Math.random()*idle.length)],2600+Math.random()*1800);npc.nextAt=time+4200+Math.random()*5200;npc.stuckAt=0;}
