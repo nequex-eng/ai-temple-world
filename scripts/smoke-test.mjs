@@ -23,6 +23,10 @@ assert.ok(app.includes("await network.visit()"), "Daily visit tracking must be c
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
+assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
+assert.ok(world.includes("name:\"小沙弥\"") && world.includes("name:\"守经人\""), "Temple NPC roles missing");
+assert.ok(app.includes("playAmbientChime") && app.includes("wind.gain.value=.055"), "Audible temple ambience missing");
+assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
