@@ -39,6 +39,7 @@ assert.equal(collidesAt(0, 5.5, collision), false, "The main entrance must remai
 assert.equal(groundHeightAt(0, 8.72, testHalls), 0.18, "Outer stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
+assert.equal(groundHeightAt(0, 6.18, testHalls), 0.54, "Top stair must overlap the hall landing without a drop gap");
 const wallMove = moveWithCollision({ x: 4.4, z: 0, y: 0 }, 0.5, 0, collision);
 assert.equal(wallMove.moved, false, "Movement must stop at a wall instead of crossing it");
 const fastWallMove = moveWithCollision({ x: 0, z: 0, y: 0 }, 8, 0, collision);
