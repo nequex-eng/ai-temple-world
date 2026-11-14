@@ -436,7 +436,10 @@ document.addEventListener("keydown",e=>{
  if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","jump"," "].includes(key)){e.preventDefault();keys[key]=true;}
 },true);
 document.addEventListener("keyup",e=>{const key=movementCodes[e.code]||e.key.toLowerCase();keys[key]=false;},true);
-document.addEventListener("visibilitychange",()=>{if(document.hidden){keys={};resetStick();}});
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){keys={};resetStick();}
+ else if(soundEnabled&&audio?.state==="suspended")audio.resume().then(()=>updateSoundscape()).catch(error=>{console.warn("Audio resume failed",error);});
+});
 const stick=$("joystick"),knob=$("joystick-knob");
 function updateStick(e){
  const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
@@ -448,6 +451,26 @@ function resetStick(){stickPointer=null;joy={x:0,y:0};knob.style.transform="tran
 stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);stick.addEventListener("lostpointercapture",resetStick);
 addEventListener("blur",()=>{keys={};resetStick();});
 $("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
+function initMobilePanels(){
+ const mobile=window.matchMedia("(max-width: 660px)");
+ const entries=[["location-card","location-panel-toggle"],["presence-card","presence-panel-toggle"]];
+ const apply=()=>{
+  for(const [cardId,buttonId] of entries){
+   const card=$(cardId),button=$(buttonId);if(!card||!button)continue;
+   card.classList.toggle("collapsed",mobile.matches);
+   button.setAttribute("aria-expanded",String(!mobile.matches));
+  }
+ };
+ for(const [cardId,buttonId] of entries){
+  const card=$(cardId),button=$(buttonId);if(!card||!button)continue;
+  button.addEventListener("click",()=>{
+   const collapsed=card.classList.toggle("collapsed");
+   button.setAttribute("aria-expanded",String(!collapsed));
+  });
+ }
+ apply();mobile.addEventListener?.("change",apply);
+}
+initMobilePanels();
 $("sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 $("profile-sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 function inputState(){
