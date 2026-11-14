@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+test.afterEach(async ({ page }) => { await cleanTestGuest(page); });
+
 async function cleanTestGuest(page) {
   try {
     const id = await page.evaluate(() => localStorage.getItem("temple-world-player-id"));
@@ -30,8 +32,10 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
 
+  await page.evaluate(() => document.activeElement?.blur());
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
   await page.keyboard.down("w");
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.w)).toBe(true);
   await page.waitForTimeout(700);
   await page.keyboard.up("w");
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
@@ -79,6 +83,7 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height / 2);
   await page.mouse.down();
   await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height * 0.18, { steps: 5 });
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().joy.y)).toBeLessThan(-0.5);
   await page.waitForTimeout(700);
   await page.mouse.up();
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
@@ -110,8 +115,8 @@ test("two independent guests share live presence and messages", async ({ browser
       await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
     }
 
-    await expect(pageA.locator("#online-count")).toContainText("2", { timeout: 20000 });
-    await expect(pageB.locator("#online-count")).toContainText("2", { timeout: 20000 });
+    await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
 
     await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
     await pageA.locator("#chat-form button").click();
