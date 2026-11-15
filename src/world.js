@@ -186,31 +186,41 @@ function avatar(scene,profile={},id="local",isLocal=false){
  }
  const tag=labelSprite(profile.name||"行者");root.add(tag);
  return {
-  id,root,body,head,arms,legs,tag,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",until:0,
+  id,root,body,head,arms,legs,tag,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
   setLabel(name){this.tag.material.map.dispose();root.remove(this.tag);this.tag=labelSprite(name);root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
-  setPose(a,ms=2600){this.pose=a;this.until=performance.now()+ms;},
+  setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
   update(dt,time,moving=false){
-   if(this.until&&time>this.until){this.pose="walk";this.until=0;}
-   if(!isLocal){let d=((this.targetRotation-root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;root.rotation.y+=d*(1-Math.pow(.0001,dt));}
-   body.rotation.x=0;head.rotation.x=0;body.position.y=Math.sin(time*.0018)*.012;head.rotation.y=Math.sin(time*.0012)*.018;arms[0].rotation.set(0,0,-.12);arms[1].rotation.set(0,0,.12);legs[0].rotation.x=0;legs[1].rotation.x=0;
-   if(moving&&this.pose==="walk"){const v=Math.sin(time*.0075)*.34;legs[0].rotation.x=v;legs[1].rotation.x=-v;arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;body.position.y=Math.abs(Math.sin(time*.018))*.035;}
-   incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
-   if(this.pose==="bow"||this.pose==="kneel"||this.pose==="chant"){body.rotation.x=this.pose==="chant"?.08:.17;head.rotation.x=this.pose==="chant"?.13:.26;arms[0].rotation.x=-.2;arms[1].rotation.x=-.2;arms[0].rotation.z=.65;arms[1].rotation.z=-.65;if(this.pose==="kneel"){body.position.y=-.25;legs[0].rotation.x=-.7;legs[1].rotation.x=-.7;}}
-   else if(this.pose==="meditate"){
-    body.position.y=-.19+Math.sin(time*.00125)*.012;
-    body.rotation.x=-.025+Math.sin(time*.0008)*.008;
-    head.rotation.x=.035+Math.sin(time*.0011)*.008;
-    legs[0].rotation.x=-1.1;legs[1].rotation.x=-1.1;
-    // Both forearms rise gently and meet at the lap in a quiet meditation mudra.
-    arms[0].rotation.set(-1.02,0,.52);
-    arms[1].rotation.set(-1.02,0,-.52);
+   if(this.until&&time>this.until){this.previousPose=this.pose;this.pose="walk";this.poseStartedAt=time;this.until=0;}
+   const pose=(name)=>{
+    const v={bodyX:0,bodyY:0,headX:0,armX0:0,armX1:0,armZ0:-.12,armZ1:.12,legX0:0,legX1:0};
+    if(name==="bow"){v.bodyX=.17;v.headX=.26;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
+    else if(name==="kneel"){v.bodyY=-.25;v.bodyX=.08;v.headX=.18;v.legX0=-.7;v.legX1=-.7;v.armZ0=.45;v.armZ1=-.45;}
+    else if(name==="chant"){v.bodyX=.08;v.headX=.13;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
+    else if(name==="meditate"){v.bodyY=-.19;v.bodyX=-.025;v.headX=.035;v.legX0=-1.1;v.legX1=-1.1;v.armX0=-1.02;v.armX1=-1.02;v.armZ0=.52;v.armZ1=-.52;}
+    else if(name==="greet"){v.armX0=-.75;v.armX1=-.75;v.armZ0=-.42;v.armZ1=.42;}
+    else if(name==="incense"){v.armX0=-.6;v.armX1=-.6;}
+    else if(name==="sweep"){v.armX0=.15;v.armX1=-.5;v.armZ1=.5*Math.sin(time*.01);}
+    return v;
+   };
+   const from=pose(this.previousPose||"walk"),to=pose(this.pose);
+   const raw=clamp((time-(this.poseStartedAt||time))/460,0,1),blend=raw*raw*(3-2*raw);
+   const mix=(key)=>from[key]+(to[key]-from[key])*blend;
+   body.rotation.x=mix("bodyX");
+   body.position.y=mix("bodyY")+Math.sin(time*(this.pose==="meditate"?.00125:.0018))*(this.pose==="meditate"?.012:.006);
+   head.rotation.x=mix("headX")+Math.sin(time*.0011)*.004;
+   arms[0].rotation.set(mix("armX0"),0,mix("armZ0"));
+   arms[1].rotation.set(mix("armX1"),0,mix("armZ1"));
+   legs[0].rotation.x=mix("legX0");legs[1].rotation.x=mix("legX1");
+   if(moving&&this.pose==="walk"){
+    const v=Math.sin(time*.0075)*.34*blend;
+    legs[0].rotation.x=v;legs[1].rotation.x=-v;
+    arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;
+    body.position.y+=Math.abs(Math.sin(time*.018))*.035;
    }
-   else if(this.pose==="greet"){arms[0].rotation.x=-.75;arms[1].rotation.x=-.75;arms[0].rotation.z=-.42;arms[1].rotation.z=.42;}
-   else if(this.pose==="incense"){arms[0].rotation.x=-.6;arms[1].rotation.x=-.6;}
-   else if(this.pose==="sweep"){arms[0].rotation.x=.15;arms[1].rotation.x=-.5;arms[1].rotation.z=.5*Math.sin(time*.01);}
+   incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";
   },
   dispose(){scene.remove(root);root.traverse(o=>{o.geometry?.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];for(const material of materials){material.map?.dispose();material.dispose();}}});}
  };
