@@ -208,8 +208,20 @@ async function handleApi(request, env, url) {
     return reply(request, { todayVisitors: visits?.total || 0, todayActivities: activity?.total || 0, wishes: prayers?.total || 0 });
   }
   if (path === "/api/prayers" && request.method === "GET") {
-    const rows = await env.DB.prepare("SELECT id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all();
+    const rows = await env.DB.prepare("SELECT id,player_id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all();
     return reply(request, { prayers: rows.results || [] });
+  }
+  const prayerDeleteMatch = path.match(/^\\/api\\/prayers\\/([a-f0-9-]{36})$/i);
+  if (prayerDeleteMatch && request.method === "DELETE") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid request." }, 400);
+    const result = await env.DB.prepare("DELETE FROM prayers WHERE id=? AND player_id=?").bind(prayerDeleteMatch[1], body.player_id).run();
+    if (!(result.meta?.changes > 0)) return reply(request, { error: "This wish was not found or does not belong to you." }, 404);
+    try {
+      const roomId = env.TEMPLE_ROOMS.idFromName("temple:great-hall:shared");
+      await env.TEMPLE_ROOMS.get(roomId).fetch(new Request("https://temple-room/broadcast-prayer-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: prayerDeleteMatch[1] }) }));
+    } catch (error) { console.error("Prayer deletion broadcast failed", error); }
+    return reply(request, { ok: true, deleted: true, id: prayerDeleteMatch[1] });
   }
   if (path === "/api/prayers" && request.method === "POST") {
     const body = await request.json().catch(() => null);
@@ -226,7 +238,7 @@ async function handleApi(request, env, url) {
     const id = crypto.randomUUID(), created_at = now();
     await env.DB.prepare("INSERT INTO prayers(id,player_id,display_name,message,language,created_at) VALUES(?,?,?,?,?,?)")
       .bind(id, body.player_id, name, message, language, created_at).run();
-    const prayer = { id, display_name: name, message, language, created_at };
+    const prayer = { id, player_id: body.player_id, display_name: name, message, language, created_at };
     try {
       const roomId = env.TEMPLE_ROOMS.idFromName("temple:great-hall:shared");
       await env.TEMPLE_ROOMS.get(roomId).fetch(new Request("https://temple-room/broadcast-prayer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(prayer) }));
@@ -262,6 +274,12 @@ export class TempleRoom {
       const prayer = await request.json().catch(() => null);
       if (!prayer || typeof prayer.message !== "string") return new Response("Invalid prayer.", { status: 400 });
       this.broadcast({ type: "prayer:new", prayer });
+      return Response.json({ ok: true });
+    }
+    if (url.pathname === "/broadcast-prayer-delete" && request.method === "POST") {
+      const data = await request.json().catch(() => null);
+      if (!data || !validId(data.id)) return new Response("Invalid prayer id.", { status: 400 });
+      this.broadcast({ type: "prayer:delete", id: data.id });
       return Response.json({ ok: true });
     }
     const current = this.ctx.getWebSockets();
@@ -308,7 +326,7 @@ export class TempleRoom {
     const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(peer => peer && peer.id !== player.id);
     const [offeringRows, prayerRows] = await Promise.all([
       this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] })),
-      this.env.DB.prepare("SELECT id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all().catch(() => ({ results: [] }))
+      this.env.DB.prepare("SELECT id,player_id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all().catch(() => ({ results: [] }))
     ]);
     server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [], prayers: prayerRows.results || [] }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
