@@ -103,7 +103,7 @@ function handleMessage(message){
    world.updateRemote(message.player);
    if(message.type==="player:action"){
     world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
-    if(message.player.action==="bell")playBell();if(message.player.action==="chant")playMuyu();
+    playRitualSound(message.player.action,.42);
    }
    onlinePlayers.set(message.player.id,message.player);renderPresence();
   }
@@ -226,7 +226,6 @@ async function ensureAudio(){
   // Start media playback and resume Web Audio synchronously from the visitor's
   // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
   void mediaPlay(templeBirds,"庭院鸟鸣");
-  templeBell.currentTime=0;templeBell.volume=.35*audioVolumes.effects;void mediaPlay(templeBell,"寺院钟声");
   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
   await resumePromise;
   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
@@ -235,7 +234,6 @@ async function ensureAudio(){
   for(const id of ["sound-toggle","profile-sound-toggle"]){const button=$(id);if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}}
   // Retry once if an MP3 transcode failed and the original Ogg fallback has loaded.
   if(templeBirds.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
-  if(templeBell.paused)void mediaPlay(templeBell,"寺院钟声");
   updateSoundscape();
   return true;
  }catch(error){
@@ -261,8 +259,7 @@ function updateSoundscape(){
  if(chantVolume>.006){if(templeChant.paused)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
-  const distantBell=templeBell?.cloneNode(true);
-  if(distantBell){distantBell.volume=Math.max(.025,Math.min(.13,(1-bellDistance/38)*.13*audioVolumes.effects));void mediaPlay(distantBell,"远处钟声");}
+  playBellSynthesis(Math.max(.12,Math.min(.32,(1-bellDistance/38)*.32)));
   updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
  }
 }
@@ -330,14 +327,44 @@ function playBellSynthesis(volume=.62){
 }
 function playBell(force=false,volume=.62){
  if(!soundEnabled&&!force)return;
- if(!audio||audio.state!=="running")return;
- if(templeBell){
-  try{templeBell.pause();templeBell.currentTime=0;templeBell.volume=volume*audioVolumes.effects;
-   void mediaPlay(templeBell,"寺院钟声").then(ok=>{if(!ok)playBellSynthesis(volume);});
-   return;
-  }catch{}
- }
  playBellSynthesis(volume);
+}
+function playBeadTick(){
+ if(!soundEnabled||!audio||audio.state!=="running")return;
+ const now=audio.currentTime,out=effectsGain||audio.destination;
+ for(const [hz,delay,level] of [[1180,0,.045],[1760,.018,.022]]){
+  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
+  gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(level,now+delay+.004);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+.075);
+  osc.connect(gain);gain.connect(out);osc.start(now+delay);osc.stop(now+delay+.085);
+ }
+}
+function playRitualSound(action,volume=1){
+ if(!soundEnabled||!audio||audio.state!=="running")return;
+ if(action==="bell"){playBellSynthesis(.62*volume);return;}
+ if(action==="chant"){playMuyu();return;}
+ if(action==="beads"){playBeadTick();return;}
+ const now=audio.currentTime,out=effectsGain||audio.destination;
+ if(action==="greet"||action==="bow"){
+  for(const [hz,delay,level] of [[587,0,.026],[784,.09,.018]]){
+   const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
+   gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(level*volume,now+delay+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+.48);
+   osc.connect(gain);gain.connect(out);osc.start(now+delay);osc.stop(now+delay+.5);
+  }
+ }else if(action==="kneel"){
+  const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(145,now);osc.frequency.exponentialRampToValueAtTime(82,now+.12);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.11*volume,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.2);
+  osc.connect(gain);gain.connect(out);osc.start(now);osc.stop(now+.21);
+ }else if(action==="incense"||action==="lotus"){
+  const notes=action==="incense"?[659,988]:[784,1174];
+  notes.forEach((hz,i)=>{const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
+   gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.035*volume,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.8);
+   osc.connect(gain);gain.connect(out);osc.start(now+i*.12);osc.stop(now+i*.12+.82);});
+ }else if(action==="sweep"){
+  const length=Math.floor(audio.sampleRate*.24),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
+  const src=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();src.buffer=buffer;filter.type="lowpass";filter.frequency.value=950;
+  gain.gain.value=.07*volume;src.connect(filter);filter.connect(gain);gain.connect(out);src.start(now);
+ }
 }
 let beadTotal=0;
 try{beadTotal=Math.max(0,Math.floor(Number(localStorage.getItem("temple-beads-total")||0)));}catch{}
@@ -350,7 +377,7 @@ function renderBeads(){
 }
 function openBeads(){$("beads-modal").classList.remove("hidden");renderBeads();}
 function advanceBead(){
- beadTotal++;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}
+ playBeadTick();beadTotal++;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}
  renderBeads();if(navigator.vibrate)navigator.vibrate(12);
  if(beadTotal%108===0)toast(language==="zh"?"已完成一周108颗，愿心安住。":language==="ja"?"108粒を一周しました。心静かに。":language==="ko"?"108알 한 바퀴를 마쳤습니다.":"ครบ 108 เม็ดแล้ว ขอให้ใจสงบ");
 }
@@ -383,7 +410,7 @@ function doAction(action){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
  }
- world.setLocalPose(action);world.addEffect(action);if(action==="chant")playMuyu();actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
+ world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
  network.action(action);network.logActivity(action,world.currentLocation().key);
  if(action==="bell")playBell();
@@ -466,7 +493,8 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden){keys={};resetStick();}
  else if(soundEnabled&&audio?.state==="suspended")audio.resume().then(()=>updateSoundscape()).catch(error=>{console.warn("Audio resume failed",error);});
 });
-const stick=$("joystick"),knob=$("joystick-knob");
+const stick=$("joystick"),knob=$("joystick-knob"),jumpButton=$("jump-toggle");
+if(jumpButton){const jumpStart=e=>{e.preventDefault();keys.jump=true;jumpButton.setPointerCapture?.(e.pointerId);};const jumpEnd=e=>{e.preventDefault();keys.jump=false;};jumpButton.addEventListener("pointerdown",jumpStart);jumpButton.addEventListener("pointerup",jumpEnd);jumpButton.addEventListener("pointercancel",jumpEnd);jumpButton.addEventListener("lostpointercapture",jumpEnd);}
 function updateStick(e){
  const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
  joy={x:dx*factor/(r.width*.34),y:dy*factor/(r.width*.34)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
