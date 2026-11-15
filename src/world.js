@@ -328,20 +328,19 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.72,5.05,.9),m.darkWood,wishWall,[x,2.6,.44]);
    add(new THREE.BoxGeometry(1.0,.24,1.05),m.gold,wishWall,[x,5.16,.42]);
   }
-  // Only three Chinese characters, engraved directly into the stone above the wishes.
-  const engravingCanvas=document.createElement("canvas");engravingCanvas.width=1024;engravingCanvas.height=256;
-  const engravingCtx=engravingCanvas.getContext("2d");engravingCtx.clearRect(0,0,1024,256);
-  engravingCtx.textAlign="center";engravingCtx.textBaseline="middle";
-  engravingCtx.font='bold 142px "Songti SC","Noto Serif CJK SC",serif';
-  engravingCtx.fillStyle="rgba(35,34,29,.72)";engravingCtx.fillText("许愿墙",514,132);
-  engravingCtx.fillStyle="rgba(226,215,190,.32)";engravingCtx.fillText("许愿墙",510,126);
-  const engravingTexture=new THREE.CanvasTexture(engravingCanvas);engravingTexture.colorSpace=THREE.SRGBColorSpace;
-  const wishEngraving=new THREE.Mesh(new THREE.PlaneGeometry(8.8,2.2),new THREE.MeshBasicMaterial({map:engravingTexture,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));
-  wishEngraving.position.set(0,4.35,.54);wishWall.add(wishEngraving);
-  this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=4096;this.wishWallCanvas.height=268;
-  this.wishWallTexture=new THREE.CanvasTexture(this.wishWallCanvas);this.wishWallTexture.colorSpace=THREE.SRGBColorSpace;
-  const wishText=new THREE.Mesh(new THREE.PlaneGeometry(wishLength-7.0,3.65),new THREE.MeshBasicMaterial({map:this.wishWallTexture,side:THREE.DoubleSide,toneMapped:false}));
-  wishText.position.set(0,2.55,.50);wishWall.add(wishText);
+  // A single auspicious 福 character is centered on the otherwise clean wall.
+  const blessingCanvas=document.createElement("canvas");blessingCanvas.width=512;blessingCanvas.height=512;
+  const blessingCtx=blessingCanvas.getContext("2d");blessingCtx.clearRect(0,0,512,512);
+  blessingCtx.textAlign="center";blessingCtx.textBaseline="middle";
+  blessingCtx.font='bold 390px "Songti SC","Noto Serif CJK SC",serif';
+  blessingCtx.shadowColor="rgba(42,27,13,.48)";blessingCtx.shadowBlur=12;blessingCtx.shadowOffsetX=5;blessingCtx.shadowOffsetY=7;
+  const blessingGradient=blessingCtx.createLinearGradient(90,90,420,430);
+  blessingGradient.addColorStop(0,"#e0c17d");blessingGradient.addColorStop(.48,"#a77b3f");blessingGradient.addColorStop(1,"#78512c");
+  blessingCtx.fillStyle=blessingGradient;blessingCtx.fillText("福",256,258);
+  blessingCtx.shadowColor="transparent";blessingCtx.lineWidth=3;blessingCtx.strokeStyle="rgba(245,220,164,.55)";blessingCtx.strokeText("福",256,258);
+  const blessingTexture=new THREE.CanvasTexture(blessingCanvas);blessingTexture.colorSpace=THREE.SRGBColorSpace;
+  const blessing=new THREE.Mesh(new THREE.PlaneGeometry(2.75,2.75),new THREE.MeshBasicMaterial({map:blessingTexture,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));
+  blessing.position.set(0,2.55,.54);wishWall.add(blessing);
   this.setWishWallPrayers([]);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
   this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
@@ -625,28 +624,9 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  setWishWallPrayers(prayers=[]){
-  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,12).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
-  if(!this.wishWallCanvas)return;
-  const width=this.wishWallCanvas.width,height=this.wishWallCanvas.height,ctx=this.wishWallCanvas.getContext("2d");if(!ctx)return;
-  ctx.clearRect(0,0,width,height);
-  const paper=ctx.createLinearGradient(0,0,0,height);paper.addColorStop(0,"#f5eedf");paper.addColorStop(1,"#e8dcc2");ctx.fillStyle=paper;ctx.fillRect(0,0,width,height);
-  ctx.strokeStyle="rgba(119,91,52,.32)";ctx.lineWidth=5;ctx.strokeRect(10,10,width-20,height-20);
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  if(!this.wishWallPrayers.length){
-   ctx.fillStyle="#596553";ctx.font='bold 44px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("愿此心安 · 愿众生安宁",width/2,height/2);
-  }else{
-   const cols=3,cellW=width/cols,rows=4,cellH=(height-12)/rows;
-   for(let i=0;i<12;i++){
-    const col=i%cols,row=Math.floor(i/cols),cx=cellW*(col+.5),cy=cellH*(row+.5)+6;
-    if(i<this.wishWallPrayers.length){
-     ctx.fillStyle="#9c7d4e";ctx.font="24px Georgia,serif";ctx.fillText(String(i+1).padStart(2,"0"),cx-cellW*.39,cy);
-     ctx.fillStyle="#354638";ctx.font='bold 36px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText(this.wishWallPrayers[i].message,cx+8,cy,cellW*.82);
-    }
-    if(col<cols-1){ctx.strokeStyle="rgba(120,99,65,.18)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cellW*(col+1),row*cellH+12);ctx.lineTo(cellW*(col+1),(row+1)*cellH);ctx.stroke();}
-    if(row<rows-1){ctx.strokeStyle="rgba(120,99,65,.18)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(col*cellW+18,(row+1)*cellH);ctx.lineTo((col+1)*cellW-18,(row+1)*cellH);ctx.stroke();}
-   }
-  }
-  this.wishWallTexture.needsUpdate=true;
+  // Keep the shared prayer data available to the UI/API, but do not print
+  // visitor messages or labels onto the physical wall.
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,30).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
  }
  buildNpcs(){
   const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-35.2,stationary:true};
