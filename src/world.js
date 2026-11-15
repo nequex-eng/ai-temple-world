@@ -652,7 +652,7 @@ export class TempleWorld{
      npc.stuckAt=0;
     }
     else{
-     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.actorCollisionWorld(a));
+     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.npcCollisionWorld(a));
      p.set(r.x,r.y,r.z);
      if(r.blocked){npc.stuckAt=npc.stuckAt||time;if(time-npc.stuckAt>4500){npc.moving=false;npc.nextAt=time+800;npc.stuckAt=0;}}
      else npc.stuckAt=0;
