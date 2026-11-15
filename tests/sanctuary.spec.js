@@ -409,18 +409,19 @@ test("four market vendors stand beside the gate", async ({ page }) => {
   expect(count).toBe(4);
 });
 
-test("only one stationary abbot NPC is present", async ({ page }) => {
+test("one resident abbot roams while gate vendors remain separate", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
   await page.locator("#monk-name").fill("Abbot Roster Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
-  const npcs = await page.evaluate(() => window.__templeDebug.npcs());
-  expect(npcs).toHaveLength(1);
-  expect(npcs[0].name).toBe("住持");
-  await page.waitForTimeout(1500);
-  const after = await page.evaluate(() => window.__templeDebug.npcs());
+  const beforeList = await page.evaluate(() => window.__templeDebug.npcs());
+  const before = beforeList.filter(n=>n.name==="住持");
+  expect(before).toHaveLength(1);
+  await page.waitForTimeout(7500);
+  const afterList = await page.evaluate(() => window.__templeDebug.npcs());
+  const after = afterList.filter(n=>n.name==="住持");
   expect(after).toHaveLength(1);
-  expect(Math.hypot(after[0].x - npcs[0].x, after[0].z - npcs[0].z)).toBeLessThan(0.05);
+  expect(Math.hypot(after[0].x-before[0].x,after[0].z-before[0].z)).toBeGreaterThan(.4);
   await cleanTestGuest(page);
 });
