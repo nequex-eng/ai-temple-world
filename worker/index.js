@@ -219,7 +219,7 @@ async function handleApi(request, env, url) {
     if (messageLength < 1) return reply(request, { error: "Please write a wish first." }, 400);
     if (messageLength > 20) return reply(request, { error: "A wish may contain no more than 20 characters." }, 400);
     const last = await env.DB.prepare("SELECT created_at FROM prayers WHERE player_id=? ORDER BY created_at DESC LIMIT 1").bind(body.player_id).first();
-    if (last && Date.now() - Date.parse(last.created_at) < 60000) return reply(request, { error: "Please pause for a moment before posting another wish." }, 429);
+    if (last && Date.now() - Date.parse(last.created_at) < 8000) return reply(request, { error: "Please pause for a moment before posting another wish." }, 429);
     const profile = await env.DB.prepare("SELECT name FROM profiles WHERE id=?").bind(body.player_id).first();
     const name = clean(profile?.name || body.display_name || "行者", 18) || "行者";
     const language = LANGS.has(body.language) ? body.language : "zh";

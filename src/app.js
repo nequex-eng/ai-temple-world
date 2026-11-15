@@ -455,7 +455,8 @@ function renderPrayers(prayers){
  }
 }
 $("open-abbot").addEventListener("click",async()=>{
-  $("abbot-modal").classList.remove("hidden");$("abbot-input").focus();
+  $("abbot-modal").classList.remove("hidden");
+  if(!touchAudioGate)$("abbot-input").focus();
   const status=$("abbot-status");status.textContent=t().abbotChecking;
   try{
    const health=await network.health();
@@ -482,7 +483,7 @@ async function sendAbbotMessage(){
   abbotHistory.push({role:"user",content:message},{role:"assistant",content:result.answer});trimAbbotHistory();
   appendAbbotMessage("user",message);appendAbbotMessage("assistant",result.answer);input.value="";status.textContent=t().abbotFoot;
  }catch(error){const detail=String(error?.message||t().abbotUnavailable);status.textContent=detail;appendAbbotMessage("assistant",detail);}
- finally{abbotSending=false;submit.disabled=false;input.focus();}
+ finally{abbotSending=false;submit.disabled=false;if(!touchAudioGate)input.focus();}
 }
 $("abbot-input").addEventListener("keydown",e=>{
  if((e.key!=="Enter"&&e.keyCode!==13)||e.shiftKey||e.isComposing||e.keyCode===229)return;
@@ -495,7 +496,9 @@ $("prayer-form").addEventListener("submit",async e=>{
  e.preventDefault();const input=$("prayer-input"),message=[...input.value.trim()].slice(0,20).join("");if(!message){toast("请先写下一句心愿");return;}
  const submit=$("prayer-submit");submit.disabled=true;
  try{
-  const saved=await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);if(saved?.prayer){syncPrayerBoard([saved.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(saved.prayer);}await updateStats();
+  const saved=await network.postPrayer(message,language,profile?.name||"行者");
+  if(!saved?.ok||!saved?.prayer)throw new Error(saved?.error||"心愿没有成功保存，请稍后重试");
+  input.value="";toast(t().prayerSuccess);syncPrayerBoard([saved.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(saved.prayer);await updateStats();
  }catch(error){toast(error.message?.includes("pause")?t().prayerRate:(error.message||t().prayerFailed));}
  finally{submit.disabled=false;}
 });
@@ -572,9 +575,9 @@ function frame(){
   const p=world.getPosition();network.move(p);
   lastPositionSend=now;
  }
- const p=world.getPosition(),nearPrayerWall=Math.hypot(p.x+7.35,p.z+10.5)<2.8;
+ const p=world.getPosition(),nearPrayerWall=Math.abs(p.x+31)<3.7&&p.z>-46&&p.z<19;
  if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}
- else if(!nearPrayerWall&&Math.hypot(p.x+7.35,p.z+10.5)>4.5)prayerWallPromptOpen=false;
+ else if(!nearPrayerWall)prayerWallPromptOpen=false;
  if(now>actionUntil){text("character-state",t().walk);}
  requestAnimationFrame(frame);
 }
@@ -595,7 +598,8 @@ async function start(){
   void network.visit().catch(()=>{});
   void updateStats();
   setInterval(updateStats,30000);
-  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},12000);
+  // Keep the physical wall synchronized for every visitor, even while its dialog is closed.
+  void loadPrayers();setInterval(()=>{void loadPrayers();},12000);
 
   // Profile lookup can take a while on mobile; keep the 3D world interactive.
   await loadProfile();
@@ -603,6 +607,12 @@ async function start(){
   toast(t().entered);
 }
 addEventListener("beforeunload",()=>network.close());
+function updateTempleVisualViewport(){
+ const viewport=window.visualViewport;
+ const apply=()=>document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
+ apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
+}
+updateTempleVisualViewport();
 function armDefaultSoundGesture(){
  if(!soundPreference||soundEnabled)return;
  const events=["pointerdown","touchstart","keydown"];

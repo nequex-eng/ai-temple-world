@@ -70,9 +70,9 @@ assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "pray
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])"), "Physical wish wall must show saved wishes to new and current visitors");
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
-assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"'), "Mobile abbot sending must use a direct click handler");
-assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"'), "Wish wall must reject wishes longer than 20 characters");
-assert.ok(world.includes("LOTUS WISH WALL") && app.includes("nearPrayerWall"), "The left-of-gate wish wall must open when a visitor approaches");
+assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"') && app.includes("--temple-visual-height"), "Mobile abbot sending must remain clickable above the software keyboard");
+assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"') && worker.includes("< 8000"), "Wish wall must enforce 20 characters and avoid an excessively long cooldown");
+assert.ok(world.includes("LOTUS WISHES · SHARED BY ALL") && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The full-length perpendicular west-boundary wish wall must open when approached");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("stationary:true") && world.includes("a.setPose(\"bow\",1200)"), "The resident abbot must remain a visible, stationary NPC");
@@ -95,8 +95,8 @@ assert.equal(collidesAt(0, 5.5, collision), false, "The main entrance must remai
 assert.equal(groundHeightAt(0, 8.72, testHalls), 0.18, "Outer stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
-assert.equal(groundHeightAt(0, 6.18, testHalls), 0.57, "Top stair must meet the raised tiled hall floor without a drop gap");
-assert.equal(groundHeightAt(0, 5.5, testHalls), 0.57, "The hall interior must use the raised tiled floor height");
+assert.equal(groundHeightAt(0, 6.18, testHalls), 0.54, "Top stair must meet the integrated tiled platform without a drop gap");
+assert.equal(groundHeightAt(0, 5.5, testHalls), 0.54, "The hall interior must use the integrated tiled platform height");
 assert.equal(groundHeightAt(0, 9.3, testHalls), 0, "The outside approach must remain at ground level");
 assert.equal(groundHeightAt(0, 8.0, testHalls), 0.36, "The middle tread must have a clean, non-overlapping height band");
 const actorWorld = { ...collision, actors: [{ x: 1, z: 0, radius: 0.5 }] };

@@ -102,7 +102,15 @@
 .abbot-form textarea:focus{border-color:#d5bf8e77}
 .abbot-form .primary-button{width:88px;flex:none}
 .abbot-status{font-size:9px;line-height:1.7;color:#9f9a88;margin-top:10px}
-@media(max-width:660px){.abbot-modal{padding:22px 17px}.abbot-messages{height:42vh;min-height:160px}.abbot-form .primary-button{width:70px;font-size:9px}}
+@media(max-width:660px){
+ #abbot-modal{align-items:start;overflow-y:auto;padding:8px 10px max(8px,env(safe-area-inset-bottom))}
+ #abbot-modal .abbot-modal{width:100%;max-height:calc(var(--temple-visual-height,100dvh) - 16px);padding:20px 15px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ #abbot-modal .abbot-messages{height:min(25vh,190px);min-height:100px;margin:9px 0;padding:10px 2px}
+ #abbot-modal .abbot-form{position:sticky;bottom:0;z-index:3;align-items:stretch;padding:9px 0 2px;background:linear-gradient(180deg,rgba(24,41,31,.92),#18291f 28%)}
+ #abbot-modal .abbot-form textarea{min-height:58px;max-height:105px;font-size:16px;line-height:1.45;resize:vertical;touch-action:pan-y}
+ #abbot-modal .abbot-form .primary-button{width:78px;min-height:58px;height:auto;font-size:10px;letter-spacing:.08em;touch-action:manipulation}
+ #abbot-modal .abbot-status{font-size:10px;line-height:1.65;margin-top:8px}
+}
 
 
 /* Mobile jump control */

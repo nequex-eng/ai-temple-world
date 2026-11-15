@@ -64,20 +64,19 @@ export function createTempleCollision(halls) {
     segments.push(segment(x - 1.325, 5.675, x - 1.325, 9.025, 0.13));
     segments.push(segment(x + 1.325, 5.675, x + 1.325, 9.025, 0.13));
   }
-  // Boundary stone walls.
-  for (const side of [-1, 1]) {
-    const x = side * 31;
-    const blocked = halls
-      .filter(h => x >= h.x - h.w / 2 - 0.5 && x <= h.x + h.w / 2 + 0.5)
-      .map(h => [h.z - h.d / 2 - 0.5, h.z + h.d / 2 + 0.5])
-      .sort((a, b) => a[0] - b[0]);
-    let cursor = -33.5;
-    for (const [start, end] of blocked) {
-      if (start > cursor) segments.push(segment(x, cursor, x, start, 0.34));
-      cursor = Math.max(cursor, end);
-    }
-    if (cursor < 11.5) segments.push(segment(x, cursor, x, 11.5, 0.34));
+  // Full-height west Lotus Wish Wall and the low east boundary.
+  segments.push(segment(-31, -45.5, -31, 18.5, 0.58));
+  const eastX = 31;
+  const blocked = halls
+    .filter(h => eastX >= h.x - h.w / 2 - 0.5 && eastX <= h.x + h.w / 2 + 0.5)
+    .map(h => [h.z - h.d / 2 - 0.5, h.z + h.d / 2 + 0.5])
+    .sort((a, b) => a[0] - b[0]);
+  let cursor = -33.5;
+  for (const [start, end] of blocked) {
+    if (start > cursor) segments.push(segment(eastX, cursor, eastX, start, 0.34));
+    cursor = Math.max(cursor, end);
   }
+  if (cursor < 11.5) segments.push(segment(eastX, cursor, eastX, 11.5, 0.34));
   // Lantern pedestals.
   for (const [x, z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]]) {
     circles.push(circle(x, z, 0.34));
@@ -109,15 +108,14 @@ export function collidesAt(x, z, world, radius = PLAYER_RADIUS) {
 export function groundHeightAt(x, z, halls) {
   for (const h of halls) {
     const front = h.z + h.d / 2;
-    // The interior floor and landing meet the inner tread without a gap.
+    // The visible tiled platform top and avatar floor share the same 54 cm height.
     if (Math.abs(x - h.x) < h.w / 2 - 0.38 &&
-        z > h.z - h.d / 2 + 0.38 && z < front + 1.24) return 0.57;
-    // Exact, non-overlapping tread intervals. Walking toward decreasing z
-    // raises the visitor by 18 cm at each broad stone step.
+        z > h.z - h.d / 2 + 0.38 && z < front + 1.1) return 0.54;
+    // Stair treads are contiguous with the platform and with one another.
     if (Math.abs(x - h.x) < h.w * 0.36) {
-      if (z >= front + 3.22 && z <= front + 4.22) return 0.18;
-      if (z >= front + 2.22 && z < front + 3.22) return 0.36;
-      if (z >= front + 1.22 && z < front + 2.22) return 0.54;
+      if (z >= front + 3.1 && z <= front + 4.1) return 0.18;
+      if (z >= front + 2.1 && z < front + 3.1) return 0.36;
+      if (z >= front + 1.1 && z < front + 2.1) return 0.54;
     }
   }
   return 0;

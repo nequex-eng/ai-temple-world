@@ -66,11 +66,26 @@ function planeRoof(parent,w,d,ry,ey,side,m){
 }
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- add(new THREE.BoxGeometry(w+2.2,.54,d+2.2),m.stone,g,[0,.27,0]);
- // The main platform already forms the landing. Do not add a second coplanar slab:
- // overlapping top faces caused visible z-fighting across the first stair rows.
+ // One continuous platform: the worn tile texture is the +Y face of this same box.
+ // A separate coplanar tile plane caused the entrance rows to depth-fight as the camera moved.
+ const floorMap=texture((ctx,size)=>{
+  ctx.fillStyle="#a69d89";ctx.fillRect(0,0,size,size);
+  const tile=64;
+  for(let y=0;y<size;y+=tile)for(let x=0;x<size;x+=tile){
+   const tone=Math.round(153+Math.random()*20);
+   ctx.fillStyle="rgb("+tone+","+(tone-5)+","+(tone-17)+")";
+   ctx.fillRect(x+2,y+2,tile-4,tile-4);
+   ctx.strokeStyle="rgba(54,48,39,.38)";ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,tile-2,tile-2);
+   ctx.strokeStyle="rgba(255,245,220,.18)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+5,y+5);ctx.lineTo(x+tile-6,y+5);ctx.stroke();
+  }
+  for(let i=0;i<9000;i++){ctx.fillStyle=Math.random()>.5?"rgba(55,49,40,.035)":"rgba(255,255,255,.045)";ctx.fillRect(Math.random()*size,Math.random()*size,1,1);}
+ },3,2);
+ const tileMaterial=new THREE.MeshStandardMaterial({map:floorMap,roughness:.96,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+ const platform=new THREE.Mesh(new THREE.BoxGeometry(w+2.2,.54,d+2.2),[m.stone,m.stone,tileMaterial,m.stone,m.stone,m.stone]);
+ platform.position.set(0,.27,0);platform.castShadow=true;platform.receiveShadow=false;g.add(platform);
+ // The three stone treads start exactly at the platform edge and meet without gaps or overlap.
  const stairHeights=[.54,.36,.18];
- for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.62,.18,1.0),m.stoneLight,g,[0,stairHeights[i]-.09,d/2+1.72+i]);
+ for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.62,.18,1.0),m.stoneLight,g,[0,stairHeights[i]-.09,d/2+1.6+i]);
  add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.54+h/2,-d/2+.16],[0,0,0],false);
  add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[-w/2+.16,.54+h/2,0],[0,0,0],false);
  add(new THREE.BoxGeometry(.32,h,d),m.wall,g,[w/2-.16,.54+h/2,0],[0,0,0],false);
@@ -301,19 +316,24 @@ export class TempleWorld{
   const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);add(new THREE.BoxGeometry(3.3,1.1,.17),m.darkWood,gate,[0,5.95,.58]);add(new THREE.BoxGeometry(2.25,.05,.04),m.gold,gate,[0,5.98,.69]);const gatePlaque=plaqueSprite("山门","MOUNTAIN GATE");gatePlaque.scale.set(2.7,.68,1);gatePlaque.position.set(0,5.98,.78);gate.add(gatePlaque);
-  // A physical lotus-wish board stands immediately to the visitor's left of the mountain gate.
-  const wishWall=new THREE.Group();wishWall.position.set(-7.35,0,-10.5);s.add(wishWall);
-  add(new THREE.BoxGeometry(4.25,2.65,.24),m.darkWood,wishWall,[0,1.48,0]);
-  add(new THREE.BoxGeometry(3.86,2.22,.07),m.paper,wishWall,[0,1.5,.16]);
-  for(const x of [-2.05,2.05])add(new THREE.BoxGeometry(.24,3.25,.34),m.darkWood,wishWall,[x,1.62,0]);
-  add(new THREE.BoxGeometry(4.65,.24,.48),m.gold,wishWall,[0,3.2,0]);
-  add(new THREE.BoxGeometry(4.65,.22,.48),m.darkWood,wishWall,[0,.18,0]);
-  const wishTitle=plaqueSprite("莲花祈愿墙","LOTUS WISH WALL");wishTitle.scale.set(2.55,.68,1);wishTitle.position.set(0,2.5,.22);wishWall.add(wishTitle);
-  const wishHint=plaqueSprite("靠近此处 · 写下心愿","20 CHARACTERS");wishHint.scale.set(2.45,.52,1);wishHint.position.set(0,.83,.22);wishWall.add(wishHint);
-  this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=1024;this.wishWallCanvas.height=560;
+  // A full-length Lotus Wish Wall replaces the left courtyard boundary.
+  // It runs perpendicular to the mountain gate and faces inward toward visitors.
+  const wishWall=new THREE.Group();wishWall.position.set(-31,0,-13.5);wishWall.rotation.y=Math.PI/2;s.add(wishWall);
+  const wishLength=64,wishHeight=5.2;
+  add(new THREE.BoxGeometry(wishLength,wishHeight,.72),m.stone,wishWall,[0,wishHeight/2,0]);
+  add(new THREE.BoxGeometry(wishLength+.9,.38,1.15),m.darkWood,wishWall,[0,wishHeight-.08,0]);
+  add(new THREE.BoxGeometry(wishLength+.55,.28,1.0),m.darkWood,wishWall,[0,.14,0]);
+  add(new THREE.BoxGeometry(wishLength-5.2,3.75,.12),m.paper,wishWall,[0,2.55,.405]);
+  for(const x of [-29.1,29.1]){
+   add(new THREE.BoxGeometry(.72,5.05,.9),m.darkWood,wishWall,[x,2.6,.44]);
+   add(new THREE.BoxGeometry(1.0,.24,1.05),m.gold,wishWall,[x,5.16,.42]);
+  }
+  const wishTitle=plaqueSprite("莲花祈愿墙","LOTUS WISHES · SHARED BY ALL");
+  wishTitle.scale.set(7.2,1.8,1);wishTitle.position.set(0,4.35,.54);wishWall.add(wishTitle);
+  this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=4096;this.wishWallCanvas.height=268;
   this.wishWallTexture=new THREE.CanvasTexture(this.wishWallCanvas);this.wishWallTexture.colorSpace=THREE.SRGBColorSpace;
-  const wishText=new THREE.Mesh(new THREE.PlaneGeometry(3.62,1.8),new THREE.MeshBasicMaterial({map:this.wishWallTexture,transparent:true,depthWrite:false,toneMapped:false}));
-  wishText.position.set(0,1.5,.235);wishWall.add(wishText);
+  const wishText=new THREE.Mesh(new THREE.PlaneGeometry(wishLength-7.0,3.65),new THREE.MeshBasicMaterial({map:this.wishWallTexture,side:THREE.DoubleSide,toneMapped:false}));
+  wishText.position.set(0,2.55,.50);wishWall.add(wishText);
   this.setWishWallPrayers([]);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
   this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
@@ -322,22 +342,7 @@ export class TempleWorld{
   const altar=new THREE.Group();altar.position.set(0,0,-38.5);s.add(altar);
   const bud=mat(0xb28a4e,.48,{metalness:.32}),budDark=mat(0x76572f,.62,{metalness:.24}),goldLeaf=mat(0xd6b36f,.42,{metalness:.48});
   const darkWood=mat(0x39271d,.72),cushion=mat(0x8f332d,.92),cushionEdge=mat(0xc29a60,.76);
-  // Worn limestone floor tiles, with fine grout and subtle mineral variation.
-  const hallFloorTexture=texture((ctx,size)=>{
-   ctx.fillStyle="#a69d89";ctx.fillRect(0,0,size,size);
-   const tile=64;
-   for(let y=0;y<size;y+=tile)for(let x=0;x<size;x+=tile){
-    const tone=Math.round(153+Math.random()*20);
-    ctx.fillStyle="rgb("+tone+","+(tone-5)+","+(tone-17)+")";
-    ctx.fillRect(x+2,y+2,tile-4,tile-4);
-    ctx.strokeStyle="rgba(54,48,39,.38)";ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,tile-2,tile-2);
-    ctx.strokeStyle="rgba(255,245,220,.18)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+5,y+5);ctx.lineTo(x+tile-6,y+5);ctx.stroke();
-   }
-   for(let i=0;i<9000;i++){ctx.fillStyle=Math.random()>.5?"rgba(55,49,40,.035)":"rgba(255,255,255,.045)";ctx.fillRect(Math.random()*size,Math.random()*size,1,1);}
-  },3,2);
-  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture});
-  const hallFloorMesh=add(new THREE.PlaneGeometry(24.4,15.4),hallFloor,altar,[0,.585,0],[-Math.PI/2,0,0],false);
-  hallFloorMesh.receiveShadow=false;
+  // The worn floor tiles are integrated into the stone platform top face.
   // Hand-painted mineral-pigment murals: distant mountains, auspicious clouds and lotus blooms.
   const muralCanvas=document.createElement("canvas");muralCanvas.width=768;muralCanvas.height=384;
   const muralCtx=muralCanvas.getContext("2d");
@@ -605,28 +610,33 @@ export class TempleWorld{
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
   for(let i=0;i<7;i++){const a=i*Math.PI*2/7;add(new THREE.CylinderGeometry(.18,.34,4,8),m.bark,bodhi,[Math.cos(a)*1.4,5,Math.sin(a)*1.4],[0,0,-Math.cos(a)*.45]);}
   for(let i=0;i<24;i++){const a=i*2.399,r=.65+Math.random()*3.15,leaf=add(new THREE.IcosahedronGeometry(1.55+Math.random()*.55,1),i%3===0?m.pine2:m.pine,bodhi,[Math.cos(a)*r,6.8+Math.random()*3.0,Math.sin(a)*r],[Math.random()*.45,Math.random()*6.28,Math.random()*.45]);leaf.scale.set(1.15+Math.random()*.45,.72+Math.random()*.48,.9+Math.random()*.45);}
-  // Boundary stones / decorative details
-  for(const side of [-1,1]){add(new THREE.BoxGeometry(.5,.7,45),m.stone,s,[side*31,.18,-11]);for(let z=-30;z<10;z+=5)add(new THREE.BoxGeometry(.9,.9,.9),m.stoneLight,s,[side*31,.55,z]);}
+  // The west boundary is now the full-height Lotus Wish Wall; retain the low east boundary.
+  for(const side of [1]){add(new THREE.BoxGeometry(.5,.7,45),m.stone,s,[side*31,.18,-11]);for(let z=-30;z<10;z+=5)add(new THREE.BoxGeometry(.9,.9,.9),m.stoneLight,s,[side*31,.55,z]);}
   // Floating warm dust
   this.ambient=new THREE.Group();s.add(this.ambient);
   for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  setWishWallPrayers(prayers=[]){
-  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,5).map(p=>({message:String(p?.message||"").slice(0,20)}));
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,12).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
   if(!this.wishWallCanvas)return;
-  const ctx=this.wishWallCanvas.getContext("2d");if(!ctx)return;
-  ctx.clearRect(0,0,1024,560);const rows=this.wishWallPrayers;
-  ctx.fillStyle="rgba(255,255,255,.9)";ctx.fillRect(0,0,1024,560);
-  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#796344";
-  if(!rows.length){
-   ctx.font='36px "Songti SC","Noto Serif CJK SC",serif';ctx.fillStyle="#64705c";ctx.fillText("愿此心安 · 愿众生安宁",512,280);
+  const width=this.wishWallCanvas.width,height=this.wishWallCanvas.height,ctx=this.wishWallCanvas.getContext("2d");if(!ctx)return;
+  ctx.clearRect(0,0,width,height);
+  const paper=ctx.createLinearGradient(0,0,0,height);paper.addColorStop(0,"#f5eedf");paper.addColorStop(1,"#e8dcc2");ctx.fillStyle=paper;ctx.fillRect(0,0,width,height);
+  ctx.strokeStyle="rgba(119,91,52,.32)";ctx.lineWidth=5;ctx.strokeRect(10,10,width-20,height-20);
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  if(!this.wishWallPrayers.length){
+   ctx.fillStyle="#596553";ctx.font='bold 44px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("愿此心安 · 愿众生安宁",width/2,height/2);
   }else{
-   ctx.font='bold 27px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("来自云端的心愿",512,34);
-   rows.forEach((p,i)=>{
-    const y=104+i*88;ctx.fillStyle="#a18458";ctx.font="18px Georgia,serif";ctx.textAlign="left";ctx.fillText(String(i+1).padStart(2,"0"),72,y);
-    ctx.fillStyle="#3c4a3c";ctx.font='34px "Songti SC","Noto Serif CJK SC",serif';ctx.textAlign="center";ctx.fillText(p.message,530,y,820);
-    if(i<rows.length-1){ctx.strokeStyle="rgba(120,99,65,.2)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(82,y+42);ctx.lineTo(942,y+42);ctx.stroke();}
-   });
+   const cols=3,cellW=width/cols,rows=4,cellH=(height-12)/rows;
+   for(let i=0;i<12;i++){
+    const col=i%cols,row=Math.floor(i/cols),cx=cellW*(col+.5),cy=cellH*(row+.5)+6;
+    if(i<this.wishWallPrayers.length){
+     ctx.fillStyle="#9c7d4e";ctx.font="24px Georgia,serif";ctx.fillText(String(i+1).padStart(2,"0"),cx-cellW*.39,cy);
+     ctx.fillStyle="#354638";ctx.font='bold 36px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText(this.wishWallPrayers[i].message,cx+8,cy,cellW*.82);
+    }
+    if(col<cols-1){ctx.strokeStyle="rgba(120,99,65,.18)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cellW*(col+1),row*cellH+12);ctx.lineTo(cellW*(col+1),(row+1)*cellH);ctx.stroke();}
+    if(row<rows-1){ctx.strokeStyle="rgba(120,99,65,.18)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(col*cellW+18,(row+1)*cellH);ctx.lineTo((col+1)*cellW-18,(row+1)*cellH);ctx.stroke();}
+   }
   }
   this.wishWallTexture.needsUpdate=true;
  }
