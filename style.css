@@ -129,3 +129,6 @@
  .chat-panel{bottom:210px}
  .chat-panel.collapsed{bottom:210px}
 }
+
+/* Desktop abbot action: reserve enough room for the localized label. */
+@media(min-width:661px){#open-abbot{width:auto;min-width:88px;padding:0 11px;justify-content:center;gap:7px;white-space:nowrap}#open-abbot .abbot-label{display:inline;white-space:nowrap;font-size:10px;letter-spacing:.02em}}
