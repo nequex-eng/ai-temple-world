@@ -11,7 +11,9 @@ const allowedOrigin = (origin) => {
     const localDevelopment = (u.hostname === "localhost" || u.hostname === "127.0.0.1") && (u.protocol === "http:" || u.protocol === "https:");
     const productionPages = u.protocol === "https:" && (
       u.hostname === "ai-temple-world.pages.dev" ||
-      u.hostname.endsWith(".ai-temple-world.pages.dev")
+      u.hostname.endsWith(".ai-temple-world.pages.dev") ||
+      u.hostname === "helixtemple.pages.dev" ||
+      u.hostname.endsWith(".helixtemple.pages.dev")
     );
     return localDevelopment || productionPages ? origin : "https://ai-temple-world.pages.dev";
   } catch { return "https://ai-temple-world.pages.dev"; }
