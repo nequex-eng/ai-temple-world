@@ -46,7 +46,7 @@ assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
 assert.ok(world.includes("root.userData.animateInteraction") && world.includes("npc.nextGestureAt") && world.includes("shopper:true") && world.includes("for(const [index,offset] of [-1.55,0,1.55].entries())"), "Market sellers and pilgrims must visibly interact");
 assert.ok(world.includes("labels={zh:{noodles:") && world.includes("en:{noodles:") && html.includes('<option value="en">English</option>'), "Market signs and the language selector must support English");
-assert.ok(world.includes("findWalkPath(this.local.root.position") && world.includes("destinations={incense:[0,-25.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && i18n.includes('tea:"喝茶"') && i18n.includes('tea:"Drink tea"'), "Lotus, incense, bell and tea actions must auto-route using live collision geometry");
+assert.ok(world.includes("findWalkPath(this.local.root.position") && world.includes("destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && i18n.includes('tea:"喝茶"') && i18n.includes('tea:"Drink tea"'), "Lotus, incense, bell and tea actions must auto-route using live collision geometry");
 assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
 assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
 assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-23.98,-32.58,.48)") && read("src/physics.js").includes("const wx=-22.5,wz=-32"), "Washroom and grass-market collision geometry missing");
@@ -131,7 +131,7 @@ for (const z of [-17,-10.5,2]) {
 }
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
 const realTempleCollision = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
-for (const [x,z] of [[0,-25.4],[8,-38],[19,-26.7],[2,-55.8],[0,-32.05]]) {
+for (const [x,z] of [[0,-26],[8,-38],[19,-26.7],[2,-55.8],[0,-32.05]]) {
   assert.equal(collidesAt(x,z,realTempleCollision),false,"An automatic activity destination must be collision-free at "+x+","+z);
 }
 const autoRoutes=[
@@ -218,7 +218,7 @@ assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_com
 
 assert.ok(worker.includes('https://api.minimaxi.com/v1') && worker.includes('https://api.minimax.io/v1') && worker.includes('error.status !== 401 && error.status !== 403'), 'MiniMax keys must work across either official region without retrying rate-limited requests');
 
-assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes("findWalkPath(this.local.root.position") && world.includes("const destinations={incense:[0,-25.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
+assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes("findWalkPath(this.local.root.position") && world.includes("const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
 assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"'), "English must be supported by the interface and API");
 assert.ok(app.includes("const night=!!world.isNight") && app.includes("templeBirds.currentTime=0") && app.includes("templeChant.currentTime=0") && app.includes("Night is a hard mute for birds and chanting"), "Birdsong and chanting must be stopped and blocked after dark");
 assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant"]'), "Action shortcuts must guide visitors to the relevant temple locations");
