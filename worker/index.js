@@ -18,7 +18,7 @@ const reply = (request, data, status = 200) => new Response(JSON.stringify(data)
 const clean = (v, max = 40) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
 const validId = (v) => /^[a-f0-9-]{36}$/i.test(String(v || ""));
 const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fallback;
-const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant"]);
+const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant", "tea"]);
 const LANGS = new Set(["zh", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 
@@ -402,7 +402,7 @@ export class TempleRoom {
       if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
       player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
-      if (data.action === "incense" && !near(-5.4, -37.2, 5.5)) return;
+      if (data.action === "incense" && !near(0, -27.2, 5.5)) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(19, -32.5, 13)) return;
       if (data.action === "lotus") {
