@@ -538,7 +538,7 @@ export class TempleWorld{
    {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-5.1,z:-35.2,route:[[-5.1,-35.2]],stationary:true}
   ];
   this.npcs=roster.map((spec,index)=>{
-   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,index%2?Math.PI:0,groundHeightAt(spec.x,spec.z,this.halls));
+   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,spec.stationary?Math.PI:(index%2?Math.PI:0),groundHeightAt(spec.x,spec.z,this.halls));
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0,routine:spec.routine||["bow","greet"],routineStep:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
    if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
