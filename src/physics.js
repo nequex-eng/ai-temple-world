@@ -11,7 +11,7 @@ export function createTempleCollision(halls) {
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
     circle(8, 0, 1.48), circle(31, 33, 9.85),
     circle(0, -39.5, 2.2), circle(-5.4, -37.2, 1.15), circle(7, -32.5, 2.05),
-    circle(-4.8, -1.2, .55), circle(4.8, -1.2, .55), circle(0, -20.5, 1.82),
+    circle(-4.8, -1.2, .55), circle(4.8, -1.2, .55), circle(5.8, -19.5, 1.55),
     circle(-56.85, 8.45, .28), circle(-47.15, 8.45, .28),
     circle(-56.85, 15.55, .28), circle(-47.15, 15.55, .28), circle(-52, 11.65, .78),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
