@@ -22,7 +22,7 @@ assert.deepEqual(missing, [], "App references missing HTML elements");
 for (const asset of ["/style.css", "/manifest.webmanifest", "/src/app.js", "/icons/lotus.svg"]) {
   assert.ok(html.includes(asset), "index.html must load " + asset);
 }
-for (const language of ["zh:", "ja:", "ko:", "th:"]) assert.ok(i18n.includes(language), "Missing locale " + language);
+for (const language of ["zh:", "en:", "ja:", "ko:", "th:"]) assert.ok(i18n.includes(language), "Missing locale " + language);
 assert.ok(app.includes("async function saveProfile()"), "Profile creation handler must be async");
 assert.ok(app.includes("network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
@@ -130,6 +130,22 @@ for (const z of [-17,-10.5,2]) {
   assert.ok(collidesAt(-30.5,z,templeWalkway), "The west boundary wall must still block crossing");
 }
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
+const realTempleCollision = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+for (const [x,z] of [[5,-26],[-14.8,-27],[-14.8,-35],[-14.8,-46.5],[0,-55.2],[5,-26],[14.2,-25.6],[19,-26.7]]) {
+  assert.equal(collidesAt(x,z,realTempleCollision),false,"An automatic activity waypoint must be collision-free at "+x+","+z);
+}
+let teaRoutePosition={x:0,z:-37,y:0};
+for (const [tx,tz] of [[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]]) {
+  let guard=0;
+  while(Math.hypot(tx-teaRoutePosition.x,tz-teaRoutePosition.z)>.18 && guard++<700){
+    const dx=tx-teaRoutePosition.x,dz=tz-teaRoutePosition.z,dist=Math.hypot(dx,dz);
+    const step=Math.min(.11,dist),moved=moveWithCollision(teaRoutePosition,dx/dist*step,dz/dist*step,realTempleCollision);
+    assert.equal(moved.blocked,false,"Tea-house auto-route must not hit a hidden collider");
+    teaRoutePosition={x:moved.x,y:moved.y,z:moved.z};
+  }
+  assert.ok(Math.hypot(tx-teaRoutePosition.x,tz-teaRoutePosition.z)<=.18,"Tea-house path must reach waypoint "+tx+","+tz);
+}
+assert.equal(collidesAt(19,-32.5,realTempleCollision),true,"The lotus pond water must block walking through the pond");
 const collision = createTempleCollision(testHalls);
 assert.equal(collidesAt(4.8, 0, collision), true, "A character must not pass through a side wall");
 assert.equal(collidesAt(0, 5.5, collision), false, "The main entrance must remain open");
@@ -191,7 +207,7 @@ assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_com
 
 assert.ok(worker.includes('https://api.minimaxi.com/v1') && worker.includes('https://api.minimax.io/v1') && worker.includes('error.status !== 401 && error.status !== 403'), 'MiniMax keys must work across either official region without retrying rate-limited requests');
 
-assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes('tea:[[5,-26],[14.2,-25.6],[14.2,-46.5],[14.2,-54.2],[0,-55.2]]') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
+assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes('tea:[[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]]') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
 assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"'), "English must be supported by the interface and API");
 assert.ok(app.includes("const night=!!world.isNight") && app.includes("templeBirds.currentTime=0") && app.includes("templeChant.currentTime=0") && app.includes("Night is a hard mute for birds and chanting"), "Birdsong and chanting must be stopped and blocked after dark");
 assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant"]'), "Action shortcuts must guide visitors to the relevant temple locations");
