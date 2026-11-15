@@ -41,12 +41,8 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
-  // Meditation hall scripture stand.
-  const scriptureZ = -25 - 1.55;
-  segments.push(segment(-29.2, scriptureZ - 0.36, -26.8, scriptureZ - 0.36, 0.12));
-  segments.push(segment(-29.2, scriptureZ + 0.36, -26.8, scriptureZ + 0.36, 0.12));
-  segments.push(segment(-29.2, scriptureZ - 0.36, -29.2, scriptureZ + 0.36, 0.12));
-  segments.push(segment(-26.8, scriptureZ - 0.36, -26.8, scriptureZ + 0.36, 0.12));
+  // The meditation room is intentionally hidden in the current one-hall layout.
+  // Do not leave invisible furniture colliders across the west courtyard route.
   // Four guardian statues inside the Heavenly Kings Hall.
   for (const x of [-6.2, -2.1, 2.1, 6.2]) circles.push(circle(x, -14.55, 0.78));
   // Sutra library bookcases and reading desk.
