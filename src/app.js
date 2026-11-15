@@ -10,7 +10,7 @@ let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPosit
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}})}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -445,7 +445,14 @@ function renderPrayers(prayers){
   card.append(body,foot);list.append(card);
  }
 }
-$("open-abbot").addEventListener("click",()=>{$("abbot-modal").classList.remove("hidden");$("abbot-input").focus();});
+$("open-abbot").addEventListener("click",async()=>{
+  $("abbot-modal").classList.remove("hidden");$("abbot-input").focus();
+  const status=$("abbot-status");status.textContent=t().abbotChecking;
+  try{
+   const health=await network.health();
+   status.textContent=health.aiEnabled?t().abbotFoot:t().abbotNotConfigured;
+  }catch{status.textContent=t().abbotHealthUnavailable;}
+ });
 function trimAbbotHistory(){while(abbotHistory.length>24)abbotHistory.splice(0,2);}
 function appendAbbotMessage(role,content){
  const box=$("abbot-messages"),line=document.createElement("div");
