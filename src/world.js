@@ -136,6 +136,10 @@ function lantern(scene,x,z,m){
  const inner=add(new THREE.BoxGeometry(.38,.5,.38),new THREE.MeshBasicMaterial({color:0xffd99a}),g,[0,2.35,0],[0,0,0],false);
  return {group:g,light:l,flame:inner};
 }
+function marketLabel(kind,lang="zh"){
+ const labels={zh:{noodles:"素凉面 · 凉茶",incense:"香烛 · 莲灯",coffee:"咖啡 · 茶饮",fruit:"素食点心 · 时令水果"},en:{noodles:"Noodles · Herbal Tea",incense:"Incense · Lotus Lamps",coffee:"Coffee · Tea",fruit:"Vegetarian Snacks · Fruit"},ja:{noodles:"精進麺 · お茶",incense:"お香 · 蓮灯",coffee:"コーヒー · お茶",fruit:"精進菓子 · 果物"},ko:{noodles:"채식 국수 · 차",incense:"향 · 연등",coffee:"커피 · 차",fruit:"채식 간식 · 과일"},th:{noodles:"บะหมี่เจ · ชาสมุนไพร",incense:"ธูป · โคมบัว",coffee:"กาแฟ · ชา",fruit:"ของว่างเจ · ผลไม้"}};
+ return (labels[lang]||labels.zh)[kind]||"Temple Goods";
+}
 function marketStall(scene,x,z,side,kind,m){
  const root=new THREE.Group();root.position.set(x,0,z);root.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(root);
  const wood=mat(0x563b2a,.9),edge=mat(0x9a7047,.78),cloth=mat(kind==='noodles'?0xb66a43:kind==='incense'?0x8b493c:kind==='coffee'?0x66503d:0x71816a,.95);
@@ -154,8 +158,7 @@ function marketStall(scene,x,z,side,kind,m){
   for(let i=0;i<12;i++)add(new THREE.SphereGeometry(.035,7,6),mat(0x493326,.9),root,[(Math.random()-.5)*.38,1.18,-.42+(Math.random()-.5)*.25]);
  }else{for(let i=0;i<6;i++)add(new THREE.SphereGeometry(.18,10,8),mat([0xb84d38,0xc99b43,0x6d8c50][i%3],.72),root,[-1+(i%3)*.75,1.28,Math.floor(i/3)*.32-.12]);}
  for(const xx of [-1.35,1.35]){add(new THREE.BoxGeometry(.12,.48,.12),wood,root,[xx,2.22,.78]);add(new THREE.BoxGeometry(.3,.34,.3),m.paper,root,[xx,1.9,.78]);add(new THREE.ConeGeometry(.22,.16,4),m.darkWood,root,[xx,2.15,.78],[0,Math.PI/4,0]);}
- const goods={noodles:"素凉面 · 凉茶",incense:"香烛 · 莲灯",coffee:"咖啡 · 茶饮",fruit:"素食点心 · 时令水果"};
- const productLabel=goods[kind]||"寺院用品";
+ const productLabel=marketLabel(kind,"zh");
  const signCanvas=document.createElement("canvas");signCanvas.width=768;signCanvas.height=176;
  const ctx=signCanvas.getContext("2d");ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,176);
  ctx.strokeStyle="#d8bd82";ctx.lineWidth=9;ctx.strokeRect(12,12,744,152);
@@ -164,7 +167,7 @@ function marketStall(scene,x,z,side,kind,m){
  const signMap=new THREE.CanvasTexture(signCanvas);signMap.colorSpace=THREE.SRGBColorSpace;
  add(new THREE.BoxGeometry(2.12,.58,.12),wood,root,[0,2.12,.88]);
  add(new THREE.PlaneGeometry(1.98,.45),new THREE.MeshBasicMaterial({map:signMap,toneMapped:false}),root,[0,2.12,.948],[0,0,0],false);
- root.userData.marketItemLabel=productLabel;
+ root.userData.marketItemLabel=productLabel;root.userData.marketSign={ctx,map:signMap,canvas:signCanvas,kind};
  root.userData.nightLights=[];
  for(const xx of [-1.42,1.42]){
   add(new THREE.SphereGeometry(.085,9,7),new THREE.MeshBasicMaterial({color:0xffc779}),root,[xx,2.08,.6],[0,0,0],false);
@@ -378,12 +381,12 @@ export class TempleWorld{
   for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;const hill=add(new THREE.ConeGeometry(17+Math.random()*13,38+Math.random()*30,7),mat(ring?0x70887e:0x81958b,.98),s,[Math.cos(a)*r,8-ring*2,Math.sin(a)*r],[0,Math.random(),(Math.random()-.5)*.12],false);hill.scale.set(1,.85,1.05);}
   for(let i=0;i<(this.mobile?18:56);i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if((Math.abs(x)<14&&z>12&&z<43)||Math.hypot(x+52,z-12)<15)continue;pine(s,x,z,.72+Math.random()*.72,m);}
   // 林间茶庄：由北侧绕过祈愿墙可达，坐落在森林中的独立草地。
-  const teaLawn=new THREE.Group();teaLawn.position.set(-52,0,12);s.add(teaLawn);this.teaHouse=teaLawn;
-  add(new THREE.PlaneGeometry(27,23),m.grass,s,[-52,-.085,12],[-Math.PI/2,0,0],false);
+  const teaLawn=new THREE.Group();teaLawn.position.set(0,0,-62);s.add(teaLawn);this.teaHouse=teaLawn;
+  add(new THREE.PlaneGeometry(27,23),m.grass,s,[0,-.085,-62],[-Math.PI/2,0,0],false);
   const forestPath=mat(0x9d967f,.98);
-  add(new THREE.PlaneGeometry(22,2.8),forestPath,s,[-41,-.055,12],[-Math.PI/2,0,0],false);
-  add(new THREE.PlaneGeometry(3,13),forestPath,s,[-52,-.052,18.5],[-Math.PI/2,0,0],false);
-  add(new THREE.PlaneGeometry(24,3),forestPath,s,[-40,-.05,24],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(3,15),forestPath,s,[15,-.055,-53],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(18,3),forestPath,s,[6,-.052,-60],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(3,9),forestPath,s,[0,-.05,-56],[-Math.PI/2,0,0],false);
   const teaFloor=mat(0x9b8b6c,.93),teaWood=mat(0x563b29,.88),teaTrim=mat(0xb28b58,.72,{metalness:.12});
   add(new THREE.BoxGeometry(11.2,.28,8.4),teaFloor,teaLawn,[0,.2,0]);
   for(const x of [-4.85,4.85])for(const z of [-3.55,3.55]){
@@ -416,6 +419,7 @@ export class TempleWorld{
   const teaSignMap=new THREE.CanvasTexture(teaSignCanvas);teaSignMap.colorSpace=THREE.SRGBColorSpace;
   add(new THREE.BoxGeometry(3.35,.92,.18),teaWood,teaLawn,[0,3.15,4.22]);
   add(new THREE.PlaneGeometry(3.08,.7),new THREE.MeshBasicMaterial({map:teaSignMap,toneMapped:false}),teaLawn,[0,3.15,4.32],[0,0,0],false);
+  this.teaSign={ctx:teaSignCtx,map:teaSignMap,canvas:teaSignCanvas};
   for(const x of [-3.8,3.8]){
    const lanternGroup=new THREE.Group();lanternGroup.position.set(x,3,2.8);teaLawn.add(lanternGroup);
    add(new THREE.CylinderGeometry(.24,.32,.18,8),teaTrim,lanternGroup,[0,0,0]);
@@ -775,12 +779,9 @@ export class TempleWorld{
    const fixture=lantern(s,x,z,m);this.streetLanterns.push(fixture);
    this.nightLights.push({light:fixture.light,base:.52});
   }
-  // 大殿内原有香炉保留，前院新增一座更醒目的大型铜香炉。
-  this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
-  add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
-  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);
-  // Traditional three-legged bronze ding censer, placed beside rather than on the abbot's walking line.
-  this.courtyardIncensePosition=new THREE.Vector3(5.8,0,-19.5);
+  // One large traditional bronze censer on the Great Hall central axis, just outside its main entrance.
+  this.incensePosition=new THREE.Vector3(0,0,-25.6);
+  this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
   const censerBase=this.courtyardCenser;
@@ -847,19 +848,24 @@ export class TempleWorld{
   a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
   a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
   a.setPose("bow",1500);
-  const route=[[0,-22],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  const route=[[4,-21],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22],[4,-21]].map(([x,z])=>new THREE.Vector3(x,0,z));
   this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
   for(const spec of this.vendorSpecs||[]){
    const seller=marketVendor(this.scene,spec.x+1.72,spec.z,spec.facing,this.m);seller.name='vendor-'+spec.kind;
-   this.npcs.push({avatar:{root:seller,update(){},dispose(){seller.parent?.remove(seller);}},stationary:true});
+   this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;},dispose(){seller.parent?.remove(seller);}},stationary:true});
+   for(const offset of [-1.55,1.55]){
+    const shopper=avatar(this.scene,{name:"香客",robe:offset<0?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+offset,true);
+    shopper.setPosition(39.1,spec.z+offset,Math.PI/2,0);shopper.setPose("greet",2200);
+    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28});
+   }
   }
-  const teaHost=marketVendor(this.scene,-52,13.7,Math.PI,this.m);teaHost.name="tea-house-host";
+  const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
   this.npcs.push({avatar:{root:teaHost,update(){},dispose(){teaHost.parent?.remove(teaHost);}},stationary:true});
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
    const a=npc.avatar,p=a.root.position;
-   if(npc.stationary){a.update(dt,time,false);continue;}
+   if(npc.stationary){if(npc.shopper){const cycle=(time*.00022+(npc.phase||0))%6.28;a.root.rotation.y=Math.PI/2+Math.sin(cycle)*.22;if(Math.sin(cycle*1.7)>.72)a.setPose("greet",900);else if(Math.sin(cycle*1.7)<-.78)a.setPose("bow",900);}a.update(dt,time,false);continue;}
    if(npc.moving){
     const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
     if(dist<.48){
@@ -978,15 +984,26 @@ export class TempleWorld{
  }
  canAct(a){
   const p=this.local?.root.position;if(!p)return false;
-  if(a==="incense")return Math.hypot(p.x+5.4,p.z+37.2)<5.5||Math.hypot(p.x-this.courtyardIncensePosition.x,p.z-this.courtyardIncensePosition.z)<6.5;
+  if(a==="incense")return Math.hypot(p.x-this.incensePosition.x,p.z-this.incensePosition.z)<4.4;
   if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
-  if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=13;
+  if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
+  if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
    return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-z)<2.35);
   }
   return true;
+ }
+ navigateToAction(action){
+  if(!this.local)return false;
+  const destinations={incense:[0,-29.1],bell:[8,-34.8],lotus:[19,-26.7],tea:[0,-53.2],meditate:[0,-29.1],sweep:[0,5],chant:[0,-29.1],kneel:[0,-29.1]};
+  const dest=destinations[action];if(!dest)return false;
+  this.pendingAction=action;this.moveTarget=new THREE.Vector3(dest[0],0,dest[1]);return true;
+ }
+ setLanguage(lang){
+  for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
+  if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
  }
  update(dt,input={},time=performance.now(),render=true){
   if(!this.local)return;
@@ -1003,7 +1020,7 @@ export class TempleWorld{
    direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
   }else if(this.moveTarget&&canMove){
    const dx=this.moveTarget.x-this.local.root.position.x,dz=this.moveTarget.z-this.local.root.position.z;
-   if(Math.hypot(dx,dz)<.62)this.moveTarget=null;
+   if(Math.hypot(dx,dz)<.62){this.moveTarget=null;if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}}
    else direction=new THREE.Vector3(dx,0,dz).normalize();
   }
   const topSpeed=direction?(input.run?5.2:2.8):0;
@@ -1107,7 +1124,7 @@ export class TempleWorld{
   if(type==="lotus")return;
   const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);
   if(type==="bell")g.position.set(8,0,-41);
-  if(type==="incense"){const here=this.local?.root.position;const atCourtyard=here&&Math.hypot(here.x-this.courtyardIncensePosition.x,here.z-this.courtyardIncensePosition.z)<6.5;g.position.copy(atCourtyard?this.courtyardIncensePosition:this.incensePosition);}
+  if(type==="incense")g.position.copy(this.incensePosition);
   this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else {for(let i=0;i<12;i++){const d=add(new THREE.SphereGeometry(.045,6,6),new THREE.MeshBasicMaterial({color:0xf2d59a,transparent:true,opacity:.7}),g,[(Math.random()-.5)*1.5,1.7+Math.random()*1.4,(Math.random()-.5)*.7],[0,0,0],false);d.userData.life=1.5;d.userData.vy=.35;}}
