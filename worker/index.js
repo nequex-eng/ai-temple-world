@@ -252,8 +252,8 @@ export class TempleRoom {
     const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
     const npcSpots = [[-8,-31],[7,-31],[-8,-38],[8,-37],[-4,-42],[-7,-33],[4,-42],[0,-31],[0,-43]];
     const spawnCandidates = [];
-    for (let row=0;row<12;row++) for (let col=0;col<20;col++) {
-      const x=-11.4+col*1.2,z=15.5+row*1.2;
+    for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
+      const x=-11.4+col*1.2,z=-22+row*1.2;
       if (npcSpots.some(([nx,nz]) => Math.hypot(x-nx,z-nz)<1.18)) continue;
       if (occupied.some(peer => Math.hypot(x-peer.x,z-peer.z)<1.08)) continue;
       spawnCandidates.push({x,z});
