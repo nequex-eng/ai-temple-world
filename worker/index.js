@@ -81,8 +81,7 @@ async function handleApi(request, env, url) {
   const path = url.pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(request) });
   if (path === "/api/health") {
-    const db = await env.DB.prepare("SELECT 1 AS ok").first();
-    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, aiEnabled: !!env.MINIMAX_API_KEY || !!env.AI?.run, aiProvider: env.MINIMAX_API_KEY ? "minimax" : env.AI?.run ? "cloudflare-workers-ai" : null, timestamp: now() });
+    return reply(request, { ok: true, service: "temple-world-api", realtime: true, aiEnabled: !!env.MINIMAX_API_KEY || !!env.AI?.run, aiProvider: env.MINIMAX_API_KEY ? "minimax" : env.AI?.run ? "cloudflare-workers-ai" : null, timestamp: now() });
   }
 
   if (path === "/api/translate" && request.method === "POST") {
