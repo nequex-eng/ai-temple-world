@@ -285,6 +285,10 @@ export class TempleRoom {
     try { data = JSON.parse(message); } catch { return; }
     const player = ws.deserializeAttachment();
     if (!player || typeof data.type !== "string") return;
+    if (data.type === "ping") {
+      try { ws.send(JSON.stringify({ type: "pong", at: Date.now() })); } catch {}
+      return;
+    }
     if (data.type === "move") {
       const x = Number(data.x), z = Number(data.z), rotation = Number(data.rotation);
       if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(rotation)) return;
