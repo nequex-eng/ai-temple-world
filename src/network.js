@@ -25,6 +25,7 @@ export class TempleNetwork {
     this.position = { x: 0, z: 18, rotation: 0 };
     this.closedByUser = false;
     this.reconnectTimer = null;
+    this.heartbeatTimer = null;
     this.retry = 0;
     this.lastSent = 0;
     this.lastBroadcastPosition = null;
@@ -112,6 +113,10 @@ export class TempleNetwork {
     socket.addEventListener("open", () => {
       if (this.socket !== socket) return;
       this.retry = 0;
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = setInterval(() => {
+        if (this.socket === socket && socket.readyState === WebSocket.OPEN) this.send({ type: "ping", at: Date.now() });
+      }, 15000);
       this.onStatus("online");
     });
     socket.addEventListener("message", event => {
@@ -120,6 +125,7 @@ export class TempleNetwork {
     socket.addEventListener("error", () => { if (this.socket === socket) this.onStatus("offline"); });
     socket.addEventListener("close", () => {
       if (this.socket !== socket) return;
+      clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
       this.socket = null;
       if (this.closedByUser) return;
       this.onStatus("offline");
@@ -154,6 +160,7 @@ export class TempleNetwork {
   chat(message) { return this.send({ type: "chat", message }); }
   close() {
     this.closedByUser = true;
+    clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
     const socket = this.socket;
