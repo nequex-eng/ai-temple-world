@@ -41,8 +41,8 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
-assert.ok(world.includes('name:"净行"') && world.includes('name:"慧远"') && world.includes('name:"云游僧"'), "The three approved temple NPCs are missing");
-assert.equal((world.match(/name:"(?:净行|慧远|云游僧)"/g)||[]).length, 3, "Temple NPC roster must remain limited to three");
+assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("stationary:true"), "The single stationary abbot NPC is missing");
+assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
 assert.ok(app.includes("function advanceBead()") && app.includes('localStorage.setItem("temple-beads-total"'), "108-bead practice must persist locally");
@@ -55,7 +55,7 @@ assert.ok(headers.includes("media-src") && headers.includes("https://upload.wiki
 assert.ok(app.includes("__templeAudioDebug") && app.includes("await resumePromise"), "Audio playback diagnostics and awaited AudioContext resume are required");
 assert.ok(read("index.html").includes("id=\"profile-sound-toggle\"") && app.includes('$("profile-sound-toggle").addEventListener'), "First-visit profile dialog must provide a working sound control");
 assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture and report media errors");
-assert.ok(app.includes("soundPreference=true") && app.includes("temple-sound-enabled") && app.includes("armDefaultSoundGesture()"), "Temple ambience must default on and recover from autoplay restrictions");
+assert.ok(app.includes("soundPreference=true") && app.includes("temple-sound-enabled") && app.includes("armDefaultSoundGesture()") && app.includes("touchAudioGate"), "Temple ambience must default on while respecting mobile gesture restrictions");
 assert.ok(i18n.includes('soundOn:"关闭声音"'), "The top sound control must offer turn-off as the enabled-state action");
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
@@ -66,6 +66,9 @@ assert.ok(world.includes("a.update(dt,time,remoteMoving&&a.pose===\"walk\")") &&
 assert.ok(world.includes("slice(0,this.mobile?12:28)") && world.includes("a.root.visible=visibleVisitors.has(a.id)"), "Multiplayer avatars must use distance-ranked visual LOD without reducing online capacity");
 assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22]") && world.includes("robeGeometry.scale(1,1,.78)"), "Monk body must have a shaped, tapered and non-cylindrical human torso");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
+assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
+assert.ok(worker.includes("Array.from(clean(body.message, 80)).slice(0, 20)") && html.includes('id="prayer-input" maxlength="40"'), "Wish wall must enforce a 20-character limit");
+assert.ok(world.includes("LOTUS WISH WALL") && app.includes("nearPrayerWall"), "The left-of-gate wish wall must open when a visitor approaches");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("x:9,z:-30,route:[[9,-30],[10,-32],[10,-35],[9,-36]]"), "Named NPCs must have collision-safe active patrol routes");
