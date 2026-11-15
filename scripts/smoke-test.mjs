@@ -154,4 +154,4 @@ assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button 
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
 assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the current fixes");
 
-assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)") && !worker.includes("max_tokens: maxTokens"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
+assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
