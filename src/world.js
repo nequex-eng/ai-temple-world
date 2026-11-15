@@ -384,7 +384,7 @@ export class TempleWorld{
    }
   }
   // Individual brocade kneeling cushions on the visitor side of the altar.
-  for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]]){
+  for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45],[-5.1,3.3]]){
    const matGroup=new THREE.Group();matGroup.position.set(x,.58,z);altar.add(matGroup);
    const base=add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]);base.scale.set(1,.85,1);
    const pad=add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]);pad.scale.set(1,.8,1);
