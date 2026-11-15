@@ -22,6 +22,27 @@ async function cleanTestGuest(page) {
   } catch {}
 }
 
+
+test("production Pages same-origin proxy connects the live room", async ({ page }) => {
+  test.setTimeout(90000);
+  const sockets=[];
+  page.on("websocket",socket=>sockets.push(socket.url()));
+  await page.goto("https://helixtemple.pages.dev/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  const health=await page.evaluate(async()=>{
+    const response=await fetch("/api/health",{cache:"no-store"});
+    return {status:response.status,body:await response.json()};
+  });
+  expect(health.status).toBe(200);
+  expect(health.body.ok).toBe(true);
+  await page.locator("#monk-name").fill("Pages Proxy Guest");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await expect(page.locator("#connection-label")).toContainText("已进入共同禅境",{timeout:30000});
+  await expect.poll(()=>sockets.some(url=>url.startsWith("wss://helixtemple.pages.dev/api/live"))).toBe(true);
+  await cleanTestGuest(page);
+});
+
 test("first-time guests connect before saving their optional profile", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
@@ -263,9 +284,9 @@ test("main hall meditation uses a real cushion and mobile information panels sta
 });
 
 test("three independent guests share live presence, messages and wishes", async ({ browser }) => {
-  test.setTimeout(150000);
-  const contextA = await browser.newContext();
-  const contextB = await browser.newContext();
+  test.setTimeout(240000);
+  const contextA = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const contextB = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const contextC = await browser.newContext();
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
@@ -335,7 +356,8 @@ test("three independent guests share live presence, messages and wishes", async 
     await expect(pageA2.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
     await pageA.close();
     await expect.poll(() => pageB.evaluate(id => window.__templeDebug.remotePlayers().some(p => p.id === id), playerAId)).toBe(true);
-    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(3);
+    await expect.poll(async () => Number((await pageC.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(3);
   } finally {
     await cleanTestGuest(pageA);
     if (pageA2) await cleanTestGuest(pageA2);
