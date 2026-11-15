@@ -499,6 +499,64 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.38,.48,.38),m.paper,lamp,[0,.36,0]);
    const glow=new THREE.PointLight(0xffc77e,.24,4);glow.position.y=.4;lamp.add(glow);
   }
+  // Heavenly Kings Hall: four individually coloured guardian figures face the entrance.
+  const guardianRobe=[0x8d4636,0x536b58,0x79664a,0x4e5d70].map(c=>mat(c,.92));
+  const guardianGold=mat(0xb18b50,.7,{metalness:.16});
+  for(let i=0;i<4;i++){
+   const x=[-6.2,-2.1,2.1,6.2][i],g=new THREE.Group();g.position.set(x,.54,-14.55);s.add(g);
+   add(new THREE.BoxGeometry(1.65,.34,1.5),m.stone,g,[0,.17,0]);
+   add(new THREE.BoxGeometry(1.42,.12,1.28),guardianGold,g,[0,.4,0]);
+   add(new THREE.CylinderGeometry(.38,.62,1.62,16),guardianRobe[i],g,[0,1.28,0]);
+   add(new THREE.SphereGeometry(.32,16,12),bud,g,[0,2.25,.03]);
+   add(new THREE.ConeGeometry(.38,.48,8),guardianGold,g,[0,2.63,0]);
+   for(const side of [-1,1]){
+    add(new THREE.SphereGeometry(.22,12,10),guardianRobe[i],g,[side*.43,1.92,0]);
+    add(new THREE.CapsuleGeometry(.105,.52,4,8),guardianRobe[i],g,[side*.53,1.53,.02],[0,0,side*.24]);
+    add(new THREE.SphereGeometry(.095,10,8),bud,g,[side*.53,1.23,.04]);
+    add(new THREE.SphereGeometry(.025,8,8),m.darkWood,g,[side*.105,2.28,.315]);
+   }
+   if(i%2===0){
+    add(new THREE.CylinderGeometry(.045,.055,2.05,8),guardianGold,g,[i===0?-.72:.72,1.8,.12],[0,0,i===0?-.06:.06]);
+    add(new THREE.ConeGeometry(.18,.42,6),guardianGold,g,[i===0?-.72:.72,2.92,.12]);
+   }else{
+    add(new THREE.BoxGeometry(.14,1.25,.12),guardianGold,g,[i===1?-.72:.72,1.82,.1],[0,0,i===1?-.12:.12]);
+    add(new THREE.SphereGeometry(.22,10,8),guardianGold,g,[i===1?-.72:.72,2.5,.1]);
+   }
+  }
+  // Sutra Library: continuous bookcases, individually bound volumes and a low reading desk.
+  const libraryRoom=new THREE.Group();libraryRoom.position.set(28,0,-24);s.add(libraryRoom);
+  const shelfWood=mat(0x493326,.9),bookColors=[0x783c32,0x435c50,0x8c7048,0x3e4e61,0x80604b].map(c=>mat(c,.92));
+  for(const side of [-1,1]){
+   for(let tier=0;tier<4;tier++){
+    const y=.78+tier*.88;
+    add(new THREE.BoxGeometry(.68,.13,8.8),shelfWood,libraryRoom,[side*5.35,y,0]);
+    for(let z=-3.65;z<=3.65;z+=.52){
+     const book=add(new THREE.BoxGeometry(.27,.53,.39),bookColors[Math.floor((z+4)*3+tier+side+30)%bookColors.length],libraryRoom,[side*5.26,y+.34,z],[0,(Math.sin(z*2+tier)*.055),0]);
+     book.scale.y=.82+Math.abs(Math.sin(z*4+tier))*.32;
+     add(new THREE.BoxGeometry(.025,.35,.04),guardianGold,libraryRoom,[side*5.11,y+.34,z]);
+    }
+   }
+   for(const z of [-4.35,4.35])add(new THREE.BoxGeometry(.22,4.0,.22),shelfWood,libraryRoom,[side*5.35,2.2,z]);
+  }
+  add(new THREE.BoxGeometry(2.8,.2,1.05),shelfWood,libraryRoom,[0,.95,2.0]);
+  for(const x of [-1.05,1.05])add(new THREE.BoxGeometry(.16,.78,.16),shelfWood,libraryRoom,[x,.48,2.0]);
+  add(new THREE.CylinderGeometry(.11,.11,1.45,12),guardianGold,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
+  const libraryPlaque=plaqueSprite("藏经","SUTRA COLLECTION");libraryPlaque.scale.set(2.4,.6,1);libraryPlaque.position.set(0,3.45,-5.22);libraryRoom.add(libraryPlaque);
+  // Monk quarters: two low timber beds, folded bedding, pillows and privacy screens.
+  const dormRoom=new THREE.Group();dormRoom.position.set(28,0,8);s.add(dormRoom);
+  const bedWood=mat(0x59402e,.92),linen=mat(0xb7aa8e,.98),blanket=mat(0x85745d,.98);
+  for(const side of [-1,1]){
+   const x=side*3.0;
+   add(new THREE.BoxGeometry(2.65,.42,3.35),bedWood,dormRoom,[x,.75,-.65]);
+   add(new THREE.BoxGeometry(2.42,.16,3.12),linen,dormRoom,[x,.99,-.65]);
+   add(new THREE.BoxGeometry(2.34,.1,1.32),blanket,dormRoom,[x,1.12,-1.25]);
+   add(new THREE.BoxGeometry(1.05,.28,.62),linen,dormRoom,[x,1.18,.55]);
+   add(new THREE.BoxGeometry(.1,1.8,.1),bedWood,dormRoom,[x-side*1.45,1.42,1.65]);
+   add(new THREE.BoxGeometry(.1,1.8,.1),bedWood,dormRoom,[x-side*1.45,1.42,-2.95]);
+   add(new THREE.BoxGeometry(.12,1.8,4.7),bedWood,dormRoom,[x-side*1.45,1.42,-.65]);
+  }
+  add(new THREE.BoxGeometry(1.6,.18,.8),bedWood,dormRoom,[0,.82,2.2]);
+  const dormPlaque=plaqueSprite("僧寮","MONASTIC QUARTERS");dormPlaque.scale.set(2.3,.58,1);dormPlaque.position.set(0,3.25,-4.72);dormRoom.add(dormPlaque);
   // Bell tower & bronze bell
   const bell=new THREE.Group();bell.position.set(-28,0,2);s.add(bell);
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
