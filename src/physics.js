@@ -179,7 +179,7 @@ export function findWalkPath(start, goal, world) {
     const r = PLAYER_RADIUS + actor.radius;
     return (x - actor.x) ** 2 + (z - actor.z) ** 2 < r * r;
   });
-  const clear = (x, z) => !collidesAt(x, z, world) && !actorBlocked(x, z);
+  const clear = (x, z) => !collidesAt(x, z, world, PLAYER_RADIUS + 0.2) && !actorBlocked(x, z);
   if (!clear(goal.x, goal.z)) return null;
 
   const centerIx = Math.max(minIx, Math.min(maxIx, Math.round((start.x - goal.x) / grid)));
