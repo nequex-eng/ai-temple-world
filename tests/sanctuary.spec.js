@@ -402,6 +402,13 @@ test("three independent guests share live presence, messages and wishes", async 
 });
 
 
+test("four market vendors stand beside the gate", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  const count = await page.evaluate(() => window.__templeDebug.vendors());
+  expect(count).toBe(4);
+});
+
 test("only one stationary abbot NPC is present", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
