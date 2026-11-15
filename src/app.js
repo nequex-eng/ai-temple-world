@@ -6,12 +6,12 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="";
+let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
 Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
-Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}})}),configurable:false});
+Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
  onMessage:message=>handleMessage(message),
@@ -328,13 +328,21 @@ async function setSound(on){
 }
 function playBellSynthesis(volume=.62){
  if(!audio||audio.state!=="running")return;
+ bellHits++;
  const now=audio.currentTime,output=effectsGain||audioMaster||audio.destination;
- // Layered bronze-bell partials with a soft low body and a long natural decay.
- for(const [hz,level,decay,detune] of [[92,.075,3.8,-2],[184,.055,3.1,1],[276,.038,2.6,-1],[369,.025,2.1,2],[493,.018,1.65,-2],[641,.012,1.25,1],[827,.007,.9,0]]){
+ // A short bronze strike followed by inharmonic resonances, tuned to remain
+ // audible on small phone speakers instead of relying on sub-bass alone.
+ const length=Math.max(1,Math.floor(audio.sampleRate*.055)),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,3);
+ const strike=audio.createBufferSource(),high=audio.createBiquadFilter(),body=audio.createGain();
+ strike.buffer=buffer;high.type="bandpass";high.frequency.value=1850;high.Q.value=.55;
+ body.gain.setValueAtTime(.0001,now);body.gain.exponentialRampToValueAtTime(.19*volume,now+.004);body.gain.exponentialRampToValueAtTime(.0001,now+.075);
+ strike.connect(high);high.connect(body);body.connect(output);strike.start(now);strike.stop(now+.06);
+ for(const [hz,level,decay,detune] of [[174,.12,4.4,-3],[230,.105,3.9,2],[287,.082,3.35,-1],[352,.066,2.9,2],[440,.05,2.5,-2],[574,.038,2.15,3],[720,.028,1.8,-1],[880,.021,1.5,1],[1100,.015,1.2,0],[1320,.011,.95,-1],[1580,.007,.72,2]]){
   const osc=audio.createOscillator(),gain=audio.createGain(),filter=audio.createBiquadFilter();
   osc.type="sine";osc.frequency.setValueAtTime(hz,now);osc.detune.value=detune;
-  filter.type="lowpass";filter.frequency.value=1500;
-  gain.gain.setValueAtTime(Math.max(.0001,level*volume*audioVolumes.effects),now);
+  filter.type="lowpass";filter.frequency.value=2400;
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(level*volume,now+.012);
   gain.gain.exponentialRampToValueAtTime(.0001,now+decay);
   osc.connect(filter);filter.connect(gain);gain.connect(output);osc.start(now);osc.stop(now+decay+.04);
  }
