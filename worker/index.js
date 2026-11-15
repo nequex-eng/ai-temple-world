@@ -257,13 +257,28 @@ export class TempleRoom {
       action: "walk",
       joinedAt: Date.now()
     };
+    // Allocate a clear spot in the forecourt on the server, so all clients agree on spawn positions.
+    const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
+    const npcSpots = [[-3,23],[4,4],[-25,10],[23,-17],[-29.4,-23.65],[-21,23],[18,28],[18,8],[-5.1,-35.2]];
+    const spawnCandidates = [];
+    for (let row=0;row<12;row++) for (let col=0;col<20;col++) {
+      const x=-11.4+col*1.2,z=15.5+row*1.2;
+      if (npcSpots.some(([nx,nz]) => Math.hypot(x-nx,z-nz)<1.18)) continue;
+      if (occupied.some(peer => Math.hypot(x-peer.x,z-peer.z)<1.08)) continue;
+      spawnCandidates.push({x,z});
+    }
+    if (spawnCandidates.length) {
+      let hash=0;for(const ch of player.id)hash=(hash*31+ch.charCodeAt(0))>>>0;
+      const spawn=spawnCandidates[hash%spawnCandidates.length];
+      player.x=spawn.x;player.z=spawn.z;
+    }
     const pair = new WebSocketPair();
     const client = pair[0], server = pair[1];
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment(player);
     const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(Boolean);
     const offeringRows = await this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] }));
-    server.send(JSON.stringify({ type: "welcome", players: peers, online: peers.length + 1, offerings: offeringRows.results || [] }));
+    server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [] }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
     return new Response(null, { status: 101, webSocket: client });
   }
