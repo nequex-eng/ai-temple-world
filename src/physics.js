@@ -9,10 +9,12 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     // Only retain colliders that correspond to visible solid scene objects.
-    circle(0, -39.5, 2.2), circle(-5.4, -37.2, 1.15),
+    circle(0, -39.5, 2.2), circle(0, -25.6, 1.58),
     circle(-4.8, -1.2, .55), circle(4.8, -1.2, .55), circle(5.8, -19.5, 1.55),
     circle(-56.85, 8.45, .28), circle(-47.15, 8.45, .28),
     circle(-56.85, 15.55, .28), circle(-47.15, 15.55, .28), circle(-52, 11.65, .78),
+    circle(-4.85,-65.55,.34),circle(4.85,-65.55,.34),circle(-4.85,-58.45,.34),circle(4.85,-58.45,.34),
+    circle(-2.5,-62.35,.88),circle(2.5,-62.35,.88),circle(0,-56.5,.48),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
   for (const h of halls) {
@@ -71,6 +73,8 @@ export function createTempleCollision(halls) {
     segments.push(segment(x - 1.325, 5.675, x - 1.325, 9.025, 0.13));
     segments.push(segment(x + 1.325, 5.675, x + 1.325, 9.025, 0.13));
   }
+  // Tea house rear approach path: east-side bypass around the Great Hall and a clear entrance.
+  segments.push(segment(13.5,-46,16.5,-46,.2),segment(16.5,-46,16.5,-60,.2),segment(16.5,-60,5,-60,.2));
   // Full-height west Lotus Wish Wall and the low east boundary.
   segments.push(segment(-31, -45.5, -31, 18.5, 0.36));
   const eastX = 31;
