@@ -703,7 +703,7 @@ export class TempleWorld{
   }
   return true;
  }
- update(dt,input={},time=performance.now()){
+ update(dt,input={},time=performance.now(),render=true){
   if(!this.local)return;
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
@@ -770,7 +770,7 @@ export class TempleWorld{
    item.glow.intensity=.34+.12*flicker;
   }
   for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
-  this.updateEffects(dt);this.renderer.render(this.scene,this.camera);
+  this.updateEffects(dt);if(render)this.renderer.render(this.scene,this.camera);
  }
  addEffect(type,position=null){
   const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(-28,0,2);this.scene.add(g);
