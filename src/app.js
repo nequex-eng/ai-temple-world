@@ -74,7 +74,7 @@ function renderPresence(){
   const row=document.createElement("div");row.className="presence-person";
   const seal=document.createElement("span");seal.className="presence-avatar";seal.textContent=(player.name||d.unknown).slice(0,1);
   const name=document.createElement("span");name.textContent=player.name+(player.local?" · "+d.you:"");
-  const lang=document.createElement("small");lang.textContent=({zh:"中文",ja:"日本語",ko:"한국어",th:"ไทย"})[player.language]||"";
+  const lang=document.createElement("small");lang.textContent=({zh:"中文",en:"English",ja:"日本語",ko:"한국어",th:"ไทย"})[player.language]||"";
   row.append(seal,name,lang);list.append(row);
  }
 }
@@ -200,6 +200,10 @@ function updateAudioStatus(){
 }
 function mediaPlay(media,label){
  if(!media)return Promise.resolve(false);
+ // Night is a hard mute for birds and chanting, including asynchronous fallback/retry paths.
+ if(world.isNight&&(media===templeBirds||media===templeChant||/鸟鸣|诵经|birdsong|chant/i.test(String(label||"")))){
+  media.pause();media.volume=0;return Promise.resolve(false);
+ }
  if(media.__templePrimePending){
   media.__templePrimePending=false;
   const state=media.__templePrimeState;
@@ -259,9 +263,13 @@ async function ensureAudio(){
 function updateSoundscape(){
  if(!soundEnabled)return;
  const night=!!world.isNight;
- if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(night){if(!templeBirds.paused)templeBirds.pause();}else if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
+ if(night){
+  if(templeBirds){templeBirds.volume=0;templeBirds.pause();try{templeBirds.currentTime=0;}catch{}}
+  if(templeChant){templeChant.volume=0;templeChant.pause();try{templeChant.currentTime=0;}catch{}}
+  return;
+ }
+ if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
  if(!templeChant||!world.local)return;
- if(night){if(!templeChant.paused)templeChant.pause();return;}
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
  const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
@@ -577,9 +585,7 @@ async function submitPrayer(e){
  }
 }
 $("prayer-form").addEventListener("submit",submitPrayer);
-$("prayer-submit").type="button";
-$("prayer-submit").addEventListener("click",e=>{e.preventDefault();void submitPrayer(e);});
-$("prayer-submit").addEventListener("pointerup",e=>{if(e.pointerType==="touch"&&e.cancelable){e.preventDefault();if(!prayerSending)void submitPrayer(e);}});
+$("prayer-submit").type="submit";
 
 // Keyboard and mobile thumbstick controls
 const movementCodes={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ArrowUp:"arrowup",ArrowDown:"arrowdown",ArrowLeft:"arrowleft",ArrowRight:"arrowright",Space:"jump"};
