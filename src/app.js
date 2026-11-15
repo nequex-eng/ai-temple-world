@@ -424,7 +424,7 @@ function doAction(action){
   toast(t()[key]);return;
  }
  if(action==="tea"){
-  world.setLocalPose("meditate");world.addEffect("tea");playRitualSound("tea");text("character-state",t().actionText.tea||"品茶");toast(t().teaEnjoy||"静坐品茶，稍歇片刻");network.logActivity(action,"tea-house");return;
+  world.setLocalPose("tea");world.addEffect("tea");playRitualSound("tea");text("character-state",t().actionText.tea||"品茶");toast(t().teaEnjoy||"静坐品茶，稍歇片刻");network.logActivity(action,"tea-house");return;
  }
  if(action==="lotus"){
   playLotusWater();
