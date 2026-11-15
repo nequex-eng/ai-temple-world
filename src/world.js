@@ -24,16 +24,18 @@ function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
 }
 function texture(draw,rx=1,ry=1){const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");draw(x,512);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;return t;}
 function robeNamePlate(name){
- const c=document.createElement("canvas");c.width=768;c.height=144;const x=c.getContext("2d");
- x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";
- x.shadowColor="rgba(255,245,220,.82)";x.shadowBlur=8;x.lineJoin="round";
- x.font='bold 72px "Songti SC","Noto Serif CJK SC",serif';
+ const c=document.createElement("canvas");c.width=1024;c.height=208;const x=c.getContext("2d");
+ x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";x.lineJoin="round";
+ x.font='bold 112px "Songti SC","Noto Serif CJK SC",serif';
  const label=String(name||"行者").slice(0,12);
- x.lineWidth=6;x.strokeStyle="rgba(248,237,211,.98)";
- x.strokeText(label,384,72,720);x.fillStyle="#30251b";x.fillText(label,384,72,720);
+ // Text only: dark edging and a warm luminous halo improve recognition without a nameplate.
+ x.shadowColor="rgba(255,213,128,.98)";x.shadowBlur=18;
+ x.lineWidth=22;x.strokeStyle="rgba(27,20,14,.98)";x.strokeText(label,512,104,970);
+ x.shadowBlur=7;x.lineWidth=7;x.strokeStyle="rgba(255,231,177,.98)";x.strokeText(label,512,104,970);
+ x.fillStyle="#fff4ce";x.fillText(label,512,104,970);
  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:true,depthWrite:false,toneMapped:false}));
- sprite.position.set(0,2.72,0);sprite.scale.set(1.62,.315,1);
+ sprite.position.set(0,2.9,0);sprite.scale.set(2.05,.42,1);
  return sprite;
 }
 
@@ -130,7 +132,9 @@ function lantern(scene,x,z,m){
  add(new THREE.BoxGeometry(.55,.7,.55),m.paper,g,[0,2.35,0]);
  add(new THREE.ConeGeometry(.7,.42,4),m.roof,g,[0,2.9,0],[0,Math.PI/4,0]);
  add(new THREE.ConeGeometry(.08,.34,6),m.gold,g,[0,3.26,0]);
- const l=new THREE.PointLight(0xffce8c,.48,7);l.position.set(0,2.3,0);g.add(l);
+ const l=new THREE.PointLight(0xffce8c,.52,12);l.position.set(0,2.3,0);g.add(l);
+ const inner=add(new THREE.BoxGeometry(.38,.5,.38),new THREE.MeshBasicMaterial({color:0xffd99a}),g,[0,2.35,0],[0,0,0],false);
+ return {group:g,light:l,flame:inner};
 }
 function marketStall(scene,x,z,side,kind,m){
  const root=new THREE.Group();root.position.set(x,0,z);root.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(root);
@@ -150,6 +154,23 @@ function marketStall(scene,x,z,side,kind,m){
   for(let i=0;i<12;i++)add(new THREE.SphereGeometry(.035,7,6),mat(0x493326,.9),root,[(Math.random()-.5)*.38,1.18,-.42+(Math.random()-.5)*.25]);
  }else{for(let i=0;i<6;i++)add(new THREE.SphereGeometry(.18,10,8),mat([0xb84d38,0xc99b43,0x6d8c50][i%3],.72),root,[-1+(i%3)*.75,1.28,Math.floor(i/3)*.32-.12]);}
  for(const xx of [-1.35,1.35]){add(new THREE.BoxGeometry(.12,.48,.12),wood,root,[xx,2.22,.78]);add(new THREE.BoxGeometry(.3,.34,.3),m.paper,root,[xx,1.9,.78]);add(new THREE.ConeGeometry(.22,.16,4),m.darkWood,root,[xx,2.15,.78],[0,Math.PI/4,0]);}
+ const goods={noodles:"素凉面 · 凉茶",incense:"香烛 · 莲灯",coffee:"咖啡 · 茶饮",fruit:"素食点心 · 时令水果"};
+ const productLabel=goods[kind]||"寺院用品";
+ const signCanvas=document.createElement("canvas");signCanvas.width=768;signCanvas.height=176;
+ const ctx=signCanvas.getContext("2d");ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,176);
+ ctx.strokeStyle="#d8bd82";ctx.lineWidth=9;ctx.strokeRect(12,12,744,152);
+ ctx.textAlign="center";ctx.textBaseline="middle";ctx.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';
+ ctx.fillStyle="#fff0cc";ctx.shadowColor="rgba(255,211,129,.55)";ctx.shadowBlur=8;ctx.fillText(productLabel,384,88,700);
+ const signMap=new THREE.CanvasTexture(signCanvas);signMap.colorSpace=THREE.SRGBColorSpace;
+ add(new THREE.BoxGeometry(2.12,.58,.12),wood,root,[0,2.12,.88]);
+ add(new THREE.PlaneGeometry(1.98,.45),new THREE.MeshBasicMaterial({map:signMap,toneMapped:false}),root,[0,2.12,.948],[0,0,0],false);
+ root.userData.marketItemLabel=productLabel;
+ root.userData.nightLights=[];
+ for(const xx of [-1.42,1.42]){
+  add(new THREE.SphereGeometry(.085,9,7),new THREE.MeshBasicMaterial({color:0xffc779}),root,[xx,2.08,.6],[0,0,0],false);
+  const glow=new THREE.PointLight(0xffc77e,.34,6);glow.position.set(xx,2.05,.6);root.add(glow);
+  root.userData.nightLights.push({light:glow,base:.34});
+ }
  return root;
 }
 function marketVendor(scene,x,z,facing,m){
@@ -359,14 +380,22 @@ export class TempleWorld{
   const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);// Mountain gate remains clean architectural timber without an applied plaque.
-  // Four market stalls flank the mountain-gate approach; the central stone route remains open.
+  // Market garden: four stalls well beyond the gate, on a dedicated green lawn east of the courtyard.
   this.vendorSpecs=[
-   {name:'凉面摊主',x:-8.8,z:-5.5,kind:'noodles',facing:Math.PI/2},
-   {name:'香烛摊主',x:8.8,z:-5.5,kind:'incense',facing:-Math.PI/2},
-   {name:'咖啡摊主',x:-8.8,z:-11.5,kind:'coffee',facing:Math.PI/2},
-   {name:'小食摊主',x:8.8,z:-11.5,kind:'fruit',facing:-Math.PI/2}
+   {name:'凉面摊主',x:43,z:-1,kind:'noodles',facing:-Math.PI/2},
+   {name:'香烛摊主',x:43,z:7,kind:'incense',facing:-Math.PI/2},
+   {name:'咖啡摊主',x:43,z:15,kind:'coffee',facing:-Math.PI/2},
+   {name:'小食摊主',x:43,z:23,kind:'fruit',facing:-Math.PI/2}
   ];
-  for(const vendor of this.vendorSpecs)marketStall(s,vendor.x,vendor.z,vendor.x<0?-1:1,vendor.kind,m);
+  this.marketStalls=[];
+  add(new THREE.PlaneGeometry(26,48),m.grass,s,[43,-.08,11],[-Math.PI/2,0,0],false);
+  const marketPath=mat(0xaaa18d,.96);
+  add(new THREE.PlaneGeometry(4.2,40),marketPath,s,[38.1,-.035,11],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(18,4.2),marketPath,s,[40,-.035,15],[-Math.PI/2,0,0],false);
+  for(const vendor of this.vendorSpecs){
+   const stall=marketStall(s,vendor.x,vendor.z,1,vendor.kind,m);
+   this.marketStalls.push(stall);this.nightLights.push(...stall.userData.nightLights);
+  }
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
   // It runs perpendicular to the mountain gate and faces inward toward visitors.
   const wishWall=new THREE.Group();wishWall.position.set(-31,0,-13.5);wishWall.rotation.y=Math.PI/2;s.add(wishWall);
@@ -667,7 +696,34 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.08,.08,6.5,8),washTrim,washroom,[0,3.9,0],[0,0,Math.PI/2]);
   for(const side of [-1,1]){add(new THREE.BoxGeometry(.13,.13,5.0),washTrim,washroom,[side*2.84,2.83,0]);add(new THREE.BoxGeometry(5.7,.13,.13),washTrim,washroom,[0,2.83,side*2.42]);}
   add(new THREE.PlaneGeometry(2.0,3.0),m.stone,washroom,[0,-.02,3.75],[-Math.PI/2,0,0],false);
-  for(const [x,z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]])lantern(s,x,z,m);
+  // Two traditional floor-level squat toilets: porcelain pans, foot ledges and visible oval openings.
+  const porcelain=mat(0xe4dfd0,.42,{metalness:.04}),porcelainEdge=mat(0xb8b5a9,.62),toiletHole=mat(0x252925,.98);
+  this.squatToilets=[];
+  for(const x of [-1.48,1.48]){
+   const pan=new THREE.Group();pan.position.set(x,.235,-.58);washroom.add(pan);this.squatToilets.push(pan);
+   add(new THREE.BoxGeometry(.96,.13,1.34),porcelain,pan,[0,.07,0]);
+   add(new THREE.BoxGeometry(.82,.055,1.18),porcelainEdge,pan,[0,.15,0]);
+   for(const side of [-1,1]){
+    add(new THREE.BoxGeometry(.19,.09,.82),porcelain,pan,[side*.31,.205,-.02]);
+    add(new THREE.BoxGeometry(.15,.035,.68),mat(0xf1ebdc,.52),pan,[side*.31,.263,-.02]);
+   }
+   const opening=add(new THREE.SphereGeometry(1,18,12),toiletHole,pan,[0,.225,-.08]);opening.scale.set(.155,.025,.35);
+   const rim=add(new THREE.TorusGeometry(.205,.04,8,32),porcelain,pan,[0,.235,-.08],[Math.PI/2,0,0]);rim.scale.set(1,1.65,1);
+   add(new THREE.BoxGeometry(.42,.07,.18),porcelain,pan,[0,.22,-.55]);
+   add(new THREE.CylinderGeometry(.055,.065,.48,10),porcelainEdge,pan,[0,.28,-.69]);
+  }
+  const washGlow=new THREE.PointLight(0xffd39a,.28,8);washGlow.position.set(0,2.1,-.3);washroom.add(washGlow);this.nightLights.push({light:washGlow,base:.28});
+  // Roadside lanterns now run continuously from the mountain approach to the Great Hall and market.
+  const lampPositions=[
+   [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41],
+   [-5.5,35],[5.5,35],[-5.5,8],[5.5,8],[-5.5,-7],[5.5,-7],[-5.5,-22],[5.5,-22],
+   [35.4,-1],[35.4,15],[35.4,31]
+  ];
+  this.streetLanterns=[];
+  for(const [x,z] of lampPositions){
+   const fixture=lantern(s,x,z,m);this.streetLanterns.push(fixture);
+   this.nightLights.push({light:fixture.light,base:.52});
+  }
   // Incense censer
   this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
@@ -712,7 +768,7 @@ export class TempleWorld{
   const route=[[0,-22],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22]].map(([x,z])=>new THREE.Vector3(x,0,z));
   this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
   for(const spec of this.vendorSpecs||[]){
-   const seller=marketVendor(this.scene,spec.x+(spec.x<0?1.55:-1.55),spec.z+.78,spec.facing,this.m);seller.name='vendor-'+spec.kind;
+   const seller=marketVendor(this.scene,spec.x+1.72,spec.z,spec.facing,this.m);seller.name='vendor-'+spec.kind;
    this.npcs.push({avatar:{root:seller,update(){},dispose(){seller.parent?.remove(seller);}},stationary:true});
   }
  }
@@ -908,7 +964,15 @@ export class TempleWorld{
   const target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*cameraDistance,cameraTargetPosition.y+cameraHeight,cameraTargetPosition.z+Math.cos(this.yaw)*cameraDistance);
   this.camera.position.lerp(target,1-Math.pow(inside?.00025:.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+(inside?1.42:1.2),cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
-  for(const item of this.lotusLights){item.group.position.y=.35+Math.sin(time*.0012+item.phase)*.09;item.group.rotation.y+=dt*.16;}
+  for(const item of this.lotusLights){
+   item.age+=dt;item.progress=clamp(item.age/item.duration,0,1);
+   const p=item.progress,eased=p*p*(3-2*p),drift=Math.max(0,item.age-item.duration);
+   item.group.position.x=THREE.MathUtils.lerp(item.start.x,item.target.x,eased)+Math.sin(time*.00042+item.phase)*Math.min(.1,drift*.025);
+   item.group.position.z=THREE.MathUtils.lerp(item.start.z,item.target.z,eased)+Math.cos(time*.00038+item.phase)*Math.min(.1,drift*.025);
+   item.group.position.y=.26+Math.sin(time*.0022+item.phase)*.025;
+   item.group.rotation.y=item.heading+Math.sin(time*.0014+item.phase)*.045;
+   item.group.rotation.z=Math.sin(time*.0018+item.phase)*.025;
+  }
   for(const puff of this.incenseSmoke){
    const data=puff.userData.smoke,cycle=(time*.000085+data.phase)%1;
    puff.position.set(data.origin[0]+Math.sin(cycle*6.28+data.seed)*(.08+cycle*.34),data.origin[1]+cycle*2.25,data.origin[2]+Math.cos(cycle*5.2+data.seed)*(.07+cycle*.25));
@@ -949,19 +1013,44 @@ export class TempleWorld{
   this.moonMesh.material.opacity=night*.92;this.starMaterial.opacity=night*.86;
   this.moonMesh.position.set(Math.cos(angle+Math.PI)*110,Math.max(12,Math.sin(angle+Math.PI)*75),Math.sin(angle+Math.PI)*110);
   this.renderer.toneMappingExposure=.82+daylight*.39+twilight*.1;
-  for(const entry of this.nightLights)entry.light.intensity=entry.base*(.72+night*2.1);
+  for(const entry of this.nightLights)entry.light.intensity=entry.base*(.14+night*3.6);
   this.dayNightState={phase,daylight,twilight,night,periodSeconds:600};
  }
  addEffect(type,position=null){
   const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);if(type==="incense")g.position.copy(this.incensePosition);this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else if(type==="lotus"){
-   for(let i=0;i<7;i++){const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.17,8,8),mat(0xe6c9c6,.65,{emissive:0x4f2523,emissiveIntensity:.3}),g,[Math.cos(a)*.23,.2,Math.sin(a)*.23]);petal.scale.set(.7,1.6,.55);}
-   add(new THREE.SphereGeometry(.11,8,8),this.m.gold,g,[0,.2,0]);
-   const l=new THREE.PointLight(0xffdca5,1.7,5);l.position.y=.8;g.add(l);
-   const angle=Math.random()*Math.PI*2,radius=.55+Math.random()*2.75;
-   g.position.set(this.pondPosition.x+Math.cos(angle)*radius,.38,this.pondPosition.z+Math.sin(angle)*radius);
-   this.lotusLights.push({group:g,phase:Math.random()*6.28});
+   const source=position||this.local?.root.position||this.pondPosition;
+   let dx=Number(source.x)-this.pondPosition.x,dz=Number(source.z)-this.pondPosition.z;
+   let distance=Math.hypot(dx,dz);
+   if(!Number.isFinite(distance)||distance<.15){const a=Math.random()*Math.PI*2;dx=Math.cos(a);dz=Math.sin(a);distance=1;}
+   const nx=dx/distance,nz=dz/distance,startRadius=4.32;
+   const start={x:this.pondPosition.x+nx*startRadius,z:this.pondPosition.z+nz*startRadius};
+   const driftAngle=Math.atan2(nz,nx)+(Math.random()-.5)*.7,targetRadius=1.05+Math.random()*1.8;
+   const target={x:this.pondPosition.x+Math.cos(driftAngle)*targetRadius,z:this.pondPosition.z+Math.sin(driftAngle)*targetRadius};
+   const hullShape=new THREE.Shape();
+   hullShape.moveTo(-.34,-.48);hullShape.quadraticCurveTo(-.42,-.25,-.23,.02);
+   hullShape.quadraticCurveTo(0,.53,.23,.02);hullShape.quadraticCurveTo(.42,-.25,.34,-.48);hullShape.closePath();
+   const hullGeometry=new THREE.ExtrudeGeometry(hullShape,{depth:.12,bevelEnabled:true,bevelThickness:.025,bevelSize:.025,bevelSegments:2,steps:1});
+   hullGeometry.rotateX(-Math.PI/2);
+   const hull=new THREE.Mesh(hullGeometry,mat(0x68452e,.82));hull.position.y=.01;hull.castShadow=true;g.add(hull);
+   add(new THREE.BoxGeometry(.46,.045,.68),mat(0x9a7046,.78),g,[0,.13,-.02]);
+   add(new THREE.BoxGeometry(.055,.08,.72),mat(0x4f3625,.9),g,[-.29,.12,0]);
+   add(new THREE.BoxGeometry(.055,.08,.72),mat(0x4f3625,.9),g,[.29,.12,0]);
+   const lanternPaper=mat(0xe9c98e,.45,{emissive:0xffa83e,emissiveIntensity:.48});
+   add(new THREE.CylinderGeometry(.135,.17,.25,8),lanternPaper,g,[0,.34,0]);
+   add(new THREE.CylinderGeometry(.18,.18,.045,8),mat(0x927043,.6),g,[0,.49,0]);
+   add(new THREE.CylinderGeometry(.12,.12,.04,8),mat(0x927043,.6),g,[0,.19,0]);
+   add(new THREE.ConeGeometry(.055,.13,8),this.m.gold,g,[0,.58,0]);
+   for(let i=0;i<7;i++){
+    const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.095,9,7),mat(i%2?0xf0d4cf:0xd99b9e,.55,{emissive:0x6c3035,emissiveIntensity:.22}),g,[Math.cos(a)*.19,.51,Math.sin(a)*.19]);
+    petal.scale.set(.7,1.6,.5);
+   }
+   add(new THREE.SphereGeometry(.07,9,7),this.m.gold,g,[0,.54,0]);
+   const light=new THREE.PointLight(0xffd18a,.72,5.5);light.position.set(0,.72,0);g.add(light);
+   g.position.set(start.x,.26,start.z);g.rotation.y=Math.atan2(target.x-start.x,target.z-start.z);g.userData.boat=true;
+   const heading=g.rotation.y;
+   this.lotusLights.push({group:g,phase:Math.random()*6.28,age:0,duration:9.5,start,target,heading,progress:0});
    if(this.lotusLights.length>24){const old=this.lotusLights.shift();this.scene.remove(old.group);old.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose();});}
    return;
   }

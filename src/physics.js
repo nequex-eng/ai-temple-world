@@ -41,8 +41,9 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
-  // Four market counters flank the mountain gate without narrowing the central path.
-  for(const x of [-8.8,8.8])for(const z of [-5.5,-11.5])circles.push(circle(x,z,1.0));
+  // Four market stalls and two squat pans are solid, walk-around scene objects.
+  for(const z of [-1,7,15,23])circles.push(circle(43,z,1.28));
+  circles.push(circle(-20.48,-32.58,.48),circle(-17.52,-32.58,.48));
   // Unlabelled washroom west of the Great Hall: closed rear/sides and an open central entrance.
   const wx=-19,wz=-32,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
   segments.push(segment(wx-halfW,back,wx+halfW,back,.22));
@@ -81,10 +82,12 @@ export function createTempleCollision(halls) {
     cursor = Math.max(cursor, end);
   }
   if (cursor < 11.5) segments.push(segment(eastX, cursor, eastX, 11.5, 0.34));
-  // Lantern pedestals.
-  for (const [x, z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]]) {
-    circles.push(circle(x, z, 0.34));
-  }
+  // Lantern pedestals along the temple roads and grass-market approach.
+  for (const [x, z] of [
+    [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41],
+    [-5.5,35],[5.5,35],[-5.5,8],[5.5,8],[-5.5,-7],[5.5,-7],[-5.5,-22],[5.5,-22],
+    [35.4,-1],[35.4,15],[35.4,31]
+  ]) circles.push(circle(x,z,0.34));
   return { halls, segments, circles };
 }
 
