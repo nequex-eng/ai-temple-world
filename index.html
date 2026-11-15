@@ -28,7 +28,7 @@
         <option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="th">ไทย</option>
       </select>
       <button class="top-button" id="open-profile" type="button" aria-hidden="true" tabindex="-1"><span id="profile-button-label">我的小和尚</span></button>
-      <button class="top-button" id="sound-toggle" type="button" aria-label="关闭声音" aria-pressed="true">♫ 关闭声音</button><button class="top-button icon-only" id="sound-settings" type="button" aria-label="声音设置" title="声音设置">⚙</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
+      <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="sound-settings" type="button" aria-label="声音设置" title="声音设置">⚙</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
     </div>
   </header>
 
@@ -123,7 +123,7 @@
       <div class="modal-eyebrow">WISHES FROM AROUND THE WORLD</div>
       <h2 id="prayer-title">莲花祈愿墙</h2>
       <p id="prayer-description">写下一句善愿，让它与世界各地的心意一同留在莲池边。请勿填写私人敏感信息。</p>
-      <form id="prayer-form" class="prayer-form"><textarea id="prayer-input" maxlength="240" rows="3" placeholder="愿世界和平，愿众生安宁……"></textarea><button class="primary-button" type="submit" id="prayer-submit">点亮一盏心灯</button></form>
+      <form id="prayer-form" class="prayer-form"><textarea id="prayer-input" maxlength="40" rows="2" placeholder="写下不超过20个字的心愿……"></textarea><button class="primary-button" type="submit" id="prayer-submit">提交心愿</button></form>
       <div class="prayer-list-heading"><span id="prayer-list-label">来自世界的心愿</span><span id="prayer-count">0</span></div>
       <div class="prayer-list" id="prayer-list"><div class="prayer-empty" id="prayer-empty">莲池静候你的心愿。</div></div>
       <div class="modal-foot" id="prayer-foot">免费祈愿 · 不设功德排名 · 不以捐赠换取祝福</div>
