@@ -24,19 +24,18 @@ function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
 }
 function texture(draw,rx=1,ry=1){const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");draw(x,512);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;return t;}
 function robeNamePlate(name){
- const c=document.createElement("canvas");c.width=1024;c.height=208;const x=c.getContext("2d");
+ const c=document.createElement("canvas");c.width=512;c.height=128;const x=c.getContext("2d");
  x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";x.lineJoin="round";
- x.font='bold 112px "Songti SC","Noto Serif CJK SC",serif';
- const label=String(name||"行者").slice(0,12);
- // Text only: dark edging and a warm luminous halo improve recognition without a nameplate.
- x.shadowColor="rgba(255,213,128,.98)";x.shadowBlur=18;
- x.lineWidth=22;x.strokeStyle="rgba(27,20,14,.98)";x.strokeText(label,512,104,970);
- x.shadowBlur=7;x.lineWidth=7;x.strokeStyle="rgba(255,231,177,.98)";x.strokeText(label,512,104,970);
- x.fillStyle="#fff4ce";x.fillText(label,512,104,970);
+ const label=String(name||"行者").trim().slice(0,12);
+ x.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';
+ x.shadowColor="rgba(0,0,0,.85)";x.shadowBlur=7;x.lineWidth=8;x.strokeStyle="rgba(27,20,14,.95)";x.strokeText(label,256,64,490);
+ x.fillStyle="#f6e5bd";x.fillText(label,256,64,490);
  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
- const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:true,depthWrite:false,toneMapped:false}));
- sprite.position.set(0,2.9,0);sprite.scale.set(2.05,.42,1);
- return sprite;
+ const material=new THREE.MeshBasicMaterial({map,transparent:true,depthTest:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.52,.13),material);
+ // The name is printed directly on the rear of the robe, not suspended above the head.
+ mesh.position.set(0,.93,-.245);mesh.renderOrder=3;
+ return mesh;
 }
 
 function pine(scene,x,z,s,m){
@@ -180,8 +179,23 @@ function marketVendor(scene,x,z,facing,m){
  const root=new THREE.Group();root.position.set(x,0,z);root.rotation.y=facing;scene.add(root);
  const skin=mat(0xd0a17e,.9),cloth=mat(0x78634c,.98),apron=mat(0x4f6654,.98),dark=mat(0x332a22,.98);
  add(new THREE.CapsuleGeometry(.31,.72,5,9),cloth,root,[0,.92,0]);add(new THREE.BoxGeometry(.48,.58,.12),apron,root,[0,.9,.28]);
- add(new THREE.SphereGeometry(.255,16,12),skin,root,[0,1.67,.02]);add(new THREE.SphereGeometry(.26,16,10),dark,root,[0,1.82,-.005]).scale.set(1,.36,1);
- for(const side of [-1,1]){add(new THREE.CapsuleGeometry(.09,.55,4,8),cloth,root,[side*.39,1.02,.04],[0,0,side*.24]);add(new THREE.SphereGeometry(.09,8,7),skin,root,[side*.43,.68,.09]);}
+ const head=new THREE.Group();head.position.set(0,1.58,.02);root.add(head);
+ add(new THREE.SphereGeometry(.255,16,12),skin,head,[0,.09,0]);
+ add(new THREE.SphereGeometry(.26,16,10),dark,head,[0,.24,-.025]).scale.set(1,.36,1);
+ const arms=[];
+ for(const side of [-1,1]){
+  const arm=new THREE.Group();arm.position.set(side*.31,1.28,.025);root.add(arm);
+  add(new THREE.CapsuleGeometry(.09,.55,4,8),cloth,arm,[side*.045,-.25,.02],[0,0,side*.18]);
+  add(new THREE.SphereGeometry(.09,8,7),skin,arm,[side*.055,-.54,.055]);
+  arms.push(arm);
+ }
+ root.userData.animateInteraction=(time,phase=0)=>{
+  const reach=Math.sin(time*.0021+phase),offer=Math.max(0,Math.sin(time*.00135+phase+1.2));
+  arms[0].rotation.set(-.28-Math.max(0,reach)*.45,0,-.3-Math.max(0,reach)*.34);
+  arms[1].rotation.set(-.18-offer*.55,0,.28+offer*.25);
+  head.rotation.x=Math.sin(time*.00125+phase)*.055;
+  root.position.y=.012*Math.sin(time*.002+phase);
+ };
  return root;
 }
 function avatar(scene,profile={},id="local",isLocal=false){
@@ -291,11 +305,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
  if(profile.style==="pilgrim"){
   add(new THREE.BoxGeometry(.42,.56,.22),dark,body,[-.57,.73,-.08],[0,0,-.18]);
  }
- const namePlate=robeNamePlate(profile.name||"行者");root.add(namePlate);
+ const namePlate=robeNamePlate(profile.name||"行者");body.add(namePlate);
  return {
   id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.root.add(this.tag);},
+  setLabel(name){this.body.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.body.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
@@ -342,7 +356,7 @@ export class TempleWorld{
   this.mobile=matchMedia("(max-width: 660px)").matches;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.35:1.75));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -786,7 +800,7 @@ export class TempleWorld{
    this.nightLights.push({light:fixture.light,base:.52});
   }
   // One large traditional bronze censer on the Great Hall central axis, just outside its main entrance.
-  this.incensePosition=new THREE.Vector3(0,0,-27.2);
+  this.incensePosition=new THREE.Vector3(0,0,-22.4);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -858,11 +872,11 @@ export class TempleWorld{
   this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
   for(const spec of this.vendorSpecs||[]){
    const seller=marketVendor(this.scene,spec.x+1.72,spec.z,spec.facing,this.m);seller.name='vendor-'+spec.kind;
-   this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;},dispose(){seller.parent?.remove(seller);}},stationary:true});
+   this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z});
    for(const offset of [-1.55,1.55]){
     const shopper=avatar(this.scene,{name:"香客",robe:offset<0?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+offset,true);
     shopper.setPosition(39.1,spec.z+offset,Math.PI/2,0);shopper.setPose("greet",2200);
-    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28});
+    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28,nextGestureAt:performance.now()+700+Math.random()*900});
    }
   }
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
@@ -871,7 +885,17 @@ export class TempleWorld{
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
    const a=npc.avatar,p=a.root.position;
-   if(npc.stationary){if(npc.shopper){const cycle=(time*.00022+(npc.phase||0))%6.28;a.root.rotation.y=Math.PI/2+Math.sin(cycle)*.22;if(Math.sin(cycle*1.7)>.72)a.setPose("greet",900);else if(Math.sin(cycle*1.7)<-.78)a.setPose("bow",900);}a.update(dt,time,false);continue;}
+   if(npc.stationary){
+    if(npc.shopper){
+     const cycle=(time*.00022+(npc.phase||0))%6.28;
+     a.root.rotation.y=Math.PI/2+Math.sin(cycle)*.12;
+     if(time>=(npc.nextGestureAt||0)){
+      a.setPose(Math.sin(cycle*1.7)>.0?"greet":"bow",1100);
+      npc.nextGestureAt=time+2200+Math.abs(Math.sin(cycle))*1600;
+     }
+    }
+    a.update(dt,time,false);continue;
+   }
    if(npc.moving){
     const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
     if(dist<.48){
@@ -938,10 +962,10 @@ export class TempleWorld{
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.local.root.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   if(this.raycaster.intersectObject(this.local.tag,false).length>0)return true;
-  const anchor=this.local.root.position.clone().add(new THREE.Vector3(0,2.9,0)).project(this.camera);
+  const anchor=this.local.root.localToWorld(new THREE.Vector3(0,.93,-.245)).project(this.camera);
   if(anchor.z< -1||anchor.z>1)return false;
   const sx=(anchor.x*.5+.5)*rect.width+rect.left,sy=(-anchor.y*.5+.5)*rect.height+rect.top;
-  return Math.abs(clientX-sx)<=76&&Math.abs(clientY-sy)<=34;
+  return Math.abs(clientX-sx)<=34&&Math.abs(clientY-sy)<=18;
  }
  setClickDestination(clientX,clientY){
   const rect=this.renderer.domElement.getBoundingClientRect();
@@ -949,7 +973,7 @@ export class TempleWorld{
   this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
-  this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);
+  this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);this.moveWaypoints=[];this.pendingAction=null;
   return true;
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.35:1.75));this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.renderer.setSize(innerWidth,innerHeight);}
@@ -1004,9 +1028,22 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-29.1],bell:[8,-38],lotus:[19,-26.7],tea:[0,-57.2],meditate:[0,-32.05],sweep:[0,5],chant:[0,-32.05],kneel:[0,-29.1]};
-  const dest=destinations[action];if(!dest)return false;
-  this.pendingAction=action;this.moveTarget=new THREE.Vector3(dest[0],0,dest[1]);return true;
+  const routes={
+   incense:[[5,-26],[0,-25.4]],
+   bell:[[5,-26],[8,-38]],
+   lotus:[[5,-26],[14.2,-25.6],[19,-26.7]],
+   // Leave through the Great Hall's front opening, pass the east side of the hall,
+   // follow the forest path behind it, then stop outside the tea-house entrance.
+   tea:[[5,-26],[14.2,-25.6],[14.2,-46.5],[14.2,-54.2],[0,-55.2]],
+   meditate:[[5,-26],[0,-32.05]],
+   chant:[[5,-26],[0,-32.05]],
+   kneel:[[5,-26],[0,-25.4]]
+  };
+  const route=routes[action];if(!route?.length)return false;
+  this.pendingAction=action;
+  this.moveWaypoints=route.slice(1).map(([x,z])=>new THREE.Vector3(x,0,z));
+  this.moveTarget=new THREE.Vector3(route[0][0],0,route[0][1]);
+  return true;
  }
  setLanguage(lang){
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
@@ -1017,7 +1054,8 @@ export class TempleWorld{
   this.updateDayNight(time);
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
-  const hasInput=Math.hypot(f,side)>.05;if(hasInput)this.moveTarget=null;
+  const hasInput=Math.hypot(f,side)>.05;
+  if(hasInput){this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   const canMove=["walk","greet","bow","chant"].includes(this.local.pose);
   let direction=null;
@@ -1027,8 +1065,14 @@ export class TempleWorld{
    direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
   }else if(this.moveTarget&&canMove){
    const dx=this.moveTarget.x-this.local.root.position.x,dz=this.moveTarget.z-this.local.root.position.z;
-   if(Math.hypot(dx,dz)<.62){this.moveTarget=null;if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}}
-   else direction=new THREE.Vector3(dx,0,dz).normalize();
+   if(Math.hypot(dx,dz)<.62){
+    const next=this.moveWaypoints?.shift();
+    if(next)this.moveTarget.copy(next);
+    else{
+     this.moveTarget=null;
+     if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}
+    }
+   }else direction=new THREE.Vector3(dx,0,dz).normalize();
   }
   const topSpeed=direction?(input.run?5.2:2.8):0;
   const desired=new THREE.Vector2(direction?.x||0,direction?.z||0).multiplyScalar(topSpeed);
@@ -1041,7 +1085,7 @@ export class TempleWorld{
    const localPosition=this.local.root.position;
    // Collision is resolved before vertical motion, so a jump cannot tunnel through masonry or stair edges.
    result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.actorCollisionWorld(this.local));
-   if(result.blocked){this.moveVelocity.multiplyScalar(.28);if(this.moveTarget)this.moveTarget=null;}
+   if(result.blocked){this.moveVelocity.multiplyScalar(.28);if(this.moveTarget){this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}}
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
   const localPosition=this.local.root.position;
