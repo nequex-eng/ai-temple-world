@@ -357,10 +357,21 @@ export class TempleRoom {
   }
   webSocketClose(ws) {
     const player = ws.deserializeAttachment();
-    if (player) this.broadcast({ type: "player:leave", id: player.id, online: Math.max(0, this.ctx.getWebSockets().length - 1) }, ws);
+    if (!player?.id) return;
+    const remaining = this.ctx.getWebSockets().filter(socket => socket !== ws);
+    // A replaced/reconnected socket must not announce a leave for the new
+    // session using the same player id.
+    const samePlayerStillConnected = remaining.some(socket => {
+      try { return socket.deserializeAttachment()?.id === player.id; } catch { return false; }
+    });
+    if (samePlayerStillConnected) return;
+    const online = new Set(remaining.map(socket => {
+      try { return socket.deserializeAttachment()?.id; } catch { return null; }
+    }).filter(Boolean)).size;
+    this.broadcast({ type: "player:leave", id: player.id, online }, ws);
   }
   webSocketError(ws) {
-    const player = ws.deserializeAttachment();
-    if (player) this.broadcast({ type: "player:leave", id: player.id }, ws);
+    // Let webSocketClose perform the single authoritative presence update.
+    try { ws.close(1011, "WebSocket error"); } catch {}
   }
 }
