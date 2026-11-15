@@ -195,7 +195,7 @@ assert.ok(world.includes('name==="chant"') && world.includes('name==="meditate"'
 assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"'), "Chanting action must be translated in all four locales");
 assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting action");
 
-console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
+console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 5 locales, 3D world and API routes.");
 
 assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-form").addEventListener("submit",submitPrayer)') && !app.includes('$("prayer-submit").addEventListener("pointerup"') && network.includes('}, 45000);'), "Wish submission must use one native submit event, remain single-flight, and tolerate slow mobile connections");
 assert.ok(app.includes('document.addEventListener("touchmove",blockPinch,{passive:false,capture:true})') && !app.includes('$("restore-view")') && !html.includes('id="restore-view"'), "Mobile pinch handling remains and the restore button is removed");
@@ -206,13 +206,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-77"), "Service worker cache must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-78"), "Service worker cache must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-77"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-78"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
