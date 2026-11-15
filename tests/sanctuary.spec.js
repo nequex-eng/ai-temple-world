@@ -48,6 +48,7 @@ test("production Pages same-origin proxy connects the live room", async ({ page 
   await page.locator("#prayer-submit").click();
   await expect(page.locator("#prayer-input")).toHaveValue("",{timeout:15000});
   await expect(page.locator("#prayer-list")).toContainText("同站代理提交测试",{timeout:20000});
+  page.on("dialog",dialog=>dialog.accept());
   await page.locator(".prayer-delete").first().click();
   await expect(page.locator("#prayer-list")).not.toContainText("同站代理提交测试",{timeout:15000});
   await cleanTestGuest(page);
