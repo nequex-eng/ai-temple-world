@@ -46,7 +46,7 @@ function applyLanguage(){
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"abbot-button-label":d.abbotButton,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
-  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot,"sound-title":d.soundTitle,"sound-description":d.soundDescription,"sound-ambience-label":d.soundAmbience,"sound-chant-label":d.soundChant,"sound-effects-label":d.soundEffects,"sound-test":d.soundTest,"sound-foot":d.soundFoot
+  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);
@@ -386,25 +386,6 @@ function advanceBead(){
 function resetBeads(){beadTotal-=beadTotal%108;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}renderBeads();}
 $("beads-advance").addEventListener("click",advanceBead);
 $("beads-reset").addEventListener("click",resetBeads);
-function syncAudioControls(){
- for(const [key,id] of [["ambience","sound-ambience"],["chant","sound-chant"],["effects","sound-effects"]]){
-  const input=$(id),output=$(id+"-value");if(input)input.value=String(Math.round(audioVolumes[key]*100));if(output)output.textContent=Math.round(audioVolumes[key]*100)+"%";
- }
-}
-function changeAudioVolume(key,value){
- audioVolumes[key]=Math.max(0,Math.min(1,Number(value)/100));
- try{localStorage.setItem("temple-audio-volumes",JSON.stringify(audioVolumes));}catch{}
- syncAudioControls();
- if(key==="ambience"){if(ambienceGain&&audio)ambienceGain.gain.setTargetAtTime(audioVolumes.ambience,audio.currentTime,.08);if(templeBirds)templeBirds.volume=.27*audioVolumes.ambience;}
- if(key==="chant"&&templeChant&&!templeChant.paused)updateSoundscape();
- if(key==="effects"&&effectsGain&&audio)effectsGain.gain.setTargetAtTime(audioVolumes.effects,audio.currentTime,.08);if(key==="effects"&&templeBell&&!templeBell.paused)templeBell.volume=.82*audioVolumes.effects;
-}
-$("sound-settings").addEventListener("click",()=>{$("sound-modal").classList.remove("hidden");syncAudioControls();updateAudioStatus();});
-$("sound-ambience").addEventListener("input",e=>changeAudioVolume("ambience",e.target.value));
-$("sound-chant").addEventListener("input",e=>changeAudioVolume("chant",e.target.value));
-$("sound-effects").addEventListener("input",e=>changeAudioVolume("effects",e.target.value));
-$("sound-test").addEventListener("click",()=>{if(!soundEnabled){toast("请先点击“开启声音”，再试听钟声。");return;}playBell(true,.85);});
-
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
