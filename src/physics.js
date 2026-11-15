@@ -42,7 +42,7 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
   // Four market counters flank the mountain gate without narrowing the central path.
-  for(const x of [-8.8,8.8])for(const z of [-5.5,-15.2])circles.push(circle(x,z,1.0));
+  for(const x of [-8.8,8.8])for(const z of [-5.5,-11.5])circles.push(circle(x,z,1.0));
   // Unlabelled washroom west of the Great Hall: closed rear/sides and an open central entrance.
   const wx=-19,wz=-32,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
   segments.push(segment(wx-halfW,back,wx+halfW,back,.22));
