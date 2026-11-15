@@ -58,6 +58,8 @@ assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
 assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall") && world.includes("cameraDistance=inside?"), "Player collision and indoor camera modes must be active");
+assert.ok(world.includes("const robeProfile=") && world.includes("const hand=new THREE.Group()") && world.includes("const chin="), "Monk avatar must have shaped shoulders, hands and facial anatomy");
+assert.ok(world.includes("const total=240") && world.includes("const occupied="), "New visitors must receive non-overlapping courtyard spawn positions");
 assert.ok(world.includes("new THREE.Vector2(.22,.08)") && world.includes("new THREE.Vector2(.47,1.39)"), "Monk body must have a shaped human torso rather than a barrel silhouette");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
