@@ -780,7 +780,7 @@ export class TempleWorld{
    this.nightLights.push({light:fixture.light,base:.52});
   }
   // One large traditional bronze censer on the Great Hall central axis, just outside its main entrance.
-  this.incensePosition=new THREE.Vector3(0,0,-25.6);
+  this.incensePosition=new THREE.Vector3(0,0,-27.2);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -997,7 +997,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-29.1],bell:[8,-34.8],lotus:[19,-26.7],tea:[0,-53.2],meditate:[0,-29.1],sweep:[0,5],chant:[0,-29.1],kneel:[0,-29.1]};
+  const destinations={incense:[0,-29.1],bell:[8,-34.8],lotus:[19,-26.7],tea:[0,-57.2],meditate:[0,-29.1],sweep:[0,5],chant:[0,-29.1],kneel:[0,-29.1]};
   const dest=destinations[action];if(!dest)return false;
   this.pendingAction=action;this.moveTarget=new THREE.Vector3(dest[0],0,dest[1]);return true;
  }
@@ -1097,6 +1097,7 @@ export class TempleWorld{
   const phase=(Date.now()/1000%600)/600;
   const solar=Math.sin((phase-.25)*Math.PI*2);
   const daylight=clamp((solar+.14)/.62,0,1),twilight=clamp(1-Math.abs(solar)/.48,0,1),night=1-daylight;
+  this.isNight=night>.55;
   const color=(a,b,t)=>new THREE.Color(a).lerp(new THREE.Color(b),t);
   const top=color("#101a2d","#628b9e",daylight).lerp(new THREE.Color("#596577"),twilight);
   const middle=color("#26384d","#a9c9c8",daylight).lerp(new THREE.Color("#bd897d"),twilight);
