@@ -986,6 +986,7 @@ export class TempleWorld{
   const p=this.local?.root.position;if(!p)return false;
   if(a==="incense")return Math.hypot(p.x-this.incensePosition.x,p.z-this.incensePosition.z)<4.4;
   if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
+  if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
