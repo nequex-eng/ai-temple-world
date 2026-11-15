@@ -268,9 +268,8 @@ test("two independent guests share live presence and messages", async ({ browser
     await expect.poll(() => pageA.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
     await expect.poll(() => pageB.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
     const remoteBefore = await pageB.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
-    await pageA.evaluate(() => {
-      window.__templeDebug.setPosition(2, 12);
-    });
+    const startA = await pageA.evaluate(() => window.__templeDebug.position());
+    await pageA.evaluate(p => window.__templeDebug.setPosition(p.x, p.z - 0.8), startA);
     await expect.poll(() => pageB.evaluate(before => {
       const now = window.__templeDebug.remotePlayers();
       return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .8));
