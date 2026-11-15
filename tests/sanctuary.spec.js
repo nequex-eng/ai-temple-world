@@ -288,9 +288,14 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await page.evaluate(() => window.__templeDebug.setPosition(8, -36));
   expect(await page.evaluate(() => window.__templeDebug.canAct("bell"))).toBe(true);
   await page.locator('[data-action="bell"]').click();
-  await page.evaluate(() => window.__templeDebug.setPosition(19, -32.5));
+  await page.evaluate(() => window.__templeDebug.setPosition(8, -32.5));
   expect(await page.evaluate(() => window.__templeDebug.canAct("lotus"))).toBe(true);
   await page.locator('[data-action="lotus"]').click();
+  expect(await page.evaluate(() => window.__templeDebug.cushions())).toBeGreaterThanOrEqual(24);
+  const abbotBefore=await page.evaluate(()=>window.__templeDebug.npcs()[0]);
+  await page.waitForTimeout(7500);
+  const abbotAfter=await page.evaluate(()=>window.__templeDebug.npcs()[0]);
+  expect(Math.hypot(abbotAfter.x-abbotBefore.x,abbotAfter.z-abbotBefore.z)).toBeGreaterThan(.4);
   await cleanTestGuest(page);
 });
 
@@ -347,14 +352,30 @@ test("three independent guests share live presence, messages and wishes", async 
     await expect(pageA.locator("#chat-input")).toHaveValue("", { timeout: 5000 });
     await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
     await expect(pageC.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
+    await expect(pageA.locator("#chat-messages .chat-line")).toHaveCount(1);
+    await pageB.locator("#chat-input").fill("Reply from mobile B to both visitors");
+    await pageB.locator("#chat-form button").click();
+    await expect(pageA.locator("#chat-messages")).toContainText("Reply from mobile B to both visitors",{timeout:20000});
+    await expect(pageC.locator("#chat-messages")).toContainText("Reply from mobile B to both visitors",{timeout:20000});
 
     // Wishes must persist and be broadcast to every connected visitor.
     await pageA.locator("#open-prayers").click();
-    await pageA.locator("#prayer-input").fill("愿世界和平");
+    const sharedWish="三人测试祈愿"+Date.now().toString().slice(-6);
+    await pageA.locator("#prayer-input").fill(sharedWish);
     await pageA.locator("#prayer-submit").click();
     await expect(pageA.locator("#prayer-input")).toHaveValue("", { timeout: 15000 });
-    await expect(pageB.locator("#prayer-list")).toContainText("愿世界和平", { timeout: 20000 });
-    await expect(pageC.locator("#prayer-list")).toContainText("愿世界和平", { timeout: 20000 });
+    await expect(pageA.locator("#prayer-list")).toContainText(sharedWish, { timeout: 20000 });
+    await expect(pageB.locator("#prayer-list")).toContainText(sharedWish, { timeout: 20000 });
+    await expect(pageC.locator("#prayer-list")).toContainText(sharedWish, { timeout: 20000 });
+    const ownerWish=pageA.locator(".prayer-item").filter({hasText:sharedWish});
+    await expect(ownerWish.locator(".prayer-delete")).toHaveCount(1);
+    await expect(pageB.locator(".prayer-item").filter({hasText:sharedWish}).locator(".prayer-delete")).toHaveCount(0);
+    await expect(pageC.locator(".prayer-item").filter({hasText:sharedWish}).locator(".prayer-delete")).toHaveCount(0);
+    pageA.once("dialog",dialog=>dialog.accept());
+    await ownerWish.locator(".prayer-delete").click();
+    await expect(pageA.locator("#prayer-list")).not.toContainText(sharedWish,{timeout:10000});
+    await expect(pageB.locator("#prayer-list")).not.toContainText(sharedWish,{timeout:15000});
+    await expect(pageC.locator("#prayer-list")).not.toContainText(sharedWish,{timeout:15000});
 
     await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
