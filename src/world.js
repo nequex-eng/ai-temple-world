@@ -603,10 +603,10 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("上香","INCENSE OFFERING");incensePlaque.scale.set(2.4,.6,1);incensePlaque.position.set(-3.4,2.8,-37.2);s.add(incensePlaque);
   // Lotus pond
   this.pondPosition=new THREE.Vector3(7,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
-  add(new THREE.CylinderGeometry(2.35,2.5,.42,48),m.stone,pond,[0,-.03,0]);
-  add(new THREE.CircleGeometry(2.15,48),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
-  add(new THREE.TorusGeometry(2.3,.14,9,48),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.1,.78,1);lotusPlaque.position.set(0,2.3,2.55);pond.add(lotusPlaque);
-  for(let i=0;i<17;i++){const a=Math.random()*Math.PI*2,r=.35+Math.random()*1.55,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.52+Math.random()*.28,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
+  add(new THREE.CylinderGeometry(4.05,4.25,.48,64),m.stone,pond,[0,-.03,0]);
+  add(new THREE.CircleGeometry(3.88,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
+  add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.5,.82,1);lotusPlaque.position.set(0,2.5,4.25);pond.add(lotusPlaque);
+  for(let i=0;i<27;i++){const a=Math.random()*Math.PI*2,r=.45+Math.random()*2.95,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.48+Math.random()*.25,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
   // Bodhi tree
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
   for(let i=0;i<7;i++){const a=i*Math.PI*2/7;add(new THREE.CylinderGeometry(.18,.34,4,8),m.bark,bodhi,[Math.cos(a)*1.4,5,Math.sin(a)*1.4],[0,0,-Math.cos(a)*.45]);}
