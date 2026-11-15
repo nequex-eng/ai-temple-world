@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const MEDITATION_CUSHIONS=[[-2.55,-33.8],[-.85,-33.8],[.85,-33.8],[2.55,-33.8],[-1.7,-32.05],[0,-32.05],[1.7,-32.05],[-5.1,-35.2],[-32.2,-23.65],[-29.4,-23.65],[-26.6,-23.65],[-23.8,-23.65]];
+const MEDITATION_CUSHIONS=[[-2.55,-33.8],[-.85,-33.8],[.85,-33.8],[2.55,-33.8],[-1.7,-32.05],[0,-32.05],[1.7,-32.05],[-5.1,-35.2]];
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
 const robeFabric=(()=>{
  const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
@@ -297,11 +297,9 @@ export class TempleWorld{
   const gate=new THREE.Group();gate.position.z=31;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);add(new THREE.BoxGeometry(3.3,1.1,.17),m.darkWood,gate,[0,5.95,.58]);add(new THREE.BoxGeometry(2.25,.05,.04),m.gold,gate,[0,5.98,.69]);const gatePlaque=plaqueSprite("山门","MOUNTAIN GATE");gatePlaque.scale.set(2.7,.68,1);gatePlaque.position.set(0,5.98,.78);gate.add(gatePlaque);
-  this.halls=[
-   {x:0,z:-10,w:18,d:13,h:5.1,label:"天王殿",subtitle:"HALL OF HEAVENLY KINGS"},{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA HALL"},
-   {x:-28,z:2,w:10,d:10,h:4.2,label:"钟楼",subtitle:"BELL PAVILION"},{x:28,z:-24,w:13,d:11,h:4.6,label:"藏经阁",subtitle:"SUTRA LIBRARY"},
-   {x:-28,z:-25,w:13,d:10,h:4.2,label:"禅房",subtitle:"MEDITATION HALL"},{x:28,z:8,w:12,d:10,h:4.1,label:"僧舍",subtitle:"MONK QUARTERS"},{x:-29,z:31,w:11,d:9,h:3.8,label:"菩提院",subtitle:"BODHI COURTYARD"}
-  ];this.halls.forEach(h=>hall(s,h,m));
+  // One monumental sanctuary: a single Great Hall, with the approach gate outside.
+  this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
+  this.halls.forEach(h=>hall(s,h,m));
   // Main sanctuary: a recognisable seated Buddha, traditional altar, and a quiet space for visitors.
   const altar=new THREE.Group();altar.position.set(0,0,-38.5);s.add(altar);
   const bud=mat(0xb28a4e,.48,{metalness:.32}),budDark=mat(0x76572f,.62,{metalness:.24}),goldLeaf=mat(0xd6b36f,.42,{metalness:.48});
@@ -489,7 +487,7 @@ export class TempleWorld{
    for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
   }
   // Meditation hall interior: a smaller Buddha shrine, four cushions, timber screens and warm lamps.
-  const meditationRoom=new THREE.Group();meditationRoom.position.set(-28,0,-25);s.add(meditationRoom);
+  const meditationRoom=new THREE.Group();meditationRoom.position.set(-28,0,-25);s.add(meditationRoom);meditationRoom.visible=false;
   add(new THREE.PlaneGeometry(12.5,9.5),hallFloor,meditationRoom,[0,.546,0],[-Math.PI/2,0,0],false);
   const smallShrine=new THREE.Group();smallShrine.position.set(0,0,-3.45);meditationRoom.add(smallShrine);
   add(new THREE.CylinderGeometry(1.15,1.3,.28,32),darkWood,smallShrine,[0,.72,0]);
@@ -549,7 +547,7 @@ export class TempleWorld{
    }
   }
   // Sutra Library: continuous bookcases, individually bound volumes and a low reading desk.
-  const libraryRoom=new THREE.Group();libraryRoom.position.set(28,0,-24);s.add(libraryRoom);
+  const libraryRoom=new THREE.Group();libraryRoom.position.set(28,0,-24);s.add(libraryRoom);libraryRoom.visible=false;
   const shelfWood=mat(0x493326,.9),bookPalette=[0x783c32,0x435c50,0x8c7048,0x3e4e61,0x80604b];
   const bookGeometry=new THREE.BoxGeometry(.27,.53,.39),bookMaterial=mat(0xffffff,.92,{vertexColors:true});
   const bookInstances=new THREE.InstancedMesh(bookGeometry,bookMaterial,120),bookDummy=new THREE.Object3D();let bookIndex=0;
@@ -577,7 +575,7 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.11,.11,1.45,12),guardianGold,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
   const libraryPlaque=plaqueSprite("藏经","SUTRA COLLECTION");libraryPlaque.scale.set(2.4,.6,1);libraryPlaque.position.set(0,3.45,-5.22);libraryRoom.add(libraryPlaque);
   // Monk quarters: two low timber beds, folded bedding, pillows and privacy screens.
-  const dormRoom=new THREE.Group();dormRoom.position.set(28,0,8);s.add(dormRoom);
+  const dormRoom=new THREE.Group();dormRoom.position.set(28,0,8);s.add(dormRoom);dormRoom.visible=false;
   const bedWood=mat(0x59402e,.92),linen=mat(0xb7aa8e,.98),blanket=mat(0x85745d,.98);
   for(const side of [-1,1]){
    const x=side*3.0;
@@ -592,23 +590,23 @@ export class TempleWorld{
   add(new THREE.BoxGeometry(1.6,.18,.8),bedWood,dormRoom,[0,.82,2.2]);
   const dormPlaque=plaqueSprite("僧寮","MONASTIC QUARTERS");dormPlaque.scale.set(2.3,.58,1);dormPlaque.position.set(0,3.25,-4.72);dormRoom.add(dormPlaque);
   // Bell tower & bronze bell
-  const bell=new THREE.Group();bell.position.set(-28,0,2);s.add(bell);
+  const bell=new THREE.Group();bell.position.set(8,0,-41);s.add(bell);
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
   add(new THREE.TorusGeometry(1.1,.12,8,32),m.gold,bell,[0,3.15,0],[Math.PI/2,0,0]);
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
   for(const [x,z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]])lantern(s,x,z,m);
   // Incense censer
-  this.incensePosition=new THREE.Vector3(8,0,0);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);
+  this.incensePosition=new THREE.Vector3(0,0,-37.4);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=false;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
   add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("香炉广场","INCENSE COURTYARD");incensePlaque.scale.set(3.2,.8,1);incensePlaque.position.set(8,3.1,2.2);s.add(incensePlaque);
   // Lotus pond
-  this.pondPosition=new THREE.Vector3(31,0,33);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
-  add(new THREE.CylinderGeometry(10.2,10.4,.55,64),m.stone,pond,[0,-.03,0]);
-  add(new THREE.CircleGeometry(9.8,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
-  add(new THREE.TorusGeometry(10,.2,9,72),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.1,.78,1);lotusPlaque.position.set(0,3.8,10.5);pond.add(lotusPlaque);
-  for(let i=0;i<17;i++){const a=Math.random()*Math.PI*2,r=1+Math.random()*7.8,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.52+Math.random()*.28,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
+  this.pondPosition=new THREE.Vector3(7,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
+  add(new THREE.CylinderGeometry(2.35,2.5,.42,48),m.stone,pond,[0,-.03,0]);
+  add(new THREE.CircleGeometry(2.15,48),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
+  add(new THREE.TorusGeometry(2.3,.14,9,48),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.1,.78,1);lotusPlaque.position.set(0,2.3,2.55);pond.add(lotusPlaque);
+  for(let i=0;i<17;i++){const a=Math.random()*Math.PI*2,r=.35+Math.random()*1.55,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.52+Math.random()*.28,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
   // Bodhi tree
-  const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
+  const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
   for(let i=0;i<7;i++){const a=i*Math.PI*2/7;add(new THREE.CylinderGeometry(.18,.34,4,8),m.bark,bodhi,[Math.cos(a)*1.4,5,Math.sin(a)*1.4],[0,0,-Math.cos(a)*.45]);}
   for(let i=0;i<24;i++){const a=i*2.399,r=.65+Math.random()*3.15,leaf=add(new THREE.IcosahedronGeometry(1.55+Math.random()*.55,1),i%3===0?m.pine2:m.pine,bodhi,[Math.cos(a)*r,6.8+Math.random()*3.0,Math.sin(a)*r],[Math.random()*.45,Math.random()*6.28,Math.random()*.45]);leaf.scale.set(1.15+Math.random()*.45,.72+Math.random()*.48,.9+Math.random()*.45);}
   // Boundary stones / decorative details
@@ -619,15 +617,15 @@ export class TempleWorld{
  }
  buildNpcs(){
   const roster=[
-   {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-3,z:23,route:[[-3,18],[2,13],[3,20]],routine:["greet","bow"]},
-   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:4,z:4,route:[[4,4],[-4,3],[-4,-1],[3,-2]],routine:["chant","bow"]},
-   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-25,z:10,route:[[-25,10],[-21,4],[-21,-1]],routine:["bow","greet"]},
-   {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[19,-15],[17,-18],[20,-20]],routine:["bow","greet"]},
-   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-29.4,z:-23.65,route:[[-29.4,-23.65]],routine:["meditate","chant"],stationary:true},
-   {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]],routine:["sweep","bow"]},
-   {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]],routine:["bow","greet"]},
-   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]],routine:["greet","bow"]},
-   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-5.1,z:-35.2,route:[[-5.1,-35.2]],stationary:true}
+   {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-8,z:-31,route:[[-8,-31],[-6,-32],[-6,-35],[-8,-35]],routine:["greet","bow"]},
+   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:7,z:-31,route:[[7,-31],[7,-34],[5,-34],[5,-31]],routine:["chant","bow"]},
+   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-8,z:-38,route:[[-8,-38],[-7,-41],[-5,-41],[-5,-38]],routine:["bow","greet"]},
+   {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:8,z:-37,route:[[8,-37],[8,-40],[6,-40],[6,-37]],routine:["bow","greet"]},
+   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-4,z:-42,route:[[-4,-42]],routine:["meditate","chant"],stationary:true},
+   {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-7,z:-33,route:[[-7,-33],[-5,-32],[-3,-33],[-5,-35]],routine:["sweep","bow"]},
+   {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:4,z:-42,route:[[4,-42],[6,-41],[6,-39],[4,-39]],routine:["bow","greet"]},
+   {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:0,z:-31,route:[[0,-31],[2,-32],[2,-34],[0,-34]],routine:["greet","bow"]},
+   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:0,z:-43,route:[[0,-43]],routine:["meditate","chant"],stationary:true}
   ];
   this.npcs=roster.map((spec,index)=>{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,spec.stationary?Math.PI:(index%2?Math.PI:0),groundHeightAt(spec.x,spec.z,this.halls));
@@ -736,14 +734,14 @@ export class TempleWorld{
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
   const p=this.local?.root.position||{x:0,z:25};
-  const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-10,index:1,key:"heaven"},{x:0,z:-37,index:2,key:"main"},{x:8,z:0,index:3,key:"incense"},{x:-28,z:2,index:4,key:"bell"},{x:28,z:-24,index:5,key:"library"},{x:-28,z:-25,index:6,key:"meditation"},{x:-29,z:31,index:7,key:"bodhi"},{x:31,z:33,index:8,key:"lotus"},{x:28,z:8,index:9,key:"dorm"}];
+  const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-37,index:1,key:"main"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
  canAct(a){
   const p=this.local?.root.position;if(!p)return false;
-  if(a==="incense")return Math.hypot(p.x-8,p.z)<8;
-  if(a==="bell")return Math.hypot(p.x+28,p.z-2)<8;
-  if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;
+  if(a==="incense")return Math.hypot(p.x,p.z+37.4)<5.5;
+  if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
+  if(a==="lotus")return Math.hypot(p.x-7,p.z+32.5)<4.5;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
