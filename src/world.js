@@ -67,8 +67,8 @@ function planeRoof(parent,w,d,ry,ey,side,m){
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
  add(new THREE.BoxGeometry(w+2.2,.54,d+2.2),m.stone,g,[0,.27,0]);
- // Level landing plus three broad, climbable stone treads.
- add(new THREE.BoxGeometry(w,.54,1.3),m.stoneLight,g,[0,.27,d/2+.58]);
+ // The main platform already forms the landing. Do not add a second coplanar slab:
+ // overlapping top faces caused visible z-fighting across the first stair rows.
  const stairHeights=[.54,.36,.18];
  for(let i=0;i<3;i++)add(new THREE.BoxGeometry(w*.62,.18,1.0),m.stoneLight,g,[0,stairHeights[i]-.09,d/2+1.72+i]);
  add(new THREE.BoxGeometry(w,h,.32),m.wall,g,[0,.54+h/2,-d/2+.16],[0,0,0],false);
