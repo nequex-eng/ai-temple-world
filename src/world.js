@@ -551,7 +551,7 @@ export class TempleWorld{
   libraryRoom.add(bookInstances);
   add(new THREE.BoxGeometry(2.8,.2,1.05),shelfWood,libraryRoom,[0,.95,2.0]);
   for(const x of [-1.05,1.05])add(new THREE.BoxGeometry(.16,.78,.16),shelfWood,libraryRoom,[x,.48,2.0]);
-  add(new THREE.CylinderGeometry(.11,.11,1.45,12),guardianGold,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
+  add(new THREE.CylinderGeometry(.11,.11,1.45,12),goldLeaf,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
   const libraryPlaque=plaqueSprite("藏经","SUTRA COLLECTION");libraryPlaque.scale.set(2.4,.6,1);libraryPlaque.position.set(0,3.45,-5.22);libraryRoom.add(libraryPlaque);
   // Monk quarters: two low timber beds, folded bedding, pillows and privacy screens.
   const dormRoom=new THREE.Group();dormRoom.position.set(28,0,8);s.add(dormRoom);dormRoom.visible=false;
