@@ -93,7 +93,7 @@ assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(
 assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("Math.hypot(p.x+5.4,p.z+37.2)<5.5"), "Incense offering must be located inside the Great Hall");
 assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
 assert.ok(world.includes('if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=13;') && worker.includes("!near(19, -32.5, 13)"), "Lotus placement must use the actual pond center and 13m radius in client and server");
-assert.ok(world.includes("hullShape") && world.includes("duration:9.5") && world.includes("g.userData.boat=true"), "Lotus offerings must be glowing boats that drift into the pond");
+assert.ok(world.includes('if(type==="lotus")return;') && !world.includes("hullShape") && app.includes("function playLotusWater()") && app.includes('if(action==="lotus"){') && app.includes('message.player.action!=="lotus"'), "Lotus offering must be lightweight, local-only, and silent on other visitors devices");
 assert.ok(world.includes("const lampPositions=[") && world.includes("entry.base*(.14+night*3.6)") && world.includes("this.nightLights.push({light:fixture.light,base:.52})"), "Exterior road and temple lights must brighten after dusk");
 assert.ok(world.includes("HALL_CUSHION_OFFSETS") && world.includes("this.meditationCushions=MEDITATION_CUSHIONS"), "The Great Hall must have many meditation cushions");
 assert.ok(world.includes("updateDayNight(time)") && world.includes("periodSeconds:600") && world.includes("this.starMaterial.opacity=night*.86") && world.includes("this.moonMesh.material.opacity=night*.92"), "A shared dusk and night cycle must change sky, stars, moon and lights");
@@ -149,7 +149,7 @@ assert.ok(app.includes("movementCodes") && app.includes("document.addEventListen
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
 assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Outdoor courtyard incense, forest tea pavilion, or expanded gate missing");
 assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag"), "Head name must be tappable for profile editing");
-assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Mobile renderer must use reduced resolution and disable realtime shadows");
+assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Renderer must preserve clear pixel density while keeping mobile shadows disabled");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
 assert.ok(read("src/physics.js").includes("circle(5.8, -19.5, 1.55)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
