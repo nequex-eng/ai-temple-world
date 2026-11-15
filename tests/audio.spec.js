@@ -1,12 +1,15 @@
 import { test, expect } from "@playwright/test";
 
 test("new visitors can start temple ambience before creating a monk", async ({ page }) => {
-  const pageErrors=[];
+  const pageErrors=[],consoleErrors=[],failedRequests=[];
   page.on("pageerror",error=>pageErrors.push(error.message));
+  page.on("console",msg=>{if(msg.type()==="error")consoleErrors.push(msg.text());});
+  page.on("requestfailed",request=>failedRequests.push({url:request.url(),failure:request.failure()?.errorText||"unknown"}));
   await page.setViewportSize({width:390,height:844});
   await page.goto("http://127.0.0.1:4173/",{waitUntil:"domcontentloaded"});
   await expect.poll(()=>page.evaluate(()=>location.host)).toBe("127.0.0.1:4173");
-  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  try{await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:10000});}
+  catch(error){console.error("STARTUP_DIAGNOSTICS",JSON.stringify({pageErrors,consoleErrors,failedRequests,threeModule:await page.evaluate(async()=>{try{const r=await fetch("/src/vendor/three.module.js");return {status:r.status,size:Number(r.headers.get("content-length")||0)};}catch(e){return {error:String(e)};}})}));throw error;}
   await expect(page.locator("#profile-modal")).not.toHaveClass(/hidden/);
   await expect(page.locator("#profile-sound-toggle")).toBeVisible();
   await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","false");
