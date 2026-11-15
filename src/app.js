@@ -94,7 +94,7 @@ function syncPresence(players=[]){
 }
 function syncPrayerBoard(prayers=[]){
  sharedPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,30);world.setWishWallPrayers(sharedPrayers);
- if(!$("prayer-modal").classList.contains("hidden"))renderPrayers(sharedPrayers);
+ renderPrayers(sharedPrayers);
 }
 function handleMessage(message){
  if(!message||!message.type)return;
