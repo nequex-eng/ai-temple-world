@@ -13,7 +13,7 @@ let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -76,9 +76,10 @@ function renderPresence(){
   row.append(seal,name,lang);list.append(row);
  }
 }
-function appendChat(player,message,languageCode){
+function appendChat(player,message,languageCode,messageId=null){
  const box=$("chat-messages"),welcome=$("chat-welcome");if(welcome)welcome.remove();
- const line=document.createElement("div");line.className="chat-line";
+ if(messageId&&box.querySelector('[data-chat-id="'+CSS.escape(messageId)+'"]'))return;
+ const line=document.createElement("div");line.className="chat-line";if(messageId)line.dataset.chatId=messageId;
  const name=document.createElement("strong");name.textContent=(player?.name||t().unknown)+(player?.id===network.playerId?" · "+t().you:"");
  const content=document.createElement("span");content.textContent=String(message||"").slice(0,220);
  const lang=document.createElement("small");lang.textContent=t().chatOriginal;
@@ -115,7 +116,7 @@ function handleMessage(message){
   }return;
  }
  if(message.type==="player:leave"){world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;}
- if(message.type==="chat"){if(message.player?.id!==network.playerId)appendChat(message.player,message.message,message.player?.language);return;}
+ if(message.type==="chat"){appendChat(message.player,message.message,message.player?.language,message.id);return;}
  if(message.type==="prayer:new"&&message.prayer?.id&&!sharedPrayers.some(p=>p.id===message.prayer.id)){
   syncPrayerBoard([message.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(message.prayer);void updateStats();return;
  }
@@ -429,7 +430,8 @@ $("language").value=language;$("language").addEventListener("change",async e=>{
 });
 $("chat-form").addEventListener("submit",e=>{
  e.preventDefault();const input=$("chat-input"),message=input.value.trim();if(!message)return;
- if(network.chat(message)){appendChat({id:network.playerId,name:profile?.name||"行者"},message,language);input.value="";}else toast(t().chatError);
+ const messageId=network.chat(message);
+ if(messageId){appendChat({id:network.playerId,name:profile?.name||"行者"},message,language,messageId);input.value="";}else toast(t().chatError);
 });
 $("chat-collapse").addEventListener("click",()=>$("chat-panel").classList.toggle("collapsed"));
 $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classList.remove("hidden");await loadPrayers();});
@@ -442,11 +444,11 @@ function makePrayerCard(p){
  const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at||Date.now()).toLocaleDateString();
  card.append(body,foot);
  if(p.player_id===network.playerId){
-  const remove=document.createElement("button");remove.type="button";remove.className="prayer-delete";remove.textContent="删除心愿";remove.setAttribute("aria-label","删除自己的心愿");
+  const remove=document.createElement("button");remove.type="button";remove.className="prayer-delete";remove.textContent="撤回心愿";remove.setAttribute("aria-label","撤回自己发布的心愿");
   remove.addEventListener("click",async()=>{
-   if(remove.disabled||!window.confirm("确定删除这条自己的心愿吗？"))return;
+   if(remove.disabled||!window.confirm("确定撤回自己发布的这条心愿吗？"))return;
    remove.disabled=true;
-   try{await network.deletePrayer(p.id);syncPrayerBoard(sharedPrayers.filter(item=>item.id!==p.id));toast("心愿已删除");await updateStats();}
+   try{await network.deletePrayer(p.id);syncPrayerBoard(sharedPrayers.filter(item=>item.id!==p.id));toast("心愿已撤回");await updateStats();}
    catch(error){remove.disabled=false;toast(error?.message||"删除失败，请稍后重试");}
   });
   card.append(remove);

@@ -130,7 +130,6 @@ export class TempleNetwork {
           socket.close(4000, "Shared room did not initialize");
         }
       }, 12000);
-      this.flushChatQueue(socket);
     });
     socket.addEventListener("message", event => {
       try {
@@ -140,6 +139,7 @@ export class TempleNetwork {
           clearTimeout(this.welcomeTimer);
           this.welcomeTimer = null;
           this.onStatus("online");
+          this.flushChatQueue(socket);
         }
         this.onMessage(message);
       } catch {}
@@ -183,9 +183,9 @@ export class TempleNetwork {
   }
   action(action) { this.send({ type: "action", action }); }
   flushChatQueue(socket = this.socket) {
-    if (!socket || this.socket !== socket || socket.readyState !== WebSocket.OPEN || !this.pendingChatQueue.length || this.chatFlushTimer) return;
+    if (!socket || this.socket !== socket || socket.readyState !== WebSocket.OPEN || !this.welcomed || !this.pendingChatQueue.length || this.chatFlushTimer) return;
     const queued = this.pendingChatQueue.shift();
-    if (!this.send({ type: "chat", message: queued })) { this.pendingChatQueue.unshift(queued); return; }
+    if (!this.send({ type: "chat", id: queued.id, message: queued.message })) { this.pendingChatQueue.unshift(queued); return; }
     if (this.pendingChatQueue.length) this.chatFlushTimer = setTimeout(() => {
       this.chatFlushTimer = null;
       this.flushChatQueue(socket);
@@ -194,11 +194,12 @@ export class TempleNetwork {
   chat(message) {
     const clean = String(message || "").trim().slice(0, 220);
     if (!clean || this.pendingChatQueue.length >= 10) return false;
-    if (this.socket?.readyState === WebSocket.OPEN && !this.pendingChatQueue.length) return this.send({ type: "chat", message: clean });
-    this.pendingChatQueue.push(clean);
+    const id = crypto.randomUUID();
+    if (this.socket?.readyState === WebSocket.OPEN && this.welcomed && !this.pendingChatQueue.length) return this.send({ type: "chat", id, message: clean }) ? id : false;
+    this.pendingChatQueue.push({ id, message: clean });
     if (!this.closedByUser && this.socket?.readyState !== WebSocket.CONNECTING) this.openSocket();
-    if (this.socket?.readyState === WebSocket.OPEN) this.flushChatQueue();
-    return true;
+    if (this.socket?.readyState === WebSocket.OPEN && this.welcomed) this.flushChatQueue();
+    return id;
   }
   close() {
     this.closedByUser = true;

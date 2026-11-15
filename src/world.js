@@ -2,7 +2,14 @@ import * as THREE from "three";
 import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const MEDITATION_CUSHIONS=[[-2.55,-33.8],[-.85,-33.8],[.85,-33.8],[2.55,-33.8],[-1.7,-32.05],[0,-32.05],[1.7,-32.05],[-5.1,-35.2]];
+const HALL_CUSHION_OFFSETS=[
+ [-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45],[-5.1,3.3],
+ ...[-7.5,-5,5,7.5].map(x=>[x,4.7]),
+ ...[-7.5,-5,5,7.5].map(x=>[x,6.45]),
+ ...[-6,-3,0,3,6].map(x=>[x,8.25]),
+ ...[-8,-4,4,8].map(x=>[x,2.8])
+];
+const MEDITATION_CUSHIONS=HALL_CUSHION_OFFSETS.map(([x,z])=>[x,-38.5+z]);
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
 const robeFabric=(()=>{
  const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
@@ -17,16 +24,16 @@ function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
 }
 function texture(draw,rx=1,ry=1){const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");draw(x,512);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;return t;}
 function robeNamePlate(name){
- const c=document.createElement("canvas");c.width=640;c.height=112;const x=c.getContext("2d");
+ const c=document.createElement("canvas");c.width=768;c.height=144;const x=c.getContext("2d");
  x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";
- x.shadowColor="rgba(15,12,8,.9)";x.shadowBlur=9;x.lineJoin="round";
- x.font='bold 50px "Songti SC","Noto Serif CJK SC",serif';
+ x.shadowColor="rgba(255,245,220,.82)";x.shadowBlur=8;x.lineJoin="round";
+ x.font='bold 72px "Songti SC","Noto Serif CJK SC",serif';
  const label=String(name||"行者").slice(0,12);
- x.lineWidth=3;x.strokeStyle="rgba(28,22,15,.78)";
- x.strokeText(label,320,56,600);x.fillStyle="#f5e6c5";x.fillText(label,320,56,600);
+ x.lineWidth=6;x.strokeStyle="rgba(248,237,211,.98)";
+ x.strokeText(label,384,72,720);x.fillStyle="#30251b";x.fillText(label,384,72,720);
  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:true,depthWrite:false,toneMapped:false}));
- sprite.position.set(0,2.48,0);sprite.scale.set(1.28,.225,1);
+ sprite.position.set(0,2.72,0);sprite.scale.set(1.62,.315,1);
  return sprite;
 }
 
@@ -276,7 +283,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -296,10 +303,25 @@ export class TempleWorld{
  }
  build(){
   const s=this.scene,m=this.m;
-  const skyCanvas=document.createElement("canvas");skyCanvas.width=8;skyCanvas.height=512;const skyCtx=skyCanvas.getContext("2d");const skyGradient=skyCtx.createLinearGradient(0,0,0,512);skyGradient.addColorStop(0,"#647d7c");skyGradient.addColorStop(.48,"#a8bcb0");skyGradient.addColorStop(.82,"#e0c9a2");skyGradient.addColorStop(1,"#c4b08f");skyCtx.fillStyle=skyGradient;skyCtx.fillRect(0,0,8,512);const skyMap=new THREE.CanvasTexture(skyCanvas);skyMap.colorSpace=THREE.SRGBColorSpace;const sky=new THREE.Mesh(new THREE.SphereGeometry(218,32,20),new THREE.MeshBasicMaterial({map:skyMap,side:THREE.BackSide,depthWrite:false,fog:false}));sky.frustumCulled=false;s.add(sky);
-  s.add(new THREE.HemisphereLight(0xe8f0e5,0x59604d,2.05));
-  const sun=new THREE.DirectionalLight(0xffe2b5,2.7);sun.position.set(-38,58,34);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-92,right:92,top:92,bottom:-92,near:.5,far:160});sun.shadow.bias=-.0002;s.add(sun);
-  const fill=new THREE.DirectionalLight(0xb9d2cd,.75);fill.position.set(30,22,-36);s.add(fill);
+  const skyCanvas=document.createElement("canvas");skyCanvas.width=8;skyCanvas.height=512;
+  const skyCtx=skyCanvas.getContext("2d");
+  const skyGradient=skyCtx.createLinearGradient(0,0,0,512);
+  skyGradient.addColorStop(0,"#647d7c");skyGradient.addColorStop(.48,"#a8bcb0");skyGradient.addColorStop(.82,"#e0c9a2");skyGradient.addColorStop(1,"#c4b08f");
+  skyCtx.fillStyle=skyGradient;skyCtx.fillRect(0,0,8,512);
+  const skyMap=new THREE.CanvasTexture(skyCanvas);skyMap.colorSpace=THREE.SRGBColorSpace;
+  const sky=new THREE.Mesh(new THREE.SphereGeometry(218,32,20),new THREE.MeshBasicMaterial({map:skyMap,side:THREE.BackSide,depthWrite:false,fog:false}));
+  sky.frustumCulled=false;s.add(sky);this.skyCtx=skyCtx;this.skyMap=skyMap;
+  this.hemiLight=new THREE.HemisphereLight(0xe8f0e5,0x59604d,2.05);s.add(this.hemiLight);
+  this.sunLight=new THREE.DirectionalLight(0xffe2b5,2.7);this.sunLight.position.set(-38,58,34);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(2048,2048);Object.assign(this.sunLight.shadow.camera,{left:-92,right:92,top:92,bottom:-92,near:.5,far:160});this.sunLight.shadow.bias=-.0002;s.add(this.sunLight);
+  this.fillLight=new THREE.DirectionalLight(0xb9d2cd,.75);this.fillLight.position.set(30,22,-36);s.add(this.fillLight);
+  this.moonLight=new THREE.DirectionalLight(0xa8bce0,.04);this.moonLight.position.set(38,35,-34);s.add(this.moonLight);
+  const moon=new THREE.Mesh(new THREE.SphereGeometry(4.2,24,16),new THREE.MeshBasicMaterial({color:0xe7e9e7,transparent:true,opacity:0,depthWrite:false}));
+  s.add(moon);this.moonMesh=moon;
+  const starPositions=[];
+  for(let i=0;i<190;i++){const y=26+Math.random()*150,a=Math.random()*Math.PI*2,r=Math.sqrt(218*218-y*y);starPositions.push(Math.cos(a)*r,y,Math.sin(a)*r);}
+  const starGeometry=new THREE.BufferGeometry();starGeometry.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));
+  const starMaterial=new THREE.PointsMaterial({color:0xe6edf7,size:.9,transparent:true,opacity:0,depthTest:false,depthWrite:false});
+  s.add(new THREE.Points(starGeometry,starMaterial));this.starMaterial=starMaterial;
   add(new THREE.PlaneGeometry(240,240),m.grass,s,[0,-.72,0],[-Math.PI/2,0,0],false);
   add(new THREE.PlaneGeometry(64,62),m.stone,s,[0,-.14,-2],[-Math.PI/2,0,0],false);
   const path=mat(0xb1a791,.95);add(new THREE.PlaneGeometry(8,70),path,s,[0,-.1,8],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(56,7),path,s,[0,-.1,-1],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(5,38),path,s,[0,-.1,-34],[-Math.PI/2,0,0],false);
@@ -436,7 +458,7 @@ export class TempleWorld{
    const lamp=new THREE.Group();lamp.position.set(side*1.02,1.32,1.12);altar.add(lamp);
    add(new THREE.CylinderGeometry(.13,.2,.12,16),goldLeaf,lamp,[0,0,0]);
    add(new THREE.ConeGeometry(.055,.22,10),mat(0xffb84e,.35,{emissive:0xff8b25,emissiveIntensity:.65}),lamp,[0,.16,0]);
-   const light=new THREE.PointLight(0xffb76a,.32,4);light.position.set(0,.3,0);lamp.add(light);
+   const light=new THREE.PointLight(0xffb76a,.32,4);light.position.set(0,.3,0);lamp.add(light);this.nightLights.push({light,base:.32});
   }
   const incenseBowl=new THREE.Group();incenseBowl.position.set(0,1.38,1.1);altar.add(incenseBowl);
   add(new THREE.CylinderGeometry(.22,.3,.22,18),budDark,incenseBowl,[0,0,0]);
@@ -498,19 +520,11 @@ export class TempleWorld{
     this.incenseSmoke.push(puff);
    }
   }
-  // Individual brocade kneeling cushions on the visitor side of the altar.
-  for(const [x,z] of [[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45],[-5.1,3.3]]){
+  // A spacious, symmetrical arrangement of brocade cushions throughout the hall.
+  for(const [x,z] of HALL_CUSHION_OFFSETS){
    const matGroup=new THREE.Group();matGroup.position.set(x,.58,z);altar.add(matGroup);
    const base=add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]);base.scale.set(1,.85,1);
    const pad=add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]);pad.scale.set(1,.8,1);
-   add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
-   for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
-  }
-  // A dedicated side cushion keeps the resident temple monk from occupying a visitor seat.
-  {
-   const matGroup=new THREE.Group();matGroup.position.set(-5.1,.58,3.3);altar.add(matGroup);
-   add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]).scale.set(1,.85,1);
-   add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]).scale.set(1,.8,1);
    add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
    for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
   }
@@ -548,7 +562,7 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.16,.65,.16),darkWood,lamp,[0,-.32,0]);
    add(new THREE.BoxGeometry(.56,.1,.56),goldLeaf,lamp,[0,.08,0]);
    add(new THREE.BoxGeometry(.38,.48,.38),m.paper,lamp,[0,.36,0]);
-   const glow=new THREE.PointLight(0xffc77e,.24,4);glow.position.y=.4;lamp.add(glow);
+   const glow=new THREE.PointLight(0xffc77e,.24,4);glow.position.y=.4;lamp.add(glow);this.nightLights.push({light:glow,base:.24});
   }
 
   // Sutra Library: continuous bookcases, individually bound volumes and a low reading desk.
@@ -636,12 +650,13 @@ export class TempleWorld{
   this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
-  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-35.2,stationary:true};
+  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-22};
   const a=avatar(this.scene,spec,"npc-abbot",true);
   a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
   a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
-  a.setPose("bow",1200);
-  this.npcs=[{avatar:a,route:[],target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,stationary:true,nextAt:Infinity,routine:["bow"],routineStep:0}];
+  a.setPose("bow",1500);
+  const route=[[0,-22],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
@@ -756,7 +771,7 @@ export class TempleWorld{
   const p=this.local?.root.position;if(!p)return false;
   if(a==="incense")return Math.hypot(p.x+5.4,p.z+37.2)<5.5;
   if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
-  if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<5.2;
+  if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=13;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -766,6 +781,7 @@ export class TempleWorld{
  }
  update(dt,input={},time=performance.now(),render=true){
   if(!this.local)return;
+  this.updateDayNight(time);
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
   const hasInput=Math.hypot(f,side)>.05;if(hasInput)this.moveTarget=null;
@@ -844,10 +860,39 @@ export class TempleWorld{
   for(const item of this.templeLanterns){
    const flicker=.88+Math.sin(time*.017+item.phase)*.07+Math.sin(time*.031+item.phase*1.7)*.035;
    item.flame.scale.y=1.45*flicker;item.flame.scale.x=item.flame.scale.z=.72*(1+(1-flicker)*.6);
-   item.glow.intensity=.34+.12*flicker;
+   item.glow.intensity=(.34+.12*flicker)*(1+(this.dayNightState?.night||0)*1.45);
   }
   for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
   this.updateEffects(dt);if(render)this.renderer.render(this.scene,this.camera);
+ }
+ updateDayNight(time){
+  if(time-this.lastDayNightUpdate<1000)return;
+  this.lastDayNightUpdate=time;
+  // One shared epoch clock keeps all visitors in the same gradual day/dusk/night cycle.
+  const phase=(Date.now()/1000%600)/600;
+  const solar=Math.sin((phase-.25)*Math.PI*2);
+  const daylight=clamp((solar+.14)/.62,0,1),twilight=clamp(1-Math.abs(solar)/.48,0,1),night=1-daylight;
+  const color=(a,b,t)=>new THREE.Color(a).lerp(new THREE.Color(b),t);
+  const top=color("#101a2d","#628b9e",daylight).lerp(new THREE.Color("#596577"),twilight);
+  const middle=color("#26384d","#a9c9c8",daylight).lerp(new THREE.Color("#bd897d"),twilight);
+  const horizon=color("#35445a","#e5dbc0",daylight).lerp(new THREE.Color("#e5a078"),twilight);
+  const gradient=this.skyCtx.createLinearGradient(0,0,0,512);
+  gradient.addColorStop(0,top.getStyle());gradient.addColorStop(.48,middle.getStyle());
+  gradient.addColorStop(.82,horizon.getStyle());gradient.addColorStop(1,middle.clone().lerp(horizon,.55).getStyle());
+  this.skyCtx.clearRect(0,0,8,512);this.skyCtx.fillStyle=gradient;this.skyCtx.fillRect(0,0,8,512);this.skyMap.needsUpdate=true;
+  this.scene.background.copy(top);this.scene.fog.color.copy(middle);this.scene.fog.density=.0062+night*.0022;
+  this.hemiLight.intensity=.48+daylight*1.5+twilight*.22;
+  this.sunLight.intensity=.08+daylight*2.62+twilight*.38;
+  this.sunLight.color.copy(new THREE.Color("#ff996e").lerp(new THREE.Color("#ffe4bd"),daylight));
+  const angle=phase*Math.PI*2;
+  this.sunLight.position.set(Math.cos(angle)*72,16+Math.max(0,solar)*52,Math.sin(angle)*72);
+  this.moonLight.intensity=.04+night*.52;this.moonLight.position.copy(this.sunLight.position).multiplyScalar(-1);
+  this.fillLight.intensity=.12+daylight*.55+night*.08;
+  this.moonMesh.material.opacity=night*.92;this.starMaterial.opacity=night*.86;
+  this.moonMesh.position.set(Math.cos(angle+Math.PI)*110,Math.max(12,Math.sin(angle+Math.PI)*75),Math.sin(angle+Math.PI)*110);
+  this.renderer.toneMappingExposure=.82+daylight*.39+twilight*.1;
+  for(const entry of this.nightLights)entry.light.intensity=entry.base*(.72+night*2.1);
+  this.dayNightState={phase,daylight,twilight,night,periodSeconds:600};
  }
  addEffect(type,position=null){
   const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);if(type==="incense")g.position.copy(this.incensePosition);this.scene.add(g);

@@ -322,7 +322,7 @@ export class TempleRoom {
     };
     // Allocate a clear spot in the forecourt on the server, so all clients agree on spawn positions.
     const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
-    const npcSpots = [[0,-35.2]];
+    const npcSpots = [[0,-22]];
     const spawnCandidates = [];
     for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
       const x=-11.4+col*1.2,z=-22+row*1.2;
@@ -398,7 +398,7 @@ export class TempleRoom {
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       if (data.action === "incense" && !near(-5.4, -37.2, 5.5)) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
-      if (data.action === "lotus" && !near(7, -32.5, 6.2)) return;
+      if (data.action === "lotus" && !near(19, -32.5, 13)) return;
       if (data.action === "lotus") {
         if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
         player.lastLotusAt = Date.now();
@@ -418,7 +418,7 @@ export class TempleRoom {
       if (messageText.length < 1 || (player.lastChatAt && Date.now() - player.lastChatAt < 900)) return;
       player.lastChatAt = Date.now();
       ws.serializeAttachment(player);
-      this.broadcast({ type: "chat", id: crypto.randomUUID(), player: { id: player.id, name: player.name, language: player.language }, message: messageText, at: Date.now() });
+      this.broadcast({ type: "chat", id: validId(data.id)?data.id:crypto.randomUUID(), player: { id: player.id, name: player.name, language: player.language }, message: messageText, at: Date.now() });
     }
   }
   webSocketClose(ws) {
