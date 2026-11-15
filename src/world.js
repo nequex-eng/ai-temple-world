@@ -737,14 +737,14 @@ export class TempleWorld{
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
   const p=this.local?.root.position||{x:0,z:25};
-  const pts=[{x:0,z:-10.5,index:0,key:"gate"},{x:0,z:-37,index:2,key:"main"}];
+  const pts=[{x:0,z:-10.5,index:0,key:"gate"},{x:0,z:-37,index:2,key:"main"},{x:19,z:-32.5,index:8,key:"pond"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
  canAct(a){
   const p=this.local?.root.position;if(!p)return false;
   if(a==="incense")return Math.hypot(p.x+5.4,p.z+37.2)<5.5;
   if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
-  if(a==="lotus")return Math.hypot(p.x-7,p.z+32.5)<4.5;
+  if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<5.2;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
