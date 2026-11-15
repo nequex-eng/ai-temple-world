@@ -270,7 +270,7 @@ function updateSoundscape(){
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
  const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
- if(chantVolume>.006){if(templeChant.paused)void mediaPlay(templeChant,"殿内诵经");}
+ if(chantVolume>.006){if(templeChant.paused||templeChant.muted)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
   playBell(false,Math.max(.3,Math.min(.65,(1-bellDistance/38)*.65)));
