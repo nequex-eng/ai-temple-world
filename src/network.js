@@ -49,6 +49,12 @@ export class TempleNetwork {
       clearTimeout(timeout);
     }
   }
+  async askAbbot(message, history, language, location) {
+    return this.request("/api/abbot", {
+      method: "POST",
+      body: JSON.stringify({ player_id: this.playerId, message, history, language, location })
+    });
+  }
   async health() { return this.request("/api/health"); }
   async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
   async loadProfile() {
