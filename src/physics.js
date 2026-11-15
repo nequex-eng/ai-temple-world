@@ -134,7 +134,13 @@ export function moveWithCollision(position, dx, dz, world) {
     const tryAxis = (nx, nz) => {
       const nextY = groundHeightAt(nx, nz, world.halls);
       const oldY = groundHeightAt(x, z, world.halls);
-      if (collidesAt(nx, nz, world) || Math.abs(nextY - oldY) > MAX_STEP) {
+      const actorBlocked = (world.actors || []).some(actor => {
+        const limit = PLAYER_RADIUS + actor.radius;
+        const nextDistance = (nx - actor.x) ** 2 + (nz - actor.z) ** 2;
+        const currentDistance = (x - actor.x) ** 2 + (z - actor.z) ** 2;
+        return nextDistance < limit * limit && nextDistance < currentDistance - 0.000001;
+      });
+      if (collidesAt(nx, nz, world) || actorBlocked || Math.abs(nextY - oldY) > MAX_STEP) {
         blocked = true;
         return;
       }
