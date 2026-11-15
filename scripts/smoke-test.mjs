@@ -46,7 +46,7 @@ assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
 assert.ok(world.includes("root.userData.animateInteraction") && world.includes("npc.nextGestureAt") && world.includes("shopper:true"), "Market sellers and pilgrims must visibly interact");
 assert.ok(world.includes("labels={zh:{noodles:") && world.includes("en:{noodles:") && html.includes('<option value="en">English</option>'), "Market signs and the language selector must support English");
-assert.ok(world.includes("lotus:[[5,-26],[14.2,-25.6],[19,-26.7]]") && world.includes("incense:[[5,-26],[0,-25.4]]"), "Lotus and incense actions must auto-route to their destinations");
+assert.ok(world.includes("findWalkPath(this.local.root.position") && world.includes("destinations={incense:[0,-25.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]"), "Lotus, incense, bell and tea actions must auto-route using live collision geometry");
 assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
 assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
 assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-20.48,-32.58,.48)"), "Washroom and grass-market collision geometry missing");
