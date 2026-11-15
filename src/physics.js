@@ -9,8 +9,8 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
-    circle(8, 0, 1.48), circle(-28, 2, 1.42), circle(31, 33, 9.85),
-    circle(-29, 29, 1.05), circle(0, -39.5, 2.2), circle(-5.4, -37.2, 1.15), circle(7, -32.5, 2.05), circle(-28, -28.45, 1.18),
+    circle(8, 0, 1.48), circle(-28, 2, 0.78), circle(31, 33, 9.85),
+    circle(-29, 29, 0.72), circle(0, -39.5, 2.2), circle(-5.4, -37.2, 1.15), circle(7, -32.5, 2.05), circle(-28, -28.45, 0.78),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
   for (const h of halls) {
@@ -65,7 +65,7 @@ export function createTempleCollision(halls) {
     segments.push(segment(x + 1.325, 5.675, x + 1.325, 9.025, 0.13));
   }
   // Full-height west Lotus Wish Wall and the low east boundary.
-  segments.push(segment(-31, -45.5, -31, 18.5, 0.58));
+  segments.push(segment(-31, -45.5, -31, 18.5, 0.36));
   const eastX = 31;
   const blocked = halls
     .filter(h => eastX >= h.x - h.w / 2 - 0.5 && eastX <= h.x + h.w / 2 + 0.5)
