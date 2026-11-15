@@ -39,14 +39,14 @@ function plaqueSprite(title,subtitle){
 
 function pine(scene,x,z,s,m){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
- add(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,g,[0,1.55,0]);
- for(let i=0;i<5;i++){
+ add(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,g,[0,1.55,0],[0,0,0],false);
+ for(let i=0;i<4;i++){
   const angle=i*2.17+Math.random()*.24,offset=.12+Math.random()*.12;
-  const crown=add(new THREE.ConeGeometry(1.9-i*.29,2.9,11),i%2?m.pine2:m.pine,g,[Math.cos(angle)*offset,2.05+i*.73,Math.sin(angle)*offset],[Math.sin(angle)*.035,i*.31,Math.cos(angle)*.035]);
+  const crown=add(new THREE.ConeGeometry(1.9-i*.32,2.9,9),i%2?m.pine2:m.pine,g,[Math.cos(angle)*offset,2.05+i*.78,Math.sin(angle)*offset],[Math.sin(angle)*.035,i*.31,Math.cos(angle)*.035],false);
   crown.scale.set(.92+Math.random()*.17,.9+Math.random()*.16,.92+Math.random()*.17);
  }
- for(let i=0;i<3;i++){
-  const a=i*Math.PI*2/3+.4,branch=add(new THREE.CylinderGeometry(.045,.085,1.35,6),m.bark,g,[Math.cos(a)*.46,2.1,Math.sin(a)*.46],[Math.sin(a)*.65,0,Math.cos(a)*-.65]);
+ for(let i=0;i<2;i++){
+  const a=i*Math.PI+.4,branch=add(new THREE.CylinderGeometry(.045,.085,1.35,6),m.bark,g,[Math.cos(a)*.46,2.1,Math.sin(a)*.46],[Math.sin(a)*.65,0,Math.cos(a)*-.65],false);
  }
 }
 function planeRoof(parent,w,d,ry,ey,side,m){
@@ -267,7 +267,7 @@ export class TempleWorld{
   add(new THREE.PlaneGeometry(64,62),m.stone,s,[0,-.14,-2],[-Math.PI/2,0,0],false);
   const path=mat(0xb1a791,.95);add(new THREE.PlaneGeometry(8,70),path,s,[0,-.1,8],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(56,7),path,s,[0,-.1,-1],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(5,38),path,s,[0,-.1,-34],[-Math.PI/2,0,0],false);
   for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;const hill=add(new THREE.ConeGeometry(17+Math.random()*13,38+Math.random()*30,7),mat(ring?0x70887e:0x81958b,.98),s,[Math.cos(a)*r,8-ring*2,Math.sin(a)*r],[0,Math.random(),(Math.random()-.5)*.12],false);hill.scale.set(1,.85,1.05);}
-  for(let i=0;i<84;i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<14&&z>12&&z<43)continue;pine(s,x,z,.72+Math.random()*.72,m);}
+  for(let i=0;i<(this.mobile?26:56);i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<14&&z>12&&z<43)continue;pine(s,x,z,.72+Math.random()*.72,m);}
   // Four-sided ceremonial gate
   const gate=new THREE.Group();gate.position.z=31;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
@@ -525,19 +525,28 @@ export class TempleWorld{
   }
   // Sutra Library: continuous bookcases, individually bound volumes and a low reading desk.
   const libraryRoom=new THREE.Group();libraryRoom.position.set(28,0,-24);s.add(libraryRoom);
-  const shelfWood=mat(0x493326,.9),bookColors=[0x783c32,0x435c50,0x8c7048,0x3e4e61,0x80604b].map(c=>mat(c,.92));
+  const shelfWood=mat(0x493326,.9),bookPalette=[0x783c32,0x435c50,0x8c7048,0x3e4e61,0x80604b];
+  const bookGeometry=new THREE.BoxGeometry(.27,.53,.39),bookMaterial=mat(0xffffff,.92,{vertexColors:true});
+  const bookInstances=new THREE.InstancedMesh(bookGeometry,bookMaterial,120),bookDummy=new THREE.Object3D();let bookIndex=0;
+  bookInstances.castShadow=false;bookInstances.receiveShadow=false;
   for(const side of [-1,1]){
    for(let tier=0;tier<4;tier++){
     const y=.78+tier*.88;
     add(new THREE.BoxGeometry(.68,.13,8.8),shelfWood,libraryRoom,[side*5.35,y,0]);
     for(let z=-3.65;z<=3.65;z+=.52){
-     const book=add(new THREE.BoxGeometry(.27,.53,.39),bookColors[Math.floor((z+4)*3+tier+side+30)%bookColors.length],libraryRoom,[side*5.26,y+.34,z],[0,(Math.sin(z*2+tier)*.055),0]);
-     book.scale.y=.82+Math.abs(Math.sin(z*4+tier))*.32;
-     add(new THREE.BoxGeometry(.025,.35,.04),guardianGold,libraryRoom,[side*5.11,y+.34,z]);
+     bookDummy.position.set(side*5.26,y+.34,z);
+     bookDummy.rotation.set(0,Math.sin(z*2+tier)*.055,0);
+     bookDummy.scale.set(1,.82+Math.abs(Math.sin(z*4+tier))*.32,1);
+     bookDummy.updateMatrix();bookInstances.setMatrixAt(bookIndex,bookDummy.matrix);
+     bookInstances.setColorAt(bookIndex,new THREE.Color(bookPalette[Math.floor((z+4)*3+tier+side+30)%bookPalette.length]));
+     bookIndex++;
     }
    }
    for(const z of [-4.35,4.35])add(new THREE.BoxGeometry(.22,4.0,.22),shelfWood,libraryRoom,[side*5.35,2.2,z]);
   }
+  bookInstances.instanceMatrix.needsUpdate=true;
+  if(bookInstances.instanceColor)bookInstances.instanceColor.needsUpdate=true;
+  libraryRoom.add(bookInstances);
   add(new THREE.BoxGeometry(2.8,.2,1.05),shelfWood,libraryRoom,[0,.95,2.0]);
   for(const x of [-1.05,1.05])add(new THREE.BoxGeometry(.16,.78,.16),shelfWood,libraryRoom,[x,.48,2.0]);
   add(new THREE.CylinderGeometry(.11,.11,1.45,12),guardianGold,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
@@ -581,7 +590,7 @@ export class TempleWorld{
   for(const side of [-1,1]){add(new THREE.BoxGeometry(.5,.7,45),m.stone,s,[side*31,.18,-11]);for(let z=-30;z<10;z+=5)add(new THREE.BoxGeometry(.9,.9,.9),m.stoneLight,s,[side*31,.55,z]);}
   // Floating warm dust
   this.ambient=new THREE.Group();s.add(this.ambient);
-  for(let i=0;i<90;i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
+  for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  buildNpcs(){
   const roster=[
