@@ -230,9 +230,9 @@ async function ensureAudio(){
   // otherwise permits wind/footsteps but rejects later chant and gong playback.
   for(const media of [templeChant,templeBell]){
    if(!media)continue;
-   const wasMuted=media.muted,wasVolume=media.volume;media.muted=true;
+   const wasMuted=media.muted,wasVolume=media.volume;media.muted=true;media.__templePrimePending=true;
    const prime=media.play();
-   if(prime?.then)prime.then(()=>{media.pause();try{media.currentTime=0;}catch{}media.muted=wasMuted;media.volume=wasVolume;}).catch(()=>{media.muted=wasMuted;media.volume=wasVolume;});
+   if(prime?.then)prime.then(()=>{if(!media.__templePrimePending)return;media.pause();try{media.currentTime=0;}catch{}media.__templePrimePending=false;media.muted=wasMuted;media.volume=wasVolume;}).catch(()=>{if(media.__templePrimePending){media.__templePrimePending=false;media.muted=wasMuted;media.volume=wasVolume;}});
   }
   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
   await resumePromise;
