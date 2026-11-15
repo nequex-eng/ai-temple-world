@@ -72,7 +72,7 @@ assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
 assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"') && app.includes("--temple-visual-height"), "Mobile abbot sending must remain clickable above the software keyboard");
 assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"') && worker.includes("< 8000"), "Wish wall must enforce 20 characters and avoid an excessively long cooldown");
-assert.ok(world.includes('fillText("许愿墙",514,132)') && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The full-length perpendicular west-boundary wish wall must open when approached");
+assert.ok(world.includes('fillText("福",256,258)') && !world.includes('fillText("许愿墙"') && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The wish wall must show only one centered 福 character");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("stationary:true") && world.includes("a.setPose(\"bow\",1200)"), "The resident abbot must remain a visible, stationary NPC");
@@ -86,8 +86,15 @@ assert.ok(network.includes("type: \"ping\"") && worker.includes("data.type === \
 assert.ok(worker.includes("env.AI.run") && worker.includes("@cf/zai-org/glm-4.7-flash") && worker.includes("env.AI?.run"), "AI abbot must have a Workers AI fallback when no MiniMax secret is configured");
 assert.ok(world.includes("position.z<h.z+h.d/2-.55"), "Indoor mode must begin just beyond the main threshold");
 assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world must contain one Great Hall rather than multiple separate halls");
-assert.ok(html.includes('id="jump-toggle"') && app.includes('keys.jump=true') && app.includes('addEventListener("click",()=>{if(performance.now()-lastPointerJump>450)world.requestJump();})'), "Mobile users must have pointer and click jump controls");
+assert.ok(!html.includes('id="jump-toggle"') && !html.includes('id="run-toggle"') && app.includes("lastCenterTap") && app.includes("now-lastCenterTap<=360") && app.includes("world.requestJump()"), "Mobile movement must use joystick double-tap center to jump without run/jump buttons");
 assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.includes("function playBeadTick()"), "Ritual actions must trigger audible effects");
+const templeWalkway = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+for (const z of [-17,-10.5,2]) {
+  let p={x:-10,z,y:0};
+  for(let i=0;i<120;i++)p=moveWithCollision(p,-0.16,0,templeWalkway);
+  assert.ok(p.x < -29.45, "The west-side path from the main gate must stay passable at z="+z);
+  assert.ok(collidesAt(-30.5,z,templeWalkway), "The west boundary wall must still block crossing");
+}
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
 const collision = createTempleCollision(testHalls);
 assert.equal(collidesAt(4.8, 0, collision), true, "A character must not pass through a side wall");
