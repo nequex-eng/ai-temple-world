@@ -44,9 +44,9 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
-assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("kind==='noodles'") && world.includes("kind==='incense'") && world.includes("kind==='coffee'"), "Gate-side stalls and human vendors must be present");
-assert.ok(world.includes("const washroom=new THREE.Group()"), "West-side washroom model missing");
-assert.ok(read("src/physics.js").includes("Unlabelled washroom") && read("src/physics.js").includes("market counters"), "Washroom and market collision geometry missing");
+assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
+assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
+assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-20.48,-32.58,.48)"), "Washroom and grass-market collision geometry missing");
 assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[[0,-22]") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
 assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
@@ -75,7 +75,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
 assert.ok(worker.includes('DELETE FROM prayers WHERE id=? AND player_id=?') && worker.includes('type: "prayer:delete"') && network.includes("async deletePrayer(id)") && app.includes("p.player_id===network.playerId"), "Visitors may delete only their own wishes and deletion must sync to everyone");
-assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.72,0)") && world.includes("bold 72px") && world.includes("#30251b") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)"), "Avatar names must appear larger and dark above heads without a frame");
+assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.9,0)") && world.includes("bold 112px") && world.includes("#fff4ce") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)"), "Avatar names must be prominent high-contrast text above heads without a frame");
 assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
@@ -93,6 +93,8 @@ assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(
 assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("Math.hypot(p.x+5.4,p.z+37.2)<5.5"), "Incense offering must be located inside the Great Hall");
 assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
 assert.ok(world.includes('if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=13;') && worker.includes("!near(19, -32.5, 13)"), "Lotus placement must use the actual pond center and 13m radius in client and server");
+assert.ok(world.includes("hullShape") && world.includes("duration:9.5") && world.includes("g.userData.boat=true"), "Lotus offerings must be glowing boats that drift into the pond");
+assert.ok(world.includes("const lampPositions=[") && world.includes("entry.base*(.14+night*3.6)") && world.includes("this.nightLights.push({light:fixture.light,base:.52})"), "Exterior road and temple lights must brighten after dusk");
 assert.ok(world.includes("HALL_CUSHION_OFFSETS") && world.includes("this.meditationCushions=MEDITATION_CUSHIONS"), "The Great Hall must have many meditation cushions");
 assert.ok(world.includes("updateDayNight(time)") && world.includes("periodSeconds:600") && world.includes("this.starMaterial.opacity=night*.86") && world.includes("this.moonMesh.material.opacity=night*.92"), "A shared dusk and night cycle must change sky, stars, moon and lights");
 assert.ok(network.includes("!this.welcomed") && network.includes("id: queued.id") && app.includes("messageId&&box.querySelector") && worker.includes("validId(data.id)?data.id"), "Cloud letters must queue until welcome and deduplicate server echoes");
