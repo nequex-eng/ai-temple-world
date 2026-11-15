@@ -111,7 +111,7 @@ export function groundHeightAt(x, z, halls) {
     const front = h.z + h.d / 2;
     // The interior floor and landing meet the inner tread without a gap.
     if (Math.abs(x - h.x) < h.w / 2 - 0.38 &&
-        z > h.z - h.d / 2 + 0.38 && z < front + 1.24) return 0.54;
+        z > h.z - h.d / 2 + 0.38 && z < front + 1.24) return 0.57;
     // Exact, non-overlapping tread intervals. Walking toward decreasing z
     // raises the visitor by 18 cm at each broad stone step.
     if (Math.abs(x - h.x) < h.w * 0.36) {
