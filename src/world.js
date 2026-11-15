@@ -17,12 +17,17 @@ function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
 }
 function texture(draw,rx=1,ry=1){const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");draw(x,512);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;return t;}
 function robeNamePlate(name){
- const c=document.createElement("canvas");c.width=512;c.height=128;const x=c.getContext("2d");
- x.clearRect(0,0,512,128);x.textAlign="center";x.textBaseline="middle";x.shadowColor="rgba(25,18,12,.55)";x.shadowBlur=5;
- x.fillStyle="#f0d9a7";x.font='bold 58px "Songti SC","Noto Serif CJK SC",serif';x.fillText(String(name||"行者").slice(0,12),256,64,480);
+ const c=document.createElement("canvas");c.width=640;c.height=112;const x=c.getContext("2d");
+ x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";
+ x.shadowColor="rgba(15,12,8,.9)";x.shadowBlur=9;x.lineJoin="round";
+ x.font='bold 50px "Songti SC","Noto Serif CJK SC",serif';
+ const label=String(name||"行者").slice(0,12);
+ x.lineWidth=3;x.strokeStyle="rgba(28,22,15,.78)";
+ x.strokeText(label,320,56,600);x.fillStyle="#f5e6c5";x.fillText(label,320,56,600);
  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
- const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.66,.165),new THREE.MeshBasicMaterial({map,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
- mesh.position.set(0,.93,-.252);mesh.rotation.y=Math.PI;return mesh;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:true,depthWrite:false,toneMapped:false}));
+ sprite.position.set(0,2.48,0);sprite.scale.set(1.28,.225,1);
+ return sprite;
 }
 
 function pine(scene,x,z,s,m){
@@ -222,11 +227,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
  if(profile.style==="pilgrim"){
   add(new THREE.BoxGeometry(.42,.56,.22),dark,body,[-.57,.73,-.08],[0,0,-.18]);
  }
- const namePlate=robeNamePlate(profile.name||"行者");body.add(namePlate);
+ const namePlate=robeNamePlate(profile.name||"行者");root.add(namePlate);
  return {
   id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){this.tag.material.map.dispose();this.body.remove(this.tag);this.tag=robeNamePlate(name);this.body.add(this.tag);},
+  setLabel(name){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},

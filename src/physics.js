@@ -41,10 +41,8 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
-  // The meditation room is intentionally hidden in the current one-hall layout.
-  // Do not leave invisible furniture colliders across the west courtyard route.
-  // Four guardian statues inside the Heavenly Kings Hall.
-  for (const x of [-6.2, -2.1, 2.1, 6.2]) circles.push(circle(x, -14.55, 0.78));
+  // The old Heavenly Kings Hall was removed. Its former statue positions stay clear.
+  // Keep this west-side corridor open from the mountain gate to the Lotus Wish Wall.
   // Sutra library bookcases and reading desk.
   segments.push(segment(22.65, -28.4, 22.65, -19.6, 0.34));
   segments.push(segment(33.35, -28.4, 33.35, -19.6, 0.34));

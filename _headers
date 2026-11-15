@@ -4,7 +4,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   X-Frame-Options: DENY
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://temple-world-api.nequex.workers.dev wss://temple-world-api.nequex.workers.dev https://cdn.jsdelivr.net; media-src 'self' https://upload.wikimedia.org blob:; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' wss: https://temple-world-api.nequex.workers.dev wss://temple-world-api.nequex.workers.dev https://cdn.jsdelivr.net; media-src 'self' https://upload.wikimedia.org blob:; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 
 /index.html
   Cache-Control: no-cache

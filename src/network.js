@@ -1,4 +1,4 @@
-const API_BASE = "https://temple-world-api.nequex.workers.dev";
+const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "https://temple-world-api.nequex.workers.dev" : window.location.origin;
 const PLAYER_KEY = "temple-world-player-id";
 export function getPlayerId() {
   let id = localStorage.getItem(PLAYER_KEY);
