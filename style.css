@@ -177,3 +177,10 @@
 }
 
 /* Final consolidated production build marker. */
+
+
+/* Mobile navigation is a single joystick: double-tap its center to jump. */
+.run-toggle,.jump-toggle{display:none!important}
+.mobile-controls{gap:0!important}
+.joystick{position:relative;touch-action:none}
+.joystick::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(239,219,177,.28);border:1px solid rgba(239,219,177,.55);pointer-events:none}
