@@ -176,7 +176,7 @@ function mediaPlay(media,label){
 function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"}={}) {
  const media=new Audio();
  let fallbackUsed=false;
- media.preload="auto";media.loop=loop;media.volume=volume;
+ media.preload="auto";media.loop=loop;media.volume=volume;media.playsInline=true;
  media.addEventListener("error",()=>{
   if(!fallbackUsed&&oggUrl){
    fallbackUsed=true;media.src=oggUrl;media.load();
@@ -226,6 +226,14 @@ async function ensureAudio(){
   // Start media playback and resume Web Audio synchronously from the visitor's
   // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
   void mediaPlay(templeBirds,"庭院鸟鸣");
+  // Prime the other HTMLAudioElements inside the same user gesture. Mobile Safari
+  // otherwise permits wind/footsteps but rejects later chant and gong playback.
+  for(const media of [templeChant,templeBell]){
+   if(!media)continue;
+   const wasMuted=media.muted,wasVolume=media.volume;media.muted=true;
+   const prime=media.play();
+   if(prime?.then)prime.then(()=>{media.pause();try{media.currentTime=0;}catch{}media.muted=wasMuted;media.volume=wasVolume;}).catch(()=>{media.muted=wasMuted;media.volume=wasVolume;});
+  }
   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
   await resumePromise;
   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
@@ -259,7 +267,7 @@ function updateSoundscape(){
  if(chantVolume>.006){if(templeChant.paused)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
  if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
-  playBellSynthesis(Math.max(.12,Math.min(.32,(1-bellDistance/38)*.32)));
+  playBell(false,Math.max(.3,Math.min(.65,(1-bellDistance/38)*.65)));
   updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
  }
 }
@@ -340,7 +348,7 @@ function playBeadTick(){
 }
 function playRitualSound(action,volume=1){
  if(!soundEnabled||!audio||audio.state!=="running")return;
- if(action==="bell"){playBellSynthesis(.62*volume);return;}
+ if(action==="bell"){playBell(false,.9*volume);return;}
  if(action==="chant"){playMuyu();return;}
  if(action==="beads"){playBeadTick();return;}
  const now=audio.currentTime,out=effectsGain||audio.destination;
@@ -395,7 +403,7 @@ function changeAudioVolume(key,value){
  syncAudioControls();
  if(key==="ambience"){if(ambienceGain&&audio)ambienceGain.gain.setTargetAtTime(audioVolumes.ambience,audio.currentTime,.08);if(templeBirds)templeBirds.volume=.27*audioVolumes.ambience;}
  if(key==="chant"&&templeChant&&!templeChant.paused)updateSoundscape();
- if(key==="effects"&&effectsGain&&audio)effectsGain.gain.setTargetAtTime(audioVolumes.effects,audio.currentTime,.08);
+ if(key==="effects"&&effectsGain&&audio)effectsGain.gain.setTargetAtTime(audioVolumes.effects,audio.currentTime,.08);if(key==="effects"&&templeBell&&!templeBell.paused)templeBell.volume=.82*audioVolumes.effects;
 }
 $("sound-settings").addEventListener("click",()=>{$("sound-modal").classList.remove("hidden");syncAudioControls();updateAudioStatus();});
 $("sound-ambience").addEventListener("input",e=>changeAudioVolume("ambience",e.target.value));
