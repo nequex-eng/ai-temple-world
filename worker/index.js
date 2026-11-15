@@ -210,8 +210,8 @@ async function handleApi(request, env, url) {
   if (path === "/api/prayers" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid request." }, 400);
-    const message = clean(body.message, 240);
-    if (message.length < 2) return reply(request, { error: "Please write a little more." }, 400);
+    const message = Array.from(clean(body.message, 80)).slice(0, 20).join("");
+    if (message.length < 1) return reply(request, { error: "Please write a wish first." }, 400);
     const last = await env.DB.prepare("SELECT created_at FROM prayers WHERE player_id=? ORDER BY created_at DESC LIMIT 1").bind(body.player_id).first();
     if (last && Date.now() - Date.parse(last.created_at) < 60000) return reply(request, { error: "Please pause for a moment before posting another wish." }, 429);
     const profile = await env.DB.prepare("SELECT name FROM profiles WHERE id=?").bind(body.player_id).first();
@@ -220,7 +220,12 @@ async function handleApi(request, env, url) {
     const id = crypto.randomUUID(), created_at = now();
     await env.DB.prepare("INSERT INTO prayers(id,player_id,display_name,message,language,created_at) VALUES(?,?,?,?,?,?)")
       .bind(id, body.player_id, name, message, language, created_at).run();
-    return reply(request, { ok: true, prayer: { id, display_name: name, message, language, created_at } }, 201);
+    const prayer = { id, display_name: name, message, language, created_at };
+    try {
+      const roomId = env.TEMPLE_ROOMS.idFromName("temple:great-hall:shared");
+      await env.TEMPLE_ROOMS.get(roomId).fetch(new Request("https://temple-room/broadcast-prayer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(prayer) }));
+    } catch (error) { console.error("Prayer realtime broadcast failed", error); }
+    return reply(request, { ok: true, prayer }, 201);
   }
   return reply(request, { error: "Not found." }, 404);
 }
@@ -246,6 +251,13 @@ export default {
 export class TempleRoom {
   constructor(ctx, env) { this.ctx = ctx; this.env = env; }
   async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === "/broadcast-prayer" && request.method === "POST") {
+      const prayer = await request.json().catch(() => null);
+      if (!prayer || typeof prayer.message !== "string") return new Response("Invalid prayer.", { status: 400 });
+      this.broadcast({ type: "prayer:new", prayer });
+      return Response.json({ ok: true });
+    }
     const current = this.ctx.getWebSockets();
     const requestedId = validId(new URL(request.url).searchParams.get("id")) ? new URL(request.url).searchParams.get("id") : null;
     for (const socket of current) {
