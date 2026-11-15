@@ -301,6 +301,15 @@ export class TempleWorld{
   const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);add(new THREE.BoxGeometry(3.3,1.1,.17),m.darkWood,gate,[0,5.95,.58]);add(new THREE.BoxGeometry(2.25,.05,.04),m.gold,gate,[0,5.98,.69]);const gatePlaque=plaqueSprite("山门","MOUNTAIN GATE");gatePlaque.scale.set(2.7,.68,1);gatePlaque.position.set(0,5.98,.78);gate.add(gatePlaque);
+  // A physical lotus-wish board stands immediately to the visitor's left of the mountain gate.
+  const wishWall=new THREE.Group();wishWall.position.set(-7.35,0,-10.5);s.add(wishWall);
+  add(new THREE.BoxGeometry(4.25,2.65,.24),m.darkWood,wishWall,[0,1.48,0]);
+  add(new THREE.BoxGeometry(3.86,2.22,.07),m.paper,wishWall,[0,1.5,.16]);
+  for(const x of [-2.05,2.05])add(new THREE.BoxGeometry(.24,3.25,.34),m.darkWood,wishWall,[x,1.62,0]);
+  add(new THREE.BoxGeometry(4.65,.24,.48),m.gold,wishWall,[0,3.2,0]);
+  add(new THREE.BoxGeometry(4.65,.22,.48),m.darkWood,wishWall,[0,.18,0]);
+  const wishTitle=plaqueSprite("莲花祈愿墙","LOTUS WISH WALL");wishTitle.scale.set(2.55,.68,1);wishTitle.position.set(0,2.5,.22);wishWall.add(wishTitle);
+  const wishHint=plaqueSprite("靠近此处 · 写下心愿","20 CHARACTERS");wishHint.scale.set(2.45,.52,1);wishHint.position.set(0,.83,.22);wishWall.add(wishHint);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
   this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
   this.halls.forEach(h=>hall(s,h,m));
@@ -321,8 +330,8 @@ export class TempleWorld{
    }
    for(let i=0;i<9000;i++){ctx.fillStyle=Math.random()>.5?"rgba(55,49,40,.035)":"rgba(255,255,255,.045)";ctx.fillRect(Math.random()*size,Math.random()*size,1,1);}
   },3,2);
-  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
-  const hallFloorMesh=add(new THREE.PlaneGeometry(24.8,15.8),hallFloor,altar,[0,.57,0],[-Math.PI/2,0,0],false);
+  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture});
+  const hallFloorMesh=add(new THREE.PlaneGeometry(24.4,15.4),hallFloor,altar,[0,.585,0],[-Math.PI/2,0,0],false);
   hallFloorMesh.receiveShadow=false;
   // Hand-painted mineral-pigment murals: distant mountains, auspicious clouds and lotus blooms.
   const muralCanvas=document.createElement("canvas");muralCanvas.width=768;muralCanvas.height=384;
@@ -598,18 +607,12 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  buildNpcs(){
-  const roster=[
-    {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-8,z:-31,route:[[-8,-31],[-6,-32],[-6,-35],[-8,-35]],routine:["greet","bow"]},
-    {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:9,z:-30,route:[[9,-30],[10,-32],[10,-35],[9,-36]],routine:["chant","bow"]},
-    {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-8,z:-38,route:[[-8,-38],[-8,-41],[-6.5,-41],[-7,-36]],routine:["bow","greet"]}
-   ]
-  this.npcs=roster.map((spec,index)=>{
-   const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,spec.stationary?Math.PI:(index%2?Math.PI:0),groundHeightAt(spec.x,spec.z,this.halls));
-   const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0,routine:spec.routine||["bow","greet"],routineStep:0};
-   if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
-   if(index===4){a.setPose("meditate",5200);npc.nextAt=performance.now()+5200;}
-   return npc;
-  });
+  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-35.2,stationary:true};
+  const a=avatar(this.scene,spec,"npc-abbot",true);
+  a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
+  a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
+  a.setPose("bow",1200);
+  this.npcs=[{avatar:a,route:[],target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,stationary:true,nextAt:Infinity,routine:["bow"],routineStep:0}];
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
