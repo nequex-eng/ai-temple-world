@@ -42,7 +42,9 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await expect(page.locator("#abbot-messages")).toContainText("阿弥陀佛");
   await page.locator("#abbot-input").fill("请用两句话解释什么是慈悲。");
   await page.locator("#abbot-form button").click();
-  await expect(page.locator("#abbot-messages")).toContainText(/慈悲|关怀|众生|AI住持服务尚未绑定/, { timeout: 45000 });
+  await expect(page.locator("#abbot-status")).not.toContainText("未启用");
+  const abbotReply = page.locator(".abbot-message.assistant").last();
+  await expect(abbotReply).toContainText(/慈悲|关怀|众生|同理|他人/, { timeout: 45000 });
   await page.locator('[data-close="abbot-modal"]').click();
   await expect(page.locator("#abbot-modal")).toHaveClass(/hidden/);
   await expect.poll(() => liveSockets.some(value => {
@@ -295,4 +297,24 @@ test("two independent guests share live presence and messages", async ({ browser
     await contextA.close();
     await contextB.close();
   }
+});
+
+
+test("named monks move through autonomous patrol routes", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  await page.locator("#monk-name").fill("NPC Patrol Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  const before = await page.evaluate(() => window.__templeDebug.npcs());
+  expect(before).toHaveLength(9);
+  await page.waitForTimeout(7500);
+  const after = await page.evaluate(() => window.__templeDebug.npcs());
+  const moved = before.filter(old => {
+    const current = after.find(n => n.name === old.name);
+    return current && Math.hypot(current.x - old.x, current.z - old.z) > 0.35;
+  }).length;
+  console.log("npc-patrol-regression", JSON.stringify({before,after,moved}));
+  expect(moved).toBeGreaterThanOrEqual(6);
+  await cleanTestGuest(page);
 });
