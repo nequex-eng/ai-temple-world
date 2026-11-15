@@ -47,9 +47,9 @@ export function createTempleCollision(halls) {
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
   // Four market stalls and two squat pans are solid, walk-around scene objects.
   for(const z of [-1,7,15,23])circles.push(circle(43,z,1.28));
-  circles.push(circle(-20.48,-32.58,.48),circle(-17.52,-32.58,.48));
+  circles.push(circle(-23.98,-32.58,.48),circle(-21.02,-32.58,.48));
   // Unlabelled washroom west of the Great Hall: closed rear/sides and an open central entrance.
-  const wx=-19,wz=-32,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
+  const wx=-22.5,wz=-32,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
   segments.push(segment(wx-halfW,back,wx+halfW,back,.22));
   segments.push(segment(wx-halfW,back,wx-halfW,front,.22));
   segments.push(segment(wx+halfW,back,wx+halfW,front,.22));
