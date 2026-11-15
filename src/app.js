@@ -218,8 +218,8 @@ async function ensureAudio(){
    if(!templeBirds)templeBirds=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",{loop:true,volume:.27*audioVolumes.ambience,label:"庭院鸟鸣"});
    if(!templeChant)templeChant=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg",{loop:true,volume:0,label:"殿内诵经"});
    if(!templeBell)templeBell=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2c/Gong55.ogg/Gong55.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg",{loop:false,volume:.38*audioVolumes.effects,label:"寺院钟声"});
-   const resume=audio.state==="running"?Promise.resolve():audio.resume();
-   await Promise.race([resume,new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("音频启动超时，请再点一次声音按钮")),2800);})]);
+   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
+   await Promise.race([resumePromise,new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("音频启动超时，请再点一次声音按钮")),2800);})]);
    if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
    soundEnabled=true;audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
    for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}}
