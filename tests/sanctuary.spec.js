@@ -142,7 +142,7 @@ test("temple walls block movement and the entrance stairs are climbable", async 
     const debug = window.__templeDebug;
     debug.setYaw(0);
     debug.setPosition(8.3, -10);
-    for (let i = 0; i < 40; i++) debug.step({ right: 1 }, 0.05);
+    for (let i = 0; i < 8; i++) debug.step({ right: 1 }, 0.25);
   });
   const wall = await page.evaluate(() => window.__templeDebug.position());
   expect(wall.x).toBeGreaterThanOrEqual(8.2);
@@ -151,7 +151,7 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.evaluate(() => {
     const debug = window.__templeDebug;
     debug.setPosition(0, 0.9);
-    for (let i = 0; i < 40; i++) debug.step({ forward: 1 }, 0.05);
+    for (let i = 0; i < 10; i++) debug.step({ forward: 1 }, 0.25);
   });
   const stairs = await page.evaluate(() => window.__templeDebug.position());
   const stairDebug = await page.evaluate(() => window.__templeDebug.input());
@@ -166,7 +166,7 @@ test("temple walls block movement and the entrance stairs are climbable", async 
     const debug = window.__templeDebug;
     debug.setYaw(0);
     debug.setPosition(0, -35.6);
-    for (let i = 0; i < 45; i++) debug.step({ forward: 1 }, 0.05);
+    for (let i = 0; i < 8; i++) debug.step({ forward: 1 }, 0.2);
   });
   const table = await page.evaluate(() => window.__templeDebug.position());
   expect(table.z).toBeGreaterThan(-36.8);
