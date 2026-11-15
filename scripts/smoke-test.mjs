@@ -65,6 +65,8 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
+assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("x:9,z:-30,route:[[9,-30],[10,-32],[10,-35],[9,-36]]"), "Named NPCs must have collision-safe active patrol routes");
+assert.ok(worker.includes("Replaced by a newer session") && worker.includes("peer.id !== player.id"), "Reconnects must not duplicate the same visitor in live presence");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("Math.hypot(p.x+5.4,p.z+37.2)<5.5"), "Incense offering must be located inside the Great Hall");
 assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
