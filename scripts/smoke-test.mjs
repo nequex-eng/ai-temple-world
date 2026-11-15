@@ -27,7 +27,7 @@ assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("async askAbbot") && app.includes('$("open-abbot").addEventListener') && html.includes('id="abbot-modal"'), "AI abbot must be wired from UI through the protected API");
 for (const locale of ["zh", "ja", "ko", "th"]) {
   const start = i18n.indexOf("  " + locale + ":");
-  const end = i18n.indexOf("\\n  },", start);
+  const end = i18n.indexOf("\n  },", start);
   assert.ok(start >= 0 && i18n.slice(start, end < 0 ? i18n.length : end).includes("abbotTitle:"), "AI abbot locale missing: " + locale);
 }
 assert.ok(network.includes("this.room") && network.includes("this.instance") && network.includes("this.region"), "Multiplayer room parameters missing");
