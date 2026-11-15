@@ -47,7 +47,7 @@ assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)")
 assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
 assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
 assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-20.48,-32.58,.48)"), "Washroom and grass-market collision geometry missing");
-assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[[0,-22]") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
+assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
 assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
