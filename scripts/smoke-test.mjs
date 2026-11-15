@@ -52,7 +52,7 @@ assert.ok(world.includes("setClickDestination(clientX,clientY)") && world.includ
 assert.ok(world.includes("collidesAt(hit.x,hit.z,this.collision)"), "Click-to-walk must reject destinations inside collision geometry");
 assert.ok(app.includes("Birds_chirping_in_a_garden.ogg") && app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Recorded courtyard birds, temple chant and gong must be wired into the audio system");
 assert.ok(headers.includes("media-src") && headers.includes("https://upload.wikimedia.org"), "CSP must allow the Wikimedia audio recordings");
-assert.ok(app.includes("__templeAudioDebug") && app.includes("await resumePromise"), "Audio playback diagnostics and awaited AudioContext resume are required");
+assert.ok(app.includes("__templeAudioDebug") && app.includes("Promise.race([resumePromise"), "Audio playback diagnostics and awaited AudioContext resume are required");
 assert.ok(read("index.html").includes("id=\"profile-sound-toggle\"") && app.includes('$("profile-sound-toggle").addEventListener'), "First-visit profile dialog must provide a working sound control");
 assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture and report media errors");
 assert.ok(app.includes("soundPreference=true") && app.includes("temple-sound-enabled") && app.includes("armDefaultSoundGesture()") && app.includes("touchAudioGate"), "Temple ambience must default on while respecting mobile gesture restrictions");
