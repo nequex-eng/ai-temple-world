@@ -25,18 +25,6 @@ function robeNamePlate(name){
  mesh.position.set(0,.93,-.252);mesh.rotation.y=Math.PI;return mesh;
 }
 
-function plaqueSprite(title,subtitle){
- const c=document.createElement("canvas");c.width=512;c.height=128;const x=c.getContext("2d");
- x.fillStyle="rgba(25,39,31,.94)";x.beginPath();x.roundRect(5,5,502,118,8);x.fill();
- x.strokeStyle="rgba(218,190,135,.9)";x.lineWidth=4;x.stroke();
- x.strokeStyle="rgba(218,190,135,.28)";x.lineWidth=1;x.strokeRect(13,13,486,102);
- x.textAlign="center";x.textBaseline="middle";x.fillStyle="#f0dfbd";x.font="bold 38px serif";x.fillText(String(title||"佛殿").slice(0,14),256,48);
- x.fillStyle="#cbb58a";x.font="17px sans-serif";x.fillText(String(subtitle||"TEMPLE HALL").slice(0,32),256,91);
- const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
- const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthWrite:false}));
- sprite.scale.set(4.5,1.125,1);return sprite;
-}
-
 function pine(scene,x,z,s,m){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
  add(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,g,[0,1.55,0],[0,0,0],false);
@@ -117,10 +105,10 @@ function hall(scene,cfg,m){
  planeRoof(g,w,d,ry,ey,1,roofMat);planeRoof(g,w,d,ry,ey,-1,roofMat);
  add(new THREE.CylinderGeometry(.12,.12,w+2.6,10),m.gold,g,[0,ry+.1,0],[0,0,Math.PI/2]);
  for(const sx of [-1,1])for(const sz of [-1,1])add(new THREE.SphereGeometry(.22,9,8),m.gold,g,[sx*(w/2+1.55),ey+.18,sz*(d/2+1.0)]);
- add(new THREE.BoxGeometry(Math.min(w*.4,5),.75,.18),m.sign,g,[0,.54+h*.7,d/2+.17]);
+ // No separate signboard geometry.
  // Avoid shadow-map acne on the close, broad masonry surfaces.
  g.traverse(o=>{if(o.isMesh)o.receiveShadow=false;});
- const plaque=plaqueSprite(cfg.label||"佛殿",cfg.subtitle||"TEMPLE HALL");plaque.scale.set(Math.min(w*.34,4.3),.9,1);plaque.position.set(0,.54+h*.7,d/2+.29);g.add(plaque);
+ // All floating/overlaid plaques are intentionally omitted to prevent z-fighting and clipping.
  return g;
 }
 function lantern(scene,x,z,m){
@@ -315,7 +303,7 @@ export class TempleWorld{
   // Four-sided ceremonial gate
   const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
-  add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);add(new THREE.BoxGeometry(3.3,1.1,.17),m.darkWood,gate,[0,5.95,.58]);add(new THREE.BoxGeometry(2.25,.05,.04),m.gold,gate,[0,5.98,.69]);const gatePlaque=plaqueSprite("山门","MOUNTAIN GATE");gatePlaque.scale.set(2.7,.68,1);gatePlaque.position.set(0,5.98,.78);gate.add(gatePlaque);
+  add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);// Mountain gate remains clean architectural timber without an applied plaque.
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
   // It runs perpendicular to the mountain gate and faces inward toward visitors.
   const wishWall=new THREE.Group();wishWall.position.set(-31,0,-13.5);wishWall.rotation.y=Math.PI/2;s.add(wishWall);
@@ -549,7 +537,7 @@ export class TempleWorld{
   // A low scripture stand and framed calligraphy give the room a clear contemplative purpose.
   add(new THREE.BoxGeometry(2.4,.18,.72),darkWood,meditationRoom,[0,1.0,-1.55]);
   for(const x of [-.9,0,.9])add(new THREE.BoxGeometry(.08,.58,.08),goldLeaf,meditationRoom,[x,1.34,-1.55]);
-  const calligraphy=plaqueSprite("止观","CALM ABIDING");calligraphy.scale.set(2.5,.62,1);calligraphy.position.set(0,3.25,-4.72);meditationRoom.add(calligraphy);
+
   for(const side of [-1,1]){
    const lamp=new THREE.Group();lamp.position.set(side*5.35,2.2,-2.5);meditationRoom.add(lamp);
    add(new THREE.BoxGeometry(.16,.65,.16),darkWood,lamp,[0,-.32,0]);
@@ -585,7 +573,7 @@ export class TempleWorld{
   add(new THREE.BoxGeometry(2.8,.2,1.05),shelfWood,libraryRoom,[0,.95,2.0]);
   for(const x of [-1.05,1.05])add(new THREE.BoxGeometry(.16,.78,.16),shelfWood,libraryRoom,[x,.48,2.0]);
   add(new THREE.CylinderGeometry(.11,.11,1.45,12),goldLeaf,libraryRoom,[0,1.12,2.0],[0,0,Math.PI/2]);
-  const libraryPlaque=plaqueSprite("藏经","SUTRA COLLECTION");libraryPlaque.scale.set(2.4,.6,1);libraryPlaque.position.set(0,3.45,-5.22);libraryRoom.add(libraryPlaque);
+
   // Monk quarters: two low timber beds, folded bedding, pillows and privacy screens.
   const dormRoom=new THREE.Group();dormRoom.position.set(28,0,8);s.add(dormRoom);dormRoom.visible=false;
   const bedWood=mat(0x59402e,.92),linen=mat(0xb7aa8e,.98),blanket=mat(0x85745d,.98);
@@ -600,7 +588,7 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.12,1.8,4.7),bedWood,dormRoom,[x-side*1.45,1.42,-.65]);
   }
   add(new THREE.BoxGeometry(1.6,.18,.8),bedWood,dormRoom,[0,.82,2.2]);
-  const dormPlaque=plaqueSprite("僧寮","MONASTIC QUARTERS");dormPlaque.scale.set(2.3,.58,1);dormPlaque.position.set(0,3.25,-4.72);dormRoom.add(dormPlaque);
+
   // Bell tower & bronze bell
   const bell=new THREE.Group();bell.position.set(8,0,-41);s.add(bell);
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
@@ -610,12 +598,12 @@ export class TempleWorld{
   // Incense censer
   this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
-  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("上香","INCENSE OFFERING");incensePlaque.scale.set(2.4,.6,1);incensePlaque.position.set(-3.4,2.8,-37.2);s.add(incensePlaque);
+  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);
   // Lotus pond
   this.pondPosition=new THREE.Vector3(19,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
   add(new THREE.CylinderGeometry(4.05,4.25,.48,64),m.stone,pond,[0,-.03,0]);
   add(new THREE.CircleGeometry(3.88,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
-  add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.5,.82,1);lotusPlaque.position.set(0,2.5,4.25);pond.add(lotusPlaque);
+  add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);
   for(let i=0;i<27;i++){const a=Math.random()*Math.PI*2,r=.45+Math.random()*2.95,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.48+Math.random()*.25,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
   // Bodhi tree
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
