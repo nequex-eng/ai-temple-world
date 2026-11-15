@@ -181,7 +181,7 @@ assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread")
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
 assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("new THREE.Vector3(0,0,-22.4)") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Central outdoor censer, forest tea pavilion, or expanded gate missing");
-assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag") && world.includes("mesh.position.set(0,.93,-.245)"), "Robe-back name must be tappable for profile editing");
+assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag") && world.includes("mesh.position.set(0,.96,-.235)"), "Robe-back name must be tappable for profile editing");
 assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Renderer must preserve clear pixel density while keeping mobile shadows disabled");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
