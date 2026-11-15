@@ -419,6 +419,7 @@ function renderPrayers(prayers){
  }
 }
 $("open-abbot").addEventListener("click",()=>{$("abbot-modal").classList.remove("hidden");$("abbot-input").focus();});
+function trimAbbotHistory(){while(abbotHistory.length>24)abbotHistory.splice(0,2);}
 function appendAbbotMessage(role,content){
  const box=$("abbot-messages"),line=document.createElement("div");
  line.className="abbot-message "+(role==="user"?"user":"assistant");
@@ -430,12 +431,12 @@ $("abbot-form").addEventListener("submit",async e=>{
  e.preventDefault();
  const input=$("abbot-input"),message=input.value.trim();if(message.length<2)return;
  const previous=abbotHistory.slice(-8);
- abbotHistory.push({role:"user",content:message});appendAbbotMessage("user",message);input.value="";
+ abbotHistory.push({role:"user",content:message});trimAbbotHistory();appendAbbotMessage("user",message);input.value="";
  const submit=$("abbot-send"),status=$("abbot-status");submit.disabled=true;status.textContent=t().abbotThinking;
  try{
   const result=await network.askAbbot(message,previous,language,$("location-title").textContent);
   if(!result?.answer)throw new Error(result?.error||t().abbotUnavailable);
-  abbotHistory.push({role:"assistant",content:result.answer});appendAbbotMessage("assistant",result.answer);
+  abbotHistory.push({role:"assistant",content:result.answer});trimAbbotHistory();appendAbbotMessage("assistant",result.answer);
   status.textContent=t().abbotFoot;
  }catch(error){
   appendAbbotMessage("assistant",error?.message||t().abbotUnavailable);
