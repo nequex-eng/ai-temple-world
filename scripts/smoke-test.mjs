@@ -58,7 +58,7 @@ assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
-assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now())"), "Collision regression test hooks missing");
+assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(8,0,0)") && world.includes("Math.hypot(p.x-8,p.z)<8"), "Incense censer must not block the main hall stairs");
 assert.ok(worker.includes("!near(8, 0, 8)"), "Worker incense validation must match the censer location");
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
