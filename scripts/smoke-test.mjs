@@ -187,3 +187,8 @@ assert.ok(read("sw.js").includes("temple-world-shell-76"), "Service worker cache
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
 assert.ok(worker.includes('https://api.minimaxi.com/v1') && worker.includes('https://api.minimax.io/v1') && worker.includes('error.status !== 401 && error.status !== 403'), 'MiniMax keys must work across either official region without retrying rate-limited requests');
+
+assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have a dedicated tea-drinking animation and cup");
+assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"'), "English must be supported by the interface and API");
+assert.ok(app.includes("const night=!!world.isNight") && app.includes("if(night){if(!templeBirds.paused)templeBirds.pause();}") && app.includes("if(night){if(!templeChant.paused)templeChant.pause();return;}"), "Birdsong and chanting must stop after dark");
+assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant"]'), "Action shortcuts must guide visitors to the relevant temple locations");
