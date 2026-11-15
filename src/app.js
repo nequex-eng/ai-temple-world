@@ -525,6 +525,7 @@ function appendAbbotMessage(role,content){
   appendAbbotMessage("assistant",detail);
  }finally{submit.disabled=false;input.focus();}
 });
+$("prayer-input").addEventListener("input",()=>{const chars=[...$("prayer-input").value];if(chars.length>20)$("prayer-input").value=chars.slice(0,20).join("");});
 $("prayer-form").addEventListener("submit",async e=>{
  e.preventDefault();const input=$("prayer-input"),message=[...input.value.trim()].slice(0,20).join("");if(!message){toast("请先写下一句心愿");return;}
  const submit=$("prayer-submit");submit.disabled=true;
