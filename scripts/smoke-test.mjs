@@ -60,6 +60,7 @@ assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCol
 assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall") && world.includes("cameraDistance=inside?"), "Player collision and indoor camera modes must be active");
 assert.ok(world.includes("const robeProfile=") && world.includes("const hand=new THREE.Group()") && world.includes("const chin="), "Monk avatar must have shaped shoulders, hands and facial anatomy");
 assert.ok(world.includes("const total=240") && world.includes("const occupied="), "New visitors must receive non-overlapping courtyard spawn positions");
+assert.ok(world.includes("a.update(dt,time,remoteMoving&&a.pose===\"walk\")") && world.includes("p.rotation.y+=turn"), "Remote visitors must turn and animate while walking");
 assert.ok(world.includes("new THREE.Vector2(.22,.08)") && world.includes("new THREE.Vector2(.47,1.39)"), "Monk body must have a shaped human torso rather than a barrel silhouette");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
