@@ -66,10 +66,13 @@ assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
-assert.ok(world.includes("new THREE.Vector3(0,0,-37.4)") && world.includes("Math.hypot(p.x,p.z+37.4)<5.5"), "Incense offering must be located inside the Great Hall");
-assert.ok(worker.includes("!near(0, -37.4, 5.5)"), "Worker incense validation must match the Great Hall censer");
+assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("Math.hypot(p.x+5.4,p.z+37.2)<5.5"), "Incense offering must be located inside the Great Hall");
+assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
+assert.ok(world.includes("censer.visible=true") && world.includes("this.incensePosition=new THREE.Vector3(-5.4,0,-37.2)"), "The Great Hall censer must be visible and reachable");
+assert.ok(network.includes("type: \"ping\"") && worker.includes("data.type === \"ping\""), "Shared-room websocket heartbeats must be enabled");
+assert.ok(world.includes("position.z<h.z+h.d/2-.55"), "Indoor mode must begin just beyond the main threshold");
 assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world must contain one Great Hall rather than multiple separate halls");
-assert.ok(html.includes('id="jump-toggle"') && app.includes('keys.jump=true'), "Mobile users must have a touch jump control");
+assert.ok(html.includes('id="jump-toggle"') && app.includes('keys.jump=true') && app.includes('addEventListener("click",()=>{if(performance.now()-lastPointerJump>450)world.requestJump();})'), "Mobile users must have pointer and click jump controls");
 assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.includes("function playBeadTick()"), "Ritual actions must trigger audible effects");
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
 const collision = createTempleCollision(testHalls);
@@ -79,6 +82,9 @@ assert.equal(groundHeightAt(0, 8.72, testHalls), 0.18, "Outer stair tread must h
 assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
 assert.equal(groundHeightAt(0, 6.18, testHalls), 0.54, "Top stair must overlap the hall landing without a drop gap");
+assert.equal(groundHeightAt(0, 5.5, testHalls), 0.54, "The inner tread must connect to the hall floor");
+assert.equal(groundHeightAt(0, 9.3, testHalls), 0, "The outside approach must remain at ground level");
+assert.equal(groundHeightAt(0, 8.0, testHalls), 0.36, "The middle tread must have a clean, non-overlapping height band");
 const actorWorld = { ...collision, actors: [{ x: 1, z: 0, radius: 0.5 }] };
 const playerMove = moveWithCollision({ x: 0, z: 0, y: 0 }, 0.6, 0, actorWorld);
 assert.ok(playerMove.x < 0.06, "Players must not walk through another player body");
