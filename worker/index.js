@@ -283,7 +283,7 @@ export class TempleRoom {
     };
     // Allocate a clear spot in the forecourt on the server, so all clients agree on spawn positions.
     const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
-    const npcSpots = [[-8,-31],[7,-31],[-8,-38],[8,-37],[-4,-42],[-7,-33],[4,-42],[0,-31],[0,-43]];
+    const npcSpots = [[0,-35.2]];
     const spawnCandidates = [];
     for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
       const x=-11.4+col*1.2,z=-22+row*1.2;
