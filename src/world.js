@@ -146,6 +146,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,.48),new THREE.Vector3(x*.8,1.02,.535),new THREE.Vector3(x,.62,.51),new THREE.Vector3(x*.88,.24,.53)]);
   body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
  }
+ for(let i=0;i<7;i++){
+  const x=-.34+i*.113;
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,-.48),new THREE.Vector3(x*.8,1.02,-.535),new THREE.Vector3(x,.62,-.51),new THREE.Vector3(x*.88,.24,-.53)]);
+  body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
+ }
  add(new THREE.TorusGeometry(.39,.055,8,32),trim,body,[0,.55,0],[Math.PI/2,0,0]);
  // Long robe hem covers the trousers; only the sandals remain visible.
  add(new THREE.CylinderGeometry(.48,.58,.42,24,1,true),robe,body,[0,.25,0]);
@@ -179,6 +184,8 @@ function avatar(scene,profile={},id="local",isLocal=false){
  add(new THREE.CylinderGeometry(.026,.035,1.12,7),mat(0x765233),broom,[0,-.2,0]);
  add(new THREE.CylinderGeometry(.19,.23,.3,9),mat(0xb59a6d),broom,[0,-.83,0]);
  broom.position.set(.12,1.05,.52);
+ const malaCord=new THREE.CatmullRomCurve3([new THREE.Vector3(-.34,1.25,.3),new THREE.Vector3(-.24,1.06,.4),new THREE.Vector3(0,1.0,.43),new THREE.Vector3(.24,1.06,.4),new THREE.Vector3(.34,1.25,.3)]);
+ body.add(new THREE.Mesh(new THREE.TubeGeometry(malaCord,28,.012,6,false),dark));
  const beads=new THREE.Group();body.add(beads);
  for(let i=0;i<13;i++){const a=Math.PI*.12+i*Math.PI*.76/12;add(new THREE.SphereGeometry(.032,7,6),trim,beads,[Math.sin(a)*.32,1.24+Math.cos(a)*.18,.32]);}
  if(profile.style==="pilgrim"){
