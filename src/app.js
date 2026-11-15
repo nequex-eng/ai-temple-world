@@ -488,12 +488,18 @@ async function sendAbbotMessage(){
  lastAbbotSubmitAt=Date.now();
  const input=$("abbot-input"),message=input.value.trim();if(!message)return;
  const submit=$("abbot-send"),status=$("abbot-status");abbotSending=true;submit.disabled=true;status.textContent=t().abbotThinking;
+ input.value="";
+ appendAbbotMessage("user",message);
  try{
   const result=await network.askAbbot(message,abbotHistory.slice(-8),language,$("location-title").textContent);
   if(!result?.answer)throw new Error(result?.error||t().abbotUnavailable);
   abbotHistory.push({role:"user",content:message},{role:"assistant",content:result.answer});trimAbbotHistory();
-  appendAbbotMessage("user",message);appendAbbotMessage("assistant",result.answer);input.value="";status.textContent=t().abbotFoot;
- }catch(error){const detail=String(error?.message||t().abbotUnavailable);status.textContent=detail;appendAbbotMessage("assistant",detail);}
+  appendAbbotMessage("assistant",result.answer);status.textContent=t().abbotFoot;
+ }catch(error){
+  input.value=message;
+  const detail=String(error?.message||t().abbotUnavailable);
+  status.textContent=detail;appendAbbotMessage("assistant",detail);
+ }
  finally{abbotSending=false;submit.disabled=false;if(!touchAudioGate)input.focus();}
 }
 $("abbot-input").addEventListener("keydown",e=>{
