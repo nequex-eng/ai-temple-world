@@ -29,7 +29,7 @@
         <option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="th">ไทย</option>
       </select>
       <button class="top-button" id="open-profile" type="button" aria-hidden="true" tabindex="-1"><span id="profile-button-label">我的小和尚</span></button>
-      <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="sound-settings" type="button" aria-label="声音设置" title="声音设置">⚙</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
+      <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
     </div>
   </header>
 
@@ -142,19 +142,6 @@
       <button class="primary-button" id="beads-advance" type="button">拨动一颗</button>
       <button class="danger-button" id="beads-reset" type="button">重置本周</button>
       <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
-    </section>
-  </div>
-  <div class="modal-backdrop hidden" id="sound-modal">
-    <section class="modal-card sound-modal">
-      <button class="modal-x" data-close="sound-modal" aria-label="Close">×</button>
-      <div class="modal-eyebrow">TEMPLE SOUND SETTINGS</div>
-      <h2 id="sound-title">寺院声音</h2>
-      <p id="sound-description">分别调节庭院环境、殿内诵经与仪式音效。声音仅在你主动开启后播放。</p>
-      <label class="sound-slider"><span id="sound-ambience-label">庭院环境</span><input id="sound-ambience" type="range" min="0" max="100" value="80"><output id="sound-ambience-value">80%</output></label>
-      <label class="sound-slider"><span id="sound-chant-label">殿内诵经</span><input id="sound-chant" type="range" min="0" max="100" value="65"><output id="sound-chant-value">65%</output></label>
-      <label class="sound-slider"><span id="sound-effects-label">仪式音效</span><input id="sound-effects" type="range" min="0" max="100" value="80"><output id="sound-effects-value">80%</output></label>
-      <button class="primary-button" id="sound-test" type="button">试听寺院钟声</button><p class="sound-status" id="sound-status">音频引擎尚未启动</p>
-      <div class="modal-foot" id="sound-foot">声音资源加载失败时会显示明确提示，不会静默忽略。</div>
     </section>
   </div>
   <script type="module" src="/src/app.js"></script>
