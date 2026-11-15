@@ -121,10 +121,13 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
   const jumpBox = await page.locator("#jump-toggle").boundingBox();
+  const jumpYBefore = await page.evaluate(() => window.__templeDebug.position().y);
   await page.mouse.move(jumpBox.x + jumpBox.width / 2, jumpBox.y + jumpBox.height / 2);
   await page.mouse.down();
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(true);
   await page.waitForTimeout(120);
+  const jumpYDuring = await page.evaluate(() => window.__templeDebug.position().y);
+  expect(jumpYDuring).toBeGreaterThan(jumpYBefore + 0.08);
   await page.mouse.up();
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(false);
 
@@ -241,6 +244,8 @@ test("two independent guests share live presence and messages", async ({ browser
 
     await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
     await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
+    await expect.poll(() => pageA.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
+    await expect.poll(() => pageB.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
 
     await pageA.locator("#chat-collapse").click();
     await pageB.locator("#chat-collapse").click();
