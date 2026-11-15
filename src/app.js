@@ -7,7 +7,7 @@ const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
-let soundPreference=true;try{soundPreference=localStorage.getItem("temple-sound-enabled")!=="false";}catch{}
+let soundPreference=true;try{localStorage.setItem("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
@@ -589,9 +589,9 @@ async function start(){
   requestAnimationFrame(frame);
   if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
   armDefaultSoundGesture();
-  // Desktop browsers may autoplay. iOS/mobile must wait for a real visitor gesture.
-  if(soundPreference&&!touchAudioGate)void setSound(true,{quiet:true,save:false});
-  else {soundEnabled=false;for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}}
+  // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
+  // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
+  void setSound(true,{quiet:true,save:true});
 
   // These requests are independent and deliberately non-blocking.
   void network.health().catch(()=>{});
