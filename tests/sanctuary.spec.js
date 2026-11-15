@@ -110,7 +110,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await cleanTestGuest(page);
 });
 
-test("mobile: virtual joystick, run toggle and action dock are usable", async ({ page }) => {
+test("mobile: virtual joystick, double-tap jump and action dock are usable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/);
@@ -141,22 +141,17 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
-  const jumpBox = await page.locator("#jump-toggle").boundingBox();
+  const jumpBox = await page.locator("#joystick").boundingBox();
   const jumpYBefore = await page.evaluate(() => window.__templeDebug.position().y);
-  await page.mouse.move(jumpBox.x + jumpBox.width / 2, jumpBox.y + jumpBox.height / 2);
-  await page.mouse.down();
-  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(true);
+  const centerX=jumpBox.x+jumpBox.width/2,centerY=jumpBox.y+jumpBox.height/2;
+  await page.mouse.click(centerX,centerY);
+  await page.waitForTimeout(80);
+  await page.mouse.click(centerX,centerY);
   await page.waitForTimeout(120);
   const jumpYDuring = await page.evaluate(() => window.__templeDebug.position().y);
-  console.log("mobile-jump-regression", JSON.stringify(await page.evaluate(() => ({position:window.__templeDebug.position(),input:window.__templeDebug.input(),jump:window.__templeDebug.jumpState()}))));
   expect(jumpYDuring).toBeGreaterThan(jumpYBefore + 0.08);
-  await page.mouse.up();
-  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(false);
-
-  await page.locator("#run-toggle").click();
-  await expect(page.locator("#run-toggle")).toHaveClass(/active/);
-  await page.locator("#run-toggle").click();
-  await expect(page.locator("#run-toggle")).not.toHaveClass(/active/);
+  await expect(page.locator("#run-toggle")).toHaveCount(0);
+  await expect(page.locator("#jump-toggle")).toHaveCount(0);
   await cleanTestGuest(page);
 });
 
@@ -168,6 +163,15 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await page.evaluate(() => document.activeElement?.blur());
+
+  // Former invisible Tianwang Hall statues must no longer block the west route.
+  await page.evaluate(() => {
+    const debug=window.__templeDebug;
+    debug.setYaw(0);debug.setPosition(0,-14.55);
+    for(let i=0;i<100;i++)debug.step({left:1},.16);
+  });
+  const westGateRoute=await page.evaluate(()=>window.__templeDebug.position());
+  expect(westGateRoute.x).toBeLessThan(-12);
 
   await page.evaluate(() => {
     const debug = window.__templeDebug;
@@ -222,12 +226,8 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
 
-  await expect(page.locator("#location-card")).toHaveClass(/collapsed/);
-  await expect(page.locator("#presence-card")).toHaveClass(/collapsed/);
-  await page.locator("#location-panel-toggle").click();
-  await expect(page.locator("#location-card")).not.toHaveClass(/collapsed/);
-  await page.locator("#location-panel-toggle").click();
-  await expect(page.locator("#location-card")).toHaveClass(/collapsed/);
+  await expect(page.locator("#location-card")).toBeHidden();
+  await expect(page.locator("#presence-card")).toBeHidden();
 
   await page.evaluate(() => window.__templeDebug.setPosition(0, -32.05));
   await page.locator('[data-action="meditate"]').click();
@@ -262,12 +262,14 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await cleanTestGuest(page);
 });
 
-test("two independent guests share live presence and messages", async ({ browser }) => {
+test("three independent guests share live presence, messages and wishes", async ({ browser }) => {
   test.setTimeout(150000);
   const contextA = await browser.newContext();
   const contextB = await browser.newContext();
+  const contextC = await browser.newContext();
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
+  const pageC = await contextC.newPage();
   let pageA2 = null;
   try {
     const prepareGuest = async (page, name) => {
@@ -282,30 +284,37 @@ test("two independent guests share live presence and messages", async ({ browser
     // the whole live-room test budget before message delivery is exercised.
     await Promise.all([
       prepareGuest(pageA, "Room Guest A"),
-      prepareGuest(pageB, "Room Guest B")
+      prepareGuest(pageB, "Room Guest B"),
+      prepareGuest(pageC, "Room Guest C")
     ]);
 
-    await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
-    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
-    await expect.poll(() => pageA.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
-    await expect.poll(() => pageB.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
+    for (const guest of [pageA,pageB,pageC]) {
+      await expect.poll(async () => Number((await guest.locator("#online-count").textContent()).match(/[0-9]+/)?.[0] || 0)).toBeGreaterThanOrEqual(3);
+      await expect.poll(() => guest.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(2);
+    }
     const remoteBefore = await pageB.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
+    const remoteBeforeC = await pageC.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
     const startA = await pageA.evaluate(() => window.__templeDebug.position());
     await pageA.evaluate(p => window.__templeDebug.setPosition(p.x, p.z - 0.8), startA);
-    await expect.poll(() => pageB.evaluate(before => {
+    const movedFromA = before => {
       const now = window.__templeDebug.remotePlayers();
       return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .25));
-    }, remoteBefore)).toBe(true);
+    };
+    await expect.poll(() => pageB.evaluate(movedFromA, remoteBefore)).toBe(true);
+    await expect.poll(() => pageC.evaluate(movedFromA, remoteBeforeC)).toBe(true);
 
     // The chat panel starts collapsed on a fresh visit. Expand it explicitly before typing.
     await pageA.locator("#chat-panel").evaluate(el=>el.classList.remove("collapsed"));
     await pageB.locator("#chat-panel").evaluate(el=>el.classList.remove("collapsed"));
+    await pageC.locator("#chat-panel").evaluate(el=>el.classList.remove("collapsed"));
     await expect(pageA.locator("#chat-input")).toBeVisible();
     await expect(pageB.locator("#chat-input")).toBeVisible();
+    await expect(pageC.locator("#chat-input")).toBeVisible();
     await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
     await pageA.locator("#chat-form button").click();
     await expect(pageA.locator("#chat-input")).toHaveValue("", { timeout: 5000 });
     await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
+    await expect(pageC.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
 
     // Wishes must persist and be broadcast to every connected visitor.
     await pageA.locator("#open-prayers").click();
@@ -313,6 +322,7 @@ test("two independent guests share live presence and messages", async ({ browser
     await pageA.locator("#prayer-submit").click();
     await expect(pageA.locator("#prayer-input")).toHaveValue("", { timeout: 15000 });
     await expect(pageB.locator("#prayer-list")).toContainText("愿世界和平", { timeout: 20000 });
+    await expect(pageC.locator("#prayer-list")).toContainText("愿世界和平", { timeout: 20000 });
 
     await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
@@ -330,8 +340,10 @@ test("two independent guests share live presence and messages", async ({ browser
     await cleanTestGuest(pageA);
     if (pageA2) await cleanTestGuest(pageA2);
     await cleanTestGuest(pageB);
+    await cleanTestGuest(pageC);
     await contextA.close().catch(()=>{});
     await contextB.close().catch(()=>{});
+    await contextC.close().catch(()=>{});
   }
 });
 
