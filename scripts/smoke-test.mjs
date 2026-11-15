@@ -147,3 +147,9 @@ assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.ty
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
 assert.ok(read("sw.js").includes("temple-world-shell-71"), "Service worker cache must refresh the shared-room client fix");
+
+assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
+assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
+assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
+assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
+assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the current fixes");
