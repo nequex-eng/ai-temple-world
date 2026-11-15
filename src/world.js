@@ -707,9 +707,9 @@ export class TempleWorld{
   if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}
   this.local=avatar(this.scene,p,id,true);
   let hash=0;for(const ch of String(id||""))hash=(hash*31+ch.charCodeAt(0))>>>0;
-  const total=240,start=hash%total;let spawn=null;
+  const total=180,start=hash%total;let spawn=null;
   for(let step=0;step<total;step++){
-   const slot=(start+step)%total,x=-11.4+(slot%20)*1.2,z=16+Math.floor(slot/20)*1.2;
+   const slot=(start+step)%total,x=-11.4+(slot%20)*1.2,z=-22+Math.floor(slot/20)*1.2;
    const occupied=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].some(a=>Math.hypot(a.root.position.x-x,a.root.position.z-z)<1.0);
    if(!collidesAt(x,z,this.collision)&&!occupied){spawn={x,z};break;}
   }
@@ -835,7 +835,7 @@ export class TempleWorld{
   this.updateEffects(dt);if(render)this.renderer.render(this.scene,this.camera);
  }
  addEffect(type,position=null){
-  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(-28,0,2);this.scene.add(g);
+  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else if(type==="lotus"){
    for(let i=0;i<7;i++){const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.17,8,8),mat(0xe6c9c6,.65,{emissive:0x4f2523,emissiveIntensity:.3}),g,[Math.cos(a)*.23,.2,Math.sin(a)*.23]);petal.scale.set(.7,1.6,.55);}
