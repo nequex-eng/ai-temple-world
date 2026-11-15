@@ -734,7 +734,7 @@ export class TempleWorld{
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
   const p=this.local?.root.position||{x:0,z:25};
-  const pts=[{x:0,z:-10.5,index:0,key:"gate"},{x:0,z:-37,index:1,key:"main"}];
+  const pts=[{x:0,z:-10.5,index:0,key:"gate"},{x:0,z:-37,index:2,key:"main"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
  canAct(a){
