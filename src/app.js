@@ -482,9 +482,10 @@ function appendAbbotMessage(role,content){
  box.scrollTop=box.scrollHeight;
 }
 // Enter sends the abbot message; Shift+Enter inserts a line break. Ignore IME confirmation.
- let abbotSending=false;
+ let abbotSending=false,lastAbbotSubmitAt=0;
 async function sendAbbotMessage(){
- if(abbotSending)return;
+ if(abbotSending||Date.now()-lastAbbotSubmitAt<450)return;
+ lastAbbotSubmitAt=Date.now();
  const input=$("abbot-input"),message=input.value.trim();if(!message)return;
  const submit=$("abbot-send"),status=$("abbot-status");abbotSending=true;submit.disabled=true;status.textContent=t().abbotThinking;
  try{
@@ -499,7 +500,8 @@ $("abbot-input").addEventListener("keydown",e=>{
  if((e.key!=="Enter"&&e.keyCode!==13)||e.shiftKey||e.isComposing||e.keyCode===229)return;
  e.preventDefault();e.stopPropagation();if(!$("abbot-send").disabled)$("abbot-send").click();
 },true);
-$("abbot-send").addEventListener("click",()=>{void sendAbbotMessage();});
+$("abbot-send").addEventListener("click",e=>{e.preventDefault();void sendAbbotMessage();});
+$("abbot-send").addEventListener("pointerup",e=>{if(e.pointerType==="touch"&&e.cancelable){e.preventDefault();void sendAbbotMessage();}});
 $("abbot-form").addEventListener("submit",e=>{e.preventDefault();void sendAbbotMessage();});
 $("prayer-input").addEventListener("input",()=>{const chars=[...$("prayer-input").value];if(chars.length>20)$("prayer-input").value=chars.slice(0,20).join("");});
 let prayerSending=false;
@@ -630,28 +632,26 @@ async function start(){
 addEventListener("beforeunload",()=>network.close());
 function updateTempleVisualViewport(){
  const viewport=window.visualViewport,meta=document.querySelector('meta[name="viewport"]');
- let recovering=false;
+ const resetScale=()=>{
+  if(meta)meta.setAttribute("content","width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover");
+  document.documentElement.style.zoom="1";document.body.style.zoom="1";
+  window.scrollTo(0,0);document.documentElement.style.setProperty("--temple-visual-height",(window.innerHeight||viewport?.height||0)+"px");
+  world.resize();
+ };
  const apply=()=>{
-  // iOS can retain a pinch-zoomed visual viewport even though the game uses a
-  // fixed canvas. Reassert the app viewport and resize WebGL to the visible area.
-  if(viewport&&viewport.scale>1.01&&!recovering){
-   recovering=true;
-   if(meta)meta.setAttribute("content","width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover");
-   document.documentElement.style.zoom="1";document.body.style.zoom="1";
-   window.scrollTo(0,0);
-   requestAnimationFrame(()=>{world.resize();recovering=false;});
-  }
   document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
   world.resize();
  };
  apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
- addEventListener("orientationchange",()=>requestAnimationFrame(apply),{passive:true});
- // Block browser pinch gestures over the 3D canvas; the joystick remains the
- // sole movement surface and camera rotation remains a one-finger drag.
- const canvas=$("world");
- canvas.addEventListener("touchstart",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
- canvas.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
- for(const type of ["gesturestart","gesturechange","gestureend"])canvas.addEventListener(type,e=>e.preventDefault(),{passive:false});
+ addEventListener("orientationchange",()=>requestAnimationFrame(()=>{resetScale();apply();}),{passive:true});
+ // iOS Safari does not expose a supported API to set visualViewport.scale.
+ // Prevent new multi-touch zoom globally; a reload button below restores the
+ // browser's initial viewport scale if Safari has already zoomed the page.
+ const blockPinch=e=>{if(e.touches?.length>1)e.preventDefault();};
+ document.addEventListener("touchstart",blockPinch,{passive:false,capture:true});
+ document.addEventListener("touchmove",blockPinch,{passive:false,capture:true});
+ for(const type of ["gesturestart","gesturechange","gestureend"])document.addEventListener(type,e=>e.preventDefault(),{passive:false,capture:true});
+ $("restore-view").addEventListener("click",()=>location.reload());
 }
 updateTempleVisualViewport();
 function armDefaultSoundGesture(){
