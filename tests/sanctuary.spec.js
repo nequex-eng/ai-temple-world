@@ -37,6 +37,11 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
+  await page.locator("#open-abbot").click();
+  await expect(page.locator("#abbot-modal")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#abbot-messages")).toContainText("阿弥陀佛");
+  await page.locator('[data-close="abbot-modal"]').click();
+  await expect(page.locator("#abbot-modal")).toHaveClass(/hidden/);
   await expect.poll(() => liveSockets.some(value => {
     const url = new URL(value);
     return url.searchParams.get("room") === "main" &&
