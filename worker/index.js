@@ -103,7 +103,7 @@ async function handleApi(request, env, url) {
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid player." }, 400);
     const message = clean(body.message, 600);
     if (message.length < 2) return reply(request, { error: "Please write a little more." }, 400);
-    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, error: "The abbot is resting until the AI service is configured." }, 503);
+    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, code: "AI_NOT_CONFIGURED", error: "AI住持尚未接入：Cloudflare Worker 缺少 MINIMAX_API_KEY。配置该 Secret 后才能开始对话。" }, 503);
     const language = LANGS.has(body.language) ? body.language : "zh";
     const history = Array.isArray(body.history) ? body.history.slice(-8).map(item => ({
       role: item?.role === "assistant" ? "assistant" : "user",
@@ -306,7 +306,7 @@ export class TempleRoom {
       if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
       player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
-      if (data.action === "incense" && !near(0, -37.4, 5.5)) return;
+      if (data.action === "incense" && !near(-5.4, -37.2, 5.5)) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(7, -32.5, 4.5)) return;
       if (data.action === "lotus") {
