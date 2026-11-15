@@ -23,9 +23,9 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.time)).toBeGreaterThan(0.2);
   await page.locator("#sound-settings").click();
+  const bellHitsBefore = await page.evaluate(() => window.__templeAudioDebug.bellHits());
   await page.locator("#sound-test").click();
-  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().bell.paused)).toBe(false);
-  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().bell.time)).toBeGreaterThan(0.2);
+  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.bellHits())).toBeGreaterThan(bellHitsBefore);
   await page.locator('[data-close="sound-modal"]').click();
   await page.locator("#sound-settings").click();
   await expect(page.locator("#sound-modal")).not.toHaveClass(/hidden/);
