@@ -940,7 +940,7 @@ export class TempleWorld{
   this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);
   return true;
  }
- resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?0.95:1.5));this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.renderer.setSize(innerWidth,innerHeight);}
+ resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.35:1.75));this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.renderer.setSize(innerWidth,innerHeight);}
  setLocalProfile(p,id){
   if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}
   this.local=avatar(this.scene,p,id,true);
