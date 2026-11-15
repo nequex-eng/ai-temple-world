@@ -216,19 +216,10 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/api/live") {
       if (request.headers.get("Upgrade") !== "websocket") return new Response("WebSocket upgrade required.", { status: 426 });
-      const hasRoomRouting = ["room", "instance", "region"].some(key => url.searchParams.has(key));
-      if (!hasRoomRouting) {
-        const legacyId = env.TEMPLE_ROOMS.idFromName("global-sanctuary");
-        return env.TEMPLE_ROOMS.get(legacyId).fetch(request);
-      }
-      const room = clean(url.searchParams.get("room") || "main", 24).toLowerCase().replace(/[^a-z0-9-]/g, "") || "main";
-      const instance = Math.max(0, Math.min(99, Math.floor(Number(url.searchParams.get("instance")) || 0)));
-      const requestedRegion = clean(url.searchParams.get("region") || "auto", 12).toLowerCase();
-      const regions = new Set(["auto", "wnam", "enam", "sam", "weur", "eeur", "apac", "apac-ne", "apac-se", "oc", "afr", "me"]);
-      const region = regions.has(requestedRegion) ? requestedRegion : "auto";
-      const id = env.TEMPLE_ROOMS.idFromName("temple:" + room + ":" + instance + ":" + region);
-      const options = region === "auto" ? undefined : { locationHint: region };
-      return env.TEMPLE_ROOMS.get(id, options).fetch(request);
+      // A single shared Great Hall room. Do not split visitors by URL parameters,
+      // browser region hints, or instance numbers.
+      const id = env.TEMPLE_ROOMS.idFromName("temple:great-hall:shared");
+      return env.TEMPLE_ROOMS.get(id).fetch(request);
     }
     try { return await handleApi(request, env, url); }
     catch (error) {
