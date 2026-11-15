@@ -47,6 +47,23 @@ export function createTempleCollision(halls) {
   segments.push(segment(-29.2, scriptureZ + 0.36, -26.8, scriptureZ + 0.36, 0.12));
   segments.push(segment(-29.2, scriptureZ - 0.36, -29.2, scriptureZ + 0.36, 0.12));
   segments.push(segment(-26.8, scriptureZ - 0.36, -26.8, scriptureZ + 0.36, 0.12));
+  // Four guardian statues inside the Heavenly Kings Hall.
+  for (const x of [-6.2, -2.1, 2.1, 6.2]) circles.push(circle(x, -14.55, 0.78));
+  // Sutra library bookcases and reading desk.
+  segments.push(segment(22.65, -28.4, 22.65, -19.6, 0.34));
+  segments.push(segment(33.35, -28.4, 33.35, -19.6, 0.34));
+  const libraryDeskZ = -22;
+  segments.push(segment(26.6, libraryDeskZ - 0.525, 29.4, libraryDeskZ - 0.525, 0.12));
+  segments.push(segment(26.6, libraryDeskZ + 0.525, 29.4, libraryDeskZ + 0.525, 0.12));
+  segments.push(segment(26.6, libraryDeskZ - 0.525, 26.6, libraryDeskZ + 0.525, 0.12));
+  segments.push(segment(29.4, libraryDeskZ - 0.525, 29.4, libraryDeskZ + 0.525, 0.12));
+  // Low beds and privacy screens in the monastic quarters.
+  for (const x of [25, 31]) {
+    segments.push(segment(x - 1.325, 5.675, x + 1.325, 5.675, 0.13));
+    segments.push(segment(x - 1.325, 9.025, x + 1.325, 9.025, 0.13));
+    segments.push(segment(x - 1.325, 5.675, x - 1.325, 9.025, 0.13));
+    segments.push(segment(x + 1.325, 5.675, x + 1.325, 9.025, 0.13));
+  }
   // Boundary stone walls.
   for (const side of [-1, 1]) {
     const x = side * 31;
