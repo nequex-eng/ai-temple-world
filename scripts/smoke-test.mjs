@@ -146,13 +146,13 @@ for(const route of autoRoutes){
   let position={...route.from};
   for(const target of path){
     let guard=0;
-    while(Math.hypot(target.x-position.x,target.z-position.z)>.16 && guard++<1200){
+    while(Math.hypot(target.x-position.x,target.z-position.z)>.06 && guard++<1200){
       const dx=target.x-position.x,dz=target.z-position.z,dist=Math.hypot(dx,dz);
-      const moved=moveWithCollision(position,dx/dist*Math.min(.1,dist),dz/dist*Math.min(.1,dist),realTempleCollision);
+      const moved=moveWithCollision(position,dx/dist*Math.min(.045,dist),dz/dist*Math.min(.1,dist),realTempleCollision);
       assert.equal(moved.blocked,false,"The "+route.label+" path must not hit a hidden collider; blocked near "+position.x.toFixed(2)+","+position.z.toFixed(2)+" heading to "+target.x.toFixed(2)+","+target.z.toFixed(2));
       position={x:moved.x,y:moved.y,z:moved.z};
     }
-    assert.ok(Math.hypot(target.x-position.x,target.z-position.z)<=.16,"The "+route.label+" path must reach each waypoint");
+    assert.ok(Math.hypot(target.x-position.x,target.z-position.z)<=.06,"The "+route.label+" path must reach each waypoint");
   }
   assert.ok(Math.hypot(route.to.x-position.x,route.to.z-position.z)<=.16,"The "+route.label+" path must reach its destination");
 }
