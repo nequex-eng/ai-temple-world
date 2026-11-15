@@ -72,6 +72,7 @@ assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("M
 assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
 assert.ok(world.includes("censer.visible=true") && world.includes("this.incensePosition=new THREE.Vector3(-5.4,0,-37.2)"), "The Great Hall censer must be visible and reachable");
 assert.ok(network.includes("type: \"ping\"") && worker.includes("data.type === \"ping\""), "Shared-room websocket heartbeats must be enabled");
+assert.ok(worker.includes("env.AI.run") && worker.includes("@cf/zai-org/glm-4.7-flash") && worker.includes("env.AI?.run"), "AI abbot must have a Workers AI fallback when no MiniMax secret is configured");
 assert.ok(world.includes("position.z<h.z+h.d/2-.55"), "Indoor mode must begin just beyond the main threshold");
 assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world must contain one Great Hall rather than multiple separate halls");
 assert.ok(html.includes('id="jump-toggle"') && app.includes('keys.jump=true') && app.includes('addEventListener("click",()=>{if(performance.now()-lastPointerJump>450)world.requestJump();})'), "Mobile users must have pointer and click jump controls");
