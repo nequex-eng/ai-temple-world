@@ -91,8 +91,8 @@ function hall(scene,cfg,m){
  add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.72,.54+h*.38,d/2-.06],[0,-1.38,0]);
  add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.72,.54+h*.38,d/2-.06],[0,1.38,0]);
  for(const side of [-1,1]){
-  const px=side*w*.43;
-  add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.54+h*.55,d/2+.02]);
+  const px=side*w*.46;
+  add(new THREE.BoxGeometry(w*.14,h*.4,.13),m.darkWood,g,[px,.54+h*.55,d/2+.02]);
   for(let j=-2;j<=2;j++)add(new THREE.BoxGeometry(.035,h*.38,.05),m.goldDark,g,[px+j*w*.034,.54+h*.55,d/2+.1],[0,0,0],false);
   for(let j=0;j<4;j++)add(new THREE.BoxGeometry(w*.17,.035,.05),m.goldDark,g,[px,.54+h*.37+j*h*.095,d/2+.1],[0,0,0],false);
  }
@@ -600,7 +600,7 @@ export class TempleWorld{
   // Incense censer
   this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
-  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("香炉广场","INCENSE COURTYARD");incensePlaque.scale.set(3.2,.8,1);incensePlaque.position.set(8,3.1,2.2);s.add(incensePlaque);
+  add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("上香","INCENSE OFFERING");incensePlaque.scale.set(2.4,.6,1);incensePlaque.position.set(-3.4,2.8,-37.2);s.add(incensePlaque);
   // Lotus pond
   this.pondPosition=new THREE.Vector3(7,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
   add(new THREE.CylinderGeometry(2.35,2.5,.42,48),m.stone,pond,[0,-.03,0]);
