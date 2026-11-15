@@ -27,7 +27,7 @@
         <option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="th">ไทย</option>
       </select>
       <button class="top-button" id="open-profile"><span class="button-icon">◉</span><span id="profile-button-label">我的小和尚</span></button>
-      <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="sound-settings" type="button" aria-label="声音设置" title="声音设置">⚙</button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
+      <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="sound-settings" type="button" aria-label="声音设置" title="声音设置">⚙</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸</button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
     </div>
   </header>
 
@@ -100,6 +100,22 @@
     </section>
   </div>
 
+  <div class="modal-backdrop hidden" id="abbot-modal">
+    <section class="modal-card abbot-modal">
+      <button class="modal-x" data-close="abbot-modal" aria-label="Close">×</button>
+      <div class="modal-eyebrow">AI ABBOT · DIGITAL TEMPLE GUIDE</div>
+      <h2 id="abbot-title">与住持谈谈</h2>
+      <p id="abbot-description">可以询问佛教常识、经典义理、禅修方法，或分享此刻的心情。</p>
+      <div class="abbot-messages" id="abbot-messages" aria-live="polite">
+        <div class="abbot-message assistant" id="abbot-greeting">阿弥陀佛。愿你此刻身心安稳。有什么想了解或倾诉的？</div>
+      </div>
+      <form class="abbot-form" id="abbot-form">
+        <textarea id="abbot-input" rows="2" maxlength="600" placeholder="写下你的问题……"></textarea>
+        <button class="primary-button" id="abbot-send" type="submit">请教</button>
+      </form>
+      <div class="abbot-status" id="abbot-status">AI生成的参考内容，并非真实僧侣；不替代专业医疗、法律或心理帮助。</div>
+    </section>
+  </div>
   <div class="modal-backdrop hidden" id="prayer-modal">
     <section class="modal-card prayer-modal">
       <button class="modal-x" data-close="prayer-modal" aria-label="Close">×</button>
