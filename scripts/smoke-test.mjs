@@ -55,6 +55,8 @@ assert.ok(headers.includes("media-src") && headers.includes("https://upload.wiki
 assert.ok(app.includes("__templeAudioDebug") && app.includes("await resumePromise"), "Audio playback diagnostics and awaited AudioContext resume are required");
 assert.ok(read("index.html").includes("id=\"profile-sound-toggle\"") && app.includes('$("profile-sound-toggle").addEventListener'), "First-visit profile dialog must provide a working sound control");
 assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture and report media errors");
+assert.ok(app.includes("soundPreference=true") && app.includes("temple-sound-enabled") && app.includes("armDefaultSoundGesture()"), "Temple ambience must default on and recover from autoplay restrictions");
+assert.ok(i18n.includes('soundOn:"关闭声音"'), "The top sound control must offer turn-off as the enabled-state action");
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
 assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall") && world.includes("cameraDistance=inside?"), "Player collision and indoor camera modes must be active");
