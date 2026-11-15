@@ -30,14 +30,13 @@ for (const locale of ["zh", "ja", "ko", "th"]) {
   const end = i18n.indexOf("\n  },", start);
   assert.ok(start >= 0 && i18n.slice(start, end < 0 ? i18n.length : end).includes("abbotTitle:"), "AI abbot locale missing: " + locale);
 }
-assert.ok(network.includes("this.room") && network.includes("this.instance") && network.includes("this.region"), "Multiplayer room parameters missing");
-assert.ok(network.includes('(params.get("region") || "apac")'), "Main room should default to APAC placement");
-assert.ok(worker.includes('idFromName("temple:" + room + ":" + instance + ":" + region)') && worker.includes("locationHint: region"), "Regional room sharding missing");
+assert.ok(network.includes('this.room = "great-hall"') && network.includes('this.region = "auto"'), "Every client must join the shared Great Hall room");
+assert.ok(worker.includes('idFromName("temple:great-hall:shared")'), "All visitors must route to one shared Durable Object");
 let routedRoom = "", routedOptions = null;
 const fakeEnv = { TEMPLE_ROOMS: { idFromName: name => (routedRoom = name), get: (id, options) => { routedOptions = options; return { fetch: async () => new Response("ok") }; } } };
-await templeWorker.fetch(new Request("https://api.example/api/live?room=maru&instance=0&region=apac", { headers: { Upgrade: "websocket" } }), fakeEnv);
-assert.equal(routedRoom, "temple:maru:0:apac", "Named room and instance must create a separate Durable Object");
-assert.deepEqual(routedOptions, { locationHint: "apac" }, "APAC rooms must use the APAC placement hint");
+await templeWorker.fetch(new Request("https://api.example/api/live?room=other&instance=88&region=wnam", { headers: { Upgrade: "websocket" } }), fakeEnv);
+assert.equal(routedRoom, "temple:great-hall:shared", "URL parameters must not split visitors into separate rooms");
+assert.equal(routedOptions, undefined, "The shared room must not be region-sharded");
 
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
@@ -59,7 +58,7 @@ assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
 assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall") && world.includes("cameraDistance=inside?"), "Player collision and indoor camera modes must be active");
 assert.ok(world.includes("const robeProfile=") && world.includes("const hand=new THREE.Group()") && world.includes("const chin="), "Monk avatar must have shaped shoulders, hands and facial anatomy");
-assert.ok(world.includes("const total=240") && world.includes("const occupied="), "New visitors must receive non-overlapping courtyard spawn positions");
+assert.ok(world.includes("const total=180") && world.includes("const occupied="), "New visitors must receive non-overlapping Great Hall entrance spawn positions");
 assert.ok(world.includes("a.update(dt,time,remoteMoving&&a.pose===\"walk\")") && world.includes("a.root.rotation.y=currentYaw+turn"), "Remote visitors must turn and animate while walking");
 assert.ok(world.includes("slice(0,this.mobile?12:28)") && world.includes("a.root.visible=visibleVisitors.has(a.id)"), "Multiplayer avatars must use distance-ranked visual LOD without reducing online capacity");
 assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22]") && world.includes("robeGeometry.scale(1,1,.78)"), "Monk body must have a shaped, tapered and non-cylindrical human torso");
@@ -67,8 +66,11 @@ assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
-assert.ok(world.includes("new THREE.Vector3(8,0,0)") && world.includes("Math.hypot(p.x-8,p.z)<8"), "Incense censer must not block the main hall stairs");
-assert.ok(worker.includes("!near(8, 0, 8)"), "Worker incense validation must match the censer location");
+assert.ok(world.includes("new THREE.Vector3(0,0,-37.4)") && world.includes("Math.hypot(p.x,p.z+37.4)<5.5"), "Incense offering must be located inside the Great Hall");
+assert.ok(worker.includes("!near(0, -37.4, 5.5)"), "Worker incense validation must match the Great Hall censer");
+assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world must contain one Great Hall rather than multiple separate halls");
+assert.ok(html.includes('id="jump-toggle"') && app.includes('keys.jump=true'), "Mobile users must have a touch jump control");
+assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.includes("function playBeadTick()"), "Ritual actions must trigger audible effects");
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
 const collision = createTempleCollision(testHalls);
 assert.equal(collidesAt(4.8, 0, collision), true, "A character must not pass through a side wall");
