@@ -525,6 +525,7 @@ export class TempleWorld{
    const glow=new THREE.PointLight(0xffc77e,.24,4);glow.position.y=.4;lamp.add(glow);
   }
 
+ }
  buildNpcs(){
   const roster=[
     {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-8,z:-31,route:[[-8,-31],[-6,-32],[-6,-35],[-8,-35]],routine:["greet","bow"]},
