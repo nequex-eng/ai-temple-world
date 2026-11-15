@@ -40,6 +40,16 @@ test("production Pages same-origin proxy connects the live room", async ({ page 
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
   await expect(page.locator("#connection-label")).toContainText("已进入共同禅境",{timeout:30000});
   await expect.poll(()=>sockets.some(url=>url.startsWith("wss://helixtemple.pages.dev/api/live"))).toBe(true);
+
+  // Exercise the real same-origin prayer POST and owner-delete routes without
+  // leaving a permanent test wish on the public wall.
+  await page.locator("#open-prayers").click();
+  await page.locator("#prayer-input").fill("同站代理提交测试");
+  await page.locator("#prayer-submit").click();
+  await expect(page.locator("#prayer-input")).toHaveValue("",{timeout:15000});
+  await expect(page.locator("#prayer-list")).toContainText("同站代理提交测试",{timeout:20000});
+  await page.locator(".prayer-delete").first().click();
+  await expect(page.locator("#prayer-list")).not.toContainText("同站代理提交测试",{timeout:15000});
   await cleanTestGuest(page);
 });
 
