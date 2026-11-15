@@ -363,8 +363,8 @@ export class TempleWorld{
   this.vendorSpecs=[
    {name:'凉面摊主',x:-8.8,z:-5.5,kind:'noodles',facing:Math.PI/2},
    {name:'香烛摊主',x:8.8,z:-5.5,kind:'incense',facing:-Math.PI/2},
-   {name:'咖啡摊主',x:-8.8,z:-15.2,kind:'coffee',facing:Math.PI/2},
-   {name:'小食摊主',x:8.8,z:-15.2,kind:'fruit',facing:-Math.PI/2}
+   {name:'咖啡摊主',x:-8.8,z:-11.5,kind:'coffee',facing:Math.PI/2},
+   {name:'小食摊主',x:8.8,z:-11.5,kind:'fruit',facing:-Math.PI/2}
   ];
   for(const vendor of this.vendorSpecs)marketStall(s,vendor.x,vendor.z,vendor.x<0?-1:1,vendor.kind,m);
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
