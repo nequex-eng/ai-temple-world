@@ -8,6 +8,8 @@ let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0;
 let soundPreference=true;try{soundPreference=localStorage.getItem("temple-sound-enabled")!=="false";}catch{}
+const touchAudioGate=matchMedia("(pointer: coarse)").matches;
+let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
@@ -116,6 +118,7 @@ function handleMessage(message){
  if(message.type==="chat"){
   if(message.player?.id!==network.playerId)appendChat(message.player,message.message,message.player?.language);return;
  }
+ if(message.type==="prayer:new"){renderPrayerAppend(message.prayer);void updateStats();return;}
 }
 async function updateStats(){
  try{
@@ -242,7 +245,7 @@ async function ensureAudio(){
    if(prime?.then)prime.then(()=>{if(!media.__templePrimePending)return;media.pause();try{media.currentTime=0;}catch{}media.__templePrimePending=false;media.__templePrimeState=null;media.muted=wasMuted;media.volume=wasVolume;}).catch(()=>{if(media.__templePrimePending){media.__templePrimePending=false;media.__templePrimeState=null;media.muted=wasMuted;media.volume=wasVolume;}});
   }
   const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
-  await resumePromise;
+  await Promise.race([resumePromise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Audio resume timed out; tap the sound button to retry")),3500))]);
   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
   soundEnabled=true;
   audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
@@ -308,7 +311,9 @@ async function setSound(on,{quiet=false,save=true}={}){
  const button=$("sound-toggle");
  if(on){
   if(button){button.disabled=true;button.textContent="♫ 正在开启…";}
-  const ok=await ensureAudio();
+  let ok=false;
+  try{ok=await Promise.race([ensureAudio(),new Promise(resolve=>setTimeout(()=>resolve(false),5000))]);}
+  catch(error){audioFailureReason=error?.message||"audio startup failed";}
   if(button)button.disabled=false;
   if(!ok){
    soundEnabled=false;
@@ -459,6 +464,15 @@ $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classLis
 async function loadPrayers(){
  try{const prayers=await network.getPrayers();renderPrayers(prayers);}catch{renderPrayers([]);}
 }
+function renderPrayerAppend(p){
+ if(!p?.message)return;
+ const list=$("prayer-list");if(list.querySelector(".prayer-empty"))list.replaceChildren();
+ if(list.querySelector(`[data-prayer-id="${CSS.escape(p.id||"")}"]`))return;
+ const card=document.createElement("article");card.className="prayer-item";if(p.id)card.dataset.prayerId=p.id;
+ const body=document.createElement("p");body.textContent=p.message;
+ const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at||Date.now()).toLocaleDateString();
+ card.append(body,foot);list.prepend(card);while(list.children.length>30)list.lastElementChild.remove();text("prayer-count",String(list.children.length));
+}
 function renderPrayers(prayers){
  const list=$("prayer-list");list.replaceChildren();text("prayer-count",String(prayers.length));
  if(!prayers.length){const empty=document.createElement("div");empty.className="prayer-empty";empty.textContent=t().prayerEmpty;list.append(empty);return;}
@@ -466,7 +480,7 @@ function renderPrayers(prayers){
   const card=document.createElement("article");card.className="prayer-item";
   const body=document.createElement("p");body.textContent=p.message;
   const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at).toLocaleDateString();
-  card.append(body,foot);list.append(card);
+  if(p.id)card.dataset.prayerId=p.id;card.append(body,foot);list.append(card);
  }
 }
 $("open-abbot").addEventListener("click",async()=>{
@@ -512,11 +526,11 @@ function appendAbbotMessage(role,content){
  }finally{submit.disabled=false;input.focus();}
 });
 $("prayer-form").addEventListener("submit",async e=>{
- e.preventDefault();const input=$("prayer-input"),message=input.value.trim();if(message.length<2)return;
+ e.preventDefault();const input=$("prayer-input"),message=[...input.value.trim()].slice(0,20).join("");if(!message){toast("请先写下一句心愿");return;}
  const submit=$("prayer-submit");submit.disabled=true;
  try{
-  await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);await loadPrayers();await updateStats();
- }catch(error){toast(error.message?.includes("pause")?t().prayerRate:t().prayerFailed);}
+  const saved=await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);if(saved?.prayer)renderPrayerAppend(saved.prayer);await loadPrayers();await updateStats();
+ }catch(error){toast(error.message?.includes("pause")?t().prayerRate:(error.message||t().prayerFailed));}
  finally{submit.disabled=false;}
 });
 
@@ -603,7 +617,9 @@ async function start(){
   requestAnimationFrame(frame);
   if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
   armDefaultSoundGesture();
-  if(soundPreference)void setSound(true,{quiet:true,save:false});
+  // Desktop browsers may autoplay. iOS/mobile must wait for a real visitor gesture.
+  if(soundPreference&&!touchAudioGate)void setSound(true,{quiet:true,save:false});
+  else {soundEnabled=false;for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}}
 
   // These requests are independent and deliberately non-blocking.
   void network.health().catch(()=>{});
@@ -623,7 +639,7 @@ function armDefaultSoundGesture(){
  const events=["pointerdown","touchstart","keydown"];
  const activate=()=>{
   for(const type of events)document.removeEventListener(type,activate,true);
-  if(soundPreference&&!soundEnabled)void setSound(true,{quiet:true,save:false});
+  if(soundPreference&&!soundEnabled)void setSound(true,{quiet:false,save:false});
  };
  for(const type of events)document.addEventListener(type,activate,{once:true,capture:true});
 }
