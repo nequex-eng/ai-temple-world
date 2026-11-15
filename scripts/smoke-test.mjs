@@ -43,7 +43,7 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
-assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("stationary:true"), "The single stationary abbot NPC is missing");
+assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[[0,-22]") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
 assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
