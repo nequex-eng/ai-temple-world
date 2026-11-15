@@ -183,6 +183,13 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await page.evaluate(() => window.__templeDebug.setPosition(0, 0));
   await page.locator('[data-action="meditate"]').click();
   await expect(page.locator("#toast")).toContainText("大雄宝殿");
+
+  await page.evaluate(() => window.__templeDebug.setPosition(-29.4, -23.65));
+  await page.locator('[data-action="meditate"]').click();
+  const seatedInHall = await page.evaluate(() => window.__templeDebug.position());
+  expect(seatedInHall.x).toBeCloseTo(-29.4, 1);
+  expect(seatedInHall.z).toBeCloseTo(-23.65, 1);
+  expect(seatedInHall.rotation).toBeCloseTo(Math.PI, 2);
   await cleanTestGuest(page);
 });
 
