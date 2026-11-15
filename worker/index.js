@@ -48,7 +48,7 @@ async function minimaxChat(env, messages, maxTokens = 480) {
       : ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"];
     const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
     for (const baseValue of [...new Set(bases)]) {
-      const base = String(baseValue).replace(/\\/+$/, "");
+      const base = String(baseValue).replace(/\/+$/, "");
       try {
         const response = await fetch(base + "/chat/completions", {
           method: "POST",
