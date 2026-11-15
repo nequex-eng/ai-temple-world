@@ -40,39 +40,60 @@ async function reserveAiRequest(env, playerId, kind, dailyLimit, minIntervalMs) 
 }
 
 async function minimaxChat(env, messages, maxTokens = 480) {
-  // Prefer MiniMax, but fall back to Workers AI on provider errors, timeouts or empty responses.
+  let minimaxError = null;
   if (env.MINIMAX_API_KEY) {
-    try {
-      const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
-      const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
-      const response = await fetch(base + "/chat/completions", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, messages, temperature: 0.35, reasoning_effort: "low", max_completion_tokens: Math.max(2048, maxTokens * 4), stream: false })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
-      const raw = data?.choices?.[0]?.message?.content;
-      const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
-      if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
-      return answer.trim().slice(0, 1400);
-    } catch (error) {
-      console.error("MiniMax failed; attempting Workers AI fallback", error);
-      if (!env.AI?.run) throw error;
+    const configuredBase = String(env.MINIMAX_BASE_URL || "").trim();
+    const bases = configuredBase
+      ? [configuredBase]
+      : ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"];
+    const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
+    for (const baseValue of [...new Set(bases)]) {
+      const base = String(baseValue).replace(/\\/+$/, "");
+      try {
+        const response = await fetch(base + "/chat/completions", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model, messages, temperature: 0.35, reasoning_effort: "low",
+            max_completion_tokens: Math.max(2048, maxTokens * 4), stream: false
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
+          error.status = response.status;
+          throw error;
+        }
+        const raw = data?.choices?.[0]?.message?.content;
+        const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
+        if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
+        return answer.trim().slice(0, 1400);
+      } catch (error) {
+        minimaxError = error;
+        console.error("MiniMax endpoint failed", base, error);
+        // Subscription keys are region-bound. Try the other official region only
+        // when the first endpoint rejects the key; don't duplicate rate-limited work.
+        if (error?.status && error.status !== 401 && error.status !== 403) break;
+      }
     }
+    if (!env.AI?.run && minimaxError) throw minimaxError;
   }
   if (!env.AI?.run) throw new Error("AI_NOT_CONFIGURED");
-  const result = await env.AI.run(env.AI_MODEL || "@cf/zai-org/glm-4.7-flash", {
-    messages,
-    temperature: 0.35,
-    max_tokens: maxTokens
-  });
-  const raw = result?.response ?? result?.choices?.[0]?.message?.content ?? result?.result?.response ?? "";
-  const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
-  if (!answer.trim()) throw new Error("Workers AI returned an empty response.");
-  return answer.trim().slice(0, 1400);
+  try {
+    const result = await env.AI.run(env.AI_MODEL || "@cf/zai-org/glm-4.7-flash", {
+      messages,
+      temperature: 0.35,
+      max_tokens: maxTokens
+    });
+    const raw = result?.response ?? result?.choices?.[0]?.message?.content ?? result?.result?.response ?? "";
+    const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
+    if (!answer.trim()) throw new Error("Workers AI returned an empty response.");
+    return answer.trim().slice(0, 1400);
+  } catch (error) {
+    console.error("Workers AI fallback failed", error);
+    throw minimaxError || error;
+  }
 }
-
 async function sha256(value) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
