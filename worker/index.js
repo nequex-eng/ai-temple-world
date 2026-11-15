@@ -211,7 +211,7 @@ async function handleApi(request, env, url) {
     const rows = await env.DB.prepare("SELECT id,player_id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all();
     return reply(request, { prayers: rows.results || [] });
   }
-  const prayerDeleteMatch = path.match(/^\\/api\\/prayers\\/([a-f0-9-]{36})$/i);
+  const prayerDeleteMatch = path.match(/^\/api\/prayers\/([a-f0-9-]{36})$/i);
   if (prayerDeleteMatch && request.method === "DELETE") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid request." }, 400);
