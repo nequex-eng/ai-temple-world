@@ -137,7 +137,7 @@ assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting ac
 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
 
-assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-submit").addEventListener("click"') && network.includes('    }, 30000);'), "Wish submission must be touch-safe, single-flight, and tolerate slow mobile connections");
+assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-submit").addEventListener("click"') && network.includes('}, 45000);'), "Wish submission must be touch-safe, single-flight, and tolerate slow mobile connections");
 assert.ok(app.includes('document.addEventListener("touchmove",blockPinch,{passive:false,capture:true})') && app.includes('$("restore-view").addEventListener("click",()=>location.reload())') && html.includes('id="restore-view"'), "Mobile pinch zoom must be blocked globally and a reload control must restore the initial viewport scale");
 assert.ok(app.includes('$("abbot-send").addEventListener("pointerup"') && app.includes('lastAbbotSubmitAt') && app.includes('$("abbot-form").addEventListener("submit"'), "Mobile abbot send must support touch, keyboard and duplicate-submit protection");
 assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !world.includes("incensePlaque") && !world.includes("lotusPlaque"), "All floating plaques and signboards must be removed to prevent clipping");
