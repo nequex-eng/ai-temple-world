@@ -81,15 +81,17 @@ function hall(scene,cfg,m){
  const n=Math.max(4,Math.round(w/3));
  for(let i=0;i<n;i++){
   const px=-w/2+(i+.5)*w/n;
-  if(Math.abs(px)<w*.2)continue;
+  if(Math.abs(px)<w*.36)continue;
   add(new THREE.CylinderGeometry(.16,.2,h,10),m.pillar,g,[px,.54+h/2,d/2-.35]);
   add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.54+h-.08,d/2-.35]);
  }
- const doorW=w*.38;
- add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.42,.54+h*.38,d/2-.06],[0,-.78,0]);
- add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.42,.54+h*.38,d/2-.06],[0,.78,0]);
+ const doorW=w*.34;
+ // Leave both heavy timber leaves fully folded toward the jambs; the central
+ // passage remains visibly open and wide enough for mobile and desktop avatars.
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.72,.54+h*.38,d/2-.06],[0,-1.38,0]);
+ add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.72,.54+h*.38,d/2-.06],[0,1.38,0]);
  for(const side of [-1,1]){
-  const px=side*w*.34;
+  const px=side*w*.43;
   add(new THREE.BoxGeometry(w*.18,h*.4,.13),m.darkWood,g,[px,.54+h*.55,d/2+.02]);
   for(let j=-2;j<=2;j++)add(new THREE.BoxGeometry(.035,h*.38,.05),m.goldDark,g,[px+j*w*.034,.54+h*.55,d/2+.1],[0,0,0],false);
   for(let j=0;j<4;j++)add(new THREE.BoxGeometry(w*.17,.035,.05),m.goldDark,g,[px,.54+h*.37+j*h*.095,d/2+.1],[0,0,0],false);
@@ -596,7 +598,7 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
   for(const [x,z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]])lantern(s,x,z,m);
   // Incense censer
-  this.incensePosition=new THREE.Vector3(0,0,-37.4);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=false;
+  this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
   add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("香炉广场","INCENSE COURTYARD");incensePlaque.scale.set(3.2,.8,1);incensePlaque.position.set(8,3.1,2.2);s.add(incensePlaque);
   // Lotus pond
@@ -631,8 +633,7 @@ export class TempleWorld{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,spec.stationary?Math.PI:(index%2?Math.PI:0),groundHeightAt(spec.x,spec.z,this.halls));
    const npc={avatar:a,route:spec.route.map(p=>new THREE.Vector3(p[0],0,p[1])),target:new THREE.Vector3(spec.x,0,spec.z),targetIndex:0,moving:false,nextAt:performance.now()+1200+index*900,stuckAt:0,routine:spec.routine||["bow","greet"],routineStep:0};
    if(index===3||index===6){a.setPose("bow",4500);npc.nextAt=performance.now()+4500;}
-   if(index===4){a.setPose("meditate",9000);npc.nextAt=performance.now()+9000;}
-   if(spec.stationary){a.setPose("meditate",24*60*60*1000);npc.stationary=true;npc.moving=false;}
+   if(index===4){a.setPose("meditate",5200);npc.nextAt=performance.now()+5200;}
    return npc;
   });
  }
@@ -674,7 +675,7 @@ export class TempleWorld{
   return {...this.collision,actors};
  }
  isInsideHall(position){
-  return this.halls.some(h=>Math.abs(position.x-h.x)<h.w/2-1.05&&position.z>h.z-h.d/2+1.05&&position.z<h.z+h.d/2-4.0);
+  return this.halls.some(h=>Math.abs(position.x-h.x)<h.w/2-.8&&position.z>h.z-h.d/2+.8&&position.z<h.z+h.d/2-.55);
  }
  bindCamera(){
   const c=this.renderer.domElement;
@@ -740,7 +741,7 @@ export class TempleWorld{
  }
  canAct(a){
   const p=this.local?.root.position;if(!p)return false;
-  if(a==="incense")return Math.hypot(p.x,p.z+37.4)<5.5;
+  if(a==="incense")return Math.hypot(p.x+5.4,p.z+37.2)<5.5;
   if(a==="bell")return Math.hypot(p.x-8,p.z+41)<5.5;
   if(a==="lotus")return Math.hypot(p.x-7,p.z+32.5)<4.5;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
@@ -836,7 +837,7 @@ export class TempleWorld{
   this.updateEffects(dt);if(render)this.renderer.render(this.scene,this.camera);
  }
  addEffect(type,position=null){
-  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);this.scene.add(g);
+  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);if(type==="incense")g.position.copy(this.incensePosition);this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else if(type==="lotus"){
    for(let i=0;i<7;i++){const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.17,8,8),mat(0xe6c9c6,.65,{emissive:0x4f2523,emissiveIntensity:.3}),g,[Math.cos(a)*.23,.2,Math.sin(a)*.23]);petal.scale.set(.7,1.6,.55);}
