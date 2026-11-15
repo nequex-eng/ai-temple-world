@@ -138,7 +138,7 @@ assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting ac
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
 
 assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-submit").addEventListener("click"') && network.includes('}, 45000);'), "Wish submission must be touch-safe, single-flight, and tolerate slow mobile connections");
-assert.ok(app.includes('document.addEventListener("touchmove",blockPinch,{passive:false,capture:true})') && app.includes('$("restore-view").addEventListener("click",()=>location.reload())') && html.includes('id="restore-view"'), "Mobile pinch zoom must be blocked globally and a reload control must restore the initial viewport scale");
+assert.ok(app.includes('document.addEventListener("touchmove",blockPinch,{passive:false,capture:true})') && !app.includes('$("restore-view")') && !html.includes('id="restore-view"'), "Mobile pinch handling remains and the restore button is removed");
 assert.ok(app.includes('$("abbot-send").addEventListener("pointerup"') && app.includes('lastAbbotSubmitAt') && app.includes('$("abbot-form").addEventListener("submit"'), "Mobile abbot send must support touch, keyboard and duplicate-submit protection");
 assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !world.includes("incensePlaque") && !world.includes("lotusPlaque"), "All floating plaques and signboards must be removed to prevent clipping");
 
@@ -146,10 +146,12 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-71"), "Service worker cache must refresh the shared-room client fix");
+assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the shared-room client fix");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
 assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the current fixes");
+
+assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)") && !worker.includes("max_tokens: maxTokens"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
