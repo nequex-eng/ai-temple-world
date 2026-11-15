@@ -119,6 +119,7 @@ function handleMessage(message){
  if(message.type==="prayer:new"&&message.prayer?.id&&!sharedPrayers.some(p=>p.id===message.prayer.id)){
   syncPrayerBoard([message.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(message.prayer);void updateStats();return;
  }
+ if(message.type==="prayer:delete"&&message.id){syncPrayerBoard(sharedPrayers.filter(p=>p.id!==message.id));void updateStats();return;}
 }
 async function updateStats(){
  try{
@@ -435,24 +436,33 @@ $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classLis
 async function loadPrayers(){
  try{const prayers=await network.getPrayers();syncPrayerBoard(prayers);renderPrayers(prayers);}catch{renderPrayers(sharedPrayers);}
 }
-function renderPrayerAppend(p){
- if(!p?.message)return;
- const list=$("prayer-list");if(list.querySelector(".prayer-empty"))list.replaceChildren();
- if(list.querySelector(`[data-prayer-id="${CSS.escape(p.id||"")}"]`))return;
+function makePrayerCard(p){
  const card=document.createElement("article");card.className="prayer-item";if(p.id)card.dataset.prayerId=p.id;
  const body=document.createElement("p");body.textContent=p.message;
  const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at||Date.now()).toLocaleDateString();
- card.append(body,foot);list.prepend(card);while(list.children.length>30)list.lastElementChild.remove();text("prayer-count",String(list.children.length));
+ card.append(body,foot);
+ if(p.player_id===network.playerId){
+  const remove=document.createElement("button");remove.type="button";remove.className="prayer-delete";remove.textContent="删除心愿";remove.setAttribute("aria-label","删除自己的心愿");
+  remove.addEventListener("click",async()=>{
+   if(remove.disabled||!window.confirm("确定删除这条自己的心愿吗？"))return;
+   remove.disabled=true;
+   try{await network.deletePrayer(p.id);syncPrayerBoard(sharedPrayers.filter(item=>item.id!==p.id));toast("心愿已删除");await updateStats();}
+   catch(error){remove.disabled=false;toast(error?.message||"删除失败，请稍后重试");}
+  });
+  card.append(remove);
+ }
+ return card;
+}
+function renderPrayerAppend(p){
+ if(!p?.message)return;
+ const list=$("prayer-list");if(list.querySelector(".prayer-empty"))list.replaceChildren();
+ if(list.querySelector('[data-prayer-id="'+CSS.escape(p.id||"")+'"]'))return;
+ list.prepend(makePrayerCard(p));while(list.children.length>30)list.lastElementChild.remove();text("prayer-count",String(list.children.length));
 }
 function renderPrayers(prayers){
  const list=$("prayer-list");list.replaceChildren();text("prayer-count",String(prayers.length));
  if(!prayers.length){const empty=document.createElement("div");empty.className="prayer-empty";empty.textContent=t().prayerEmpty;list.append(empty);return;}
- for(const p of prayers){
-  const card=document.createElement("article");card.className="prayer-item";
-  const body=document.createElement("p");body.textContent=p.message;
-  const foot=document.createElement("small");foot.textContent=(p.display_name||t().unknown)+" · "+new Date(p.created_at).toLocaleDateString();
-  if(p.id)card.dataset.prayerId=p.id;card.append(body,foot);list.append(card);
- }
+ for(const p of prayers)list.append(makePrayerCard(p));
 }
 $("open-abbot").addEventListener("click",async()=>{
   $("abbot-modal").classList.remove("hidden");
@@ -517,11 +527,9 @@ async function submitPrayer(e){
  }
 }
 $("prayer-form").addEventListener("submit",submitPrayer);
-$("prayer-submit").addEventListener("click",e=>{
- // Explicit click handling makes the touch target reliable on mobile Safari;
- // prevent the native submit so a single tap can never create two requests.
- e.preventDefault();void submitPrayer(e);
-});
+$("prayer-submit").type="button";
+$("prayer-submit").addEventListener("click",e=>{e.preventDefault();void submitPrayer(e);});
+$("prayer-submit").addEventListener("pointerup",e=>{if(e.pointerType==="touch"&&e.cancelable){e.preventDefault();if(!prayerSending)void submitPrayer(e);}});
 
 // Keyboard and mobile thumbstick controls
 const movementCodes={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ArrowUp:"arrowup",ArrowDown:"arrowdown",ArrowLeft:"arrowleft",ArrowRight:"arrowright",Space:"jump"};
