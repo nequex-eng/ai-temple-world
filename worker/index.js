@@ -267,7 +267,6 @@ export class TempleRoom {
       } catch {}
     }
     if (current.length >= 120) return new Response("The sanctuary is full. Please try another moment.", { status: 503 });
-    const url = new URL(request.url);
     const player = {
       id: validId(url.searchParams.get("id")) ? url.searchParams.get("id") : crypto.randomUUID(),
       name: clean(url.searchParams.get("name"), 18) || "行者",
