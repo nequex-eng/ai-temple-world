@@ -620,8 +620,8 @@ export class TempleWorld{
  buildNpcs(){
   const roster=[
    {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-8,z:-31,route:[[-8,-31],[-6,-32],[-6,-35],[-8,-35]],routine:["greet","bow"]},
-   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:7,z:-31,route:[[7,-31],[7,-34],[5,-34],[5,-31]],routine:["chant","bow"]},
-   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-8,z:-38,route:[[-8,-38],[-7,-41],[-5,-41],[-5,-38]],routine:["bow","greet"]},
+   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:9,z:-30,route:[[9,-30],[10,-32],[10,-35],[9,-36]],routine:["chant","bow"]},
+   {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-8,z:-38,route:[[-8,-38],[-8,-41],[-6.5,-41],[-7,-36]],routine:["bow","greet"]},
    {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:8,z:-37,route:[[8,-37],[8,-40],[6,-40],[6,-37]],routine:["bow","greet"]},
    {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-4,z:-42,route:[[-4,-42],[-5,-42],[-5,-41],[-4,-41]],routine:["meditate","chant"]},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-7,z:-33,route:[[-7,-33],[-5,-32],[-3,-33],[-5,-35]],routine:["sweep","bow"]},
@@ -665,6 +665,13 @@ export class TempleWorld{
    }
    a.update(dt,time,npc.moving);
   }
+ }
+ npcCollisionWorld(exclude){
+  const actors=[];
+  const addActor=a=>{if(!a||a===exclude)return;const p=a.root.position;actors.push({x:p.x,z:p.z,radius:.5});};
+  if(this.local)addActor(this.local);
+  for(const a of this.remotes.values())addActor(a);
+  return {...this.collision,actors};
  }
  actorCollisionWorld(exclude){
   const actors=[];
