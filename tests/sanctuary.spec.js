@@ -40,6 +40,9 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await page.locator("#open-abbot").click();
   await expect(page.locator("#abbot-modal")).not.toHaveClass(/hidden/);
   await expect(page.locator("#abbot-messages")).toContainText("阿弥陀佛");
+  await page.locator("#abbot-input").fill("请用两句话解释什么是慈悲。");
+  await page.locator("#abbot-form button").click();
+  await expect(page.locator("#abbot-messages")).toContainText(/慈悲|关怀|众生|AI住持服务尚未绑定/, { timeout: 45000 });
   await page.locator('[data-close="abbot-modal"]').click();
   await expect(page.locator("#abbot-modal")).toHaveClass(/hidden/);
   await expect.poll(() => liveSockets.some(value => {
