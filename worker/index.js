@@ -19,11 +19,11 @@ const clean = (v, max = 40) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/
 const validId = (v) => /^[a-f0-9-]{36}$/i.test(String(v || ""));
 const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fallback;
 const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant", "tea"]);
-const LANGS = new Set(["zh", "ja", "ko", "th"]);
+const LANGS = new Set(["zh", "en", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 
 
-const LANGUAGE_NAMES = { zh: "Simplified Chinese", ja: "Japanese", ko: "Korean", th: "Thai" };
+const LANGUAGE_NAMES = { zh: "Simplified Chinese", en: "English", ja: "Japanese", ko: "Korean", th: "Thai" };
 
 async function reserveAiRequest(env, playerId, kind, dailyLimit, minIntervalMs) {
   const recent = await env.DB.prepare(
