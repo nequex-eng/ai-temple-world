@@ -253,7 +253,7 @@ function updateSoundscape(){
   }
  }
  if(!templeChant||!world.local)return;
- const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x+28,p.z-2);
+ const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
  const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
  if(chantVolume>.006){if(templeChant.paused)void mediaPlay(templeChant,"殿内诵经");}
@@ -413,7 +413,6 @@ function doAction(action){
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
  network.action(action);network.logActivity(action,world.currentLocation().key);
- if(action==="bell")playBell();
  toast(poseText);
 }
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
