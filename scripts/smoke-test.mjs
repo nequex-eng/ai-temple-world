@@ -71,7 +71,7 @@ assert.ok(worker.includes('type: "presence", players: peers') && app.includes('m
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])"), "Physical wish wall must show saved wishes to new and current visitors");
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
 assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"'), "Mobile abbot sending must use a direct click handler");
-assert.ok(worker.includes("Array.from(clean(body.message, 80)).slice(0, 20)") && html.includes('id="prayer-input" maxlength="20"'), "Wish wall must enforce a 20-character limit");
+assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"'), "Wish wall must reject wishes longer than 20 characters");
 assert.ok(world.includes("LOTUS WISH WALL") && app.includes("nearPrayerWall"), "The left-of-gate wish wall must open when a visitor approaches");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
