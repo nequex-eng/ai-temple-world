@@ -25,7 +25,11 @@ assert.ok(app.includes("async function saveProfile()"), "Profile creation handle
 assert.ok(app.includes("await network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("async askAbbot") && app.includes('$("open-abbot").addEventListener') && html.includes('id="abbot-modal"'), "AI abbot must be wired from UI through the protected API");
-for (const locale of ["zh:", "ja:", "ko:", "th:"]) assert.ok(i18n.includes(locale) && i18n.slice(i18n.indexOf(locale), i18n.indexOf(locale)+12000).includes("abbotTitle:"), "AI abbot locale missing: " + locale);
+for (const locale of ["zh", "ja", "ko", "th"]) {
+  const start = i18n.indexOf("  " + locale + ":");
+  const end = i18n.indexOf("\\n  },", start);
+  assert.ok(start >= 0 && i18n.slice(start, end < 0 ? i18n.length : end).includes("abbotTitle:"), "AI abbot locale missing: " + locale);
+}
 assert.ok(network.includes("this.room") && network.includes("this.instance") && network.includes("this.region"), "Multiplayer room parameters missing");
 assert.ok(network.includes('(params.get("region") || "apac")'), "Main room should default to APAC placement");
 assert.ok(worker.includes('idFromName("temple:" + room + ":" + instance + ":" + region)') && worker.includes("locationHint: region"), "Regional room sharding missing");
