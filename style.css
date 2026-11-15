@@ -143,3 +143,19 @@
 
 /* Keep the profile control available to the quick-profile shortcut, but remove it from the top bar. */
 #open-profile{display:none!important}
+
+/* The visitor experience is intentionally free of location and online-presence panels. */
+#location-card,#presence-card{display:none!important}
+.action-dock.glass{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ padding:0!important;gap:22px!important;
+}
+.action-dock .action-button{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ border-radius:0!important;outline:0!important;
+}
+.action-dock .action-button:hover,.action-dock .action-button:focus-visible,.action-dock .action-button:active{
+ background:transparent!important;box-shadow:none!important;outline:0!important;
+}
+.action-dock .action-button:focus-visible span:last-child{ text-decoration:underline;text-underline-offset:4px; }
