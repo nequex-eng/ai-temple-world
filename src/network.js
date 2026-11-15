@@ -29,10 +29,11 @@ export class TempleNetwork {
     this.retry = 0;
     this.lastSent = 0;
     this.lastBroadcastPosition = null;
+    this.pendingChatQueue = [];
   }
-  async request(path, options = {}) {
+  async request(path, options = {}, timeoutMs = 15000) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(API_BASE + path, {
         ...options,
@@ -52,7 +53,7 @@ export class TempleNetwork {
     return this.request("/api/abbot", {
       method: "POST",
       body: JSON.stringify({ player_id: this.playerId, message, history, language, location })
-    });
+    }, 60000);
   }
   async health() { return this.request("/api/health"); }
   async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
@@ -118,6 +119,11 @@ export class TempleNetwork {
         if (this.socket === socket && socket.readyState === WebSocket.OPEN) this.send({ type: "ping", at: Date.now() });
       }, 15000);
       this.onStatus("online");
+      while (this.pendingChatQueue.length && this.socket === socket && socket.readyState === WebSocket.OPEN) {
+        const queued = this.pendingChatQueue[0];
+        if (!this.send({ type: "chat", message: queued })) break;
+        this.pendingChatQueue.shift();
+      }
     });
     socket.addEventListener("message", event => {
       try { this.onMessage(JSON.parse(event.data)); } catch {}
@@ -158,7 +164,18 @@ export class TempleNetwork {
     this.send({ type: "move", ...position });
   }
   action(action) { this.send({ type: "action", action }); }
-  chat(message) { return this.send({ type: "chat", message }); }
+  chat(message) {
+    const clean = String(message || "").trim().slice(0, 220);
+    if (!clean) return false;
+    if (this.send({ type: "chat", message: clean })) return true;
+    if (this.pendingChatQueue.length >= 10) return false;
+    this.pendingChatQueue.push(clean);
+    if (!this.closedByUser) {
+      if (this.socket?.readyState !== WebSocket.CONNECTING) this.openSocket();
+      if (!this.reconnectTimer && this.socket?.readyState !== WebSocket.OPEN) this.scheduleReconnect();
+    }
+    return true;
+  }
   close() {
     this.closedByUser = true;
     clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
