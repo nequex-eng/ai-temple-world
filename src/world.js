@@ -783,7 +783,7 @@ export class TempleWorld{
   const localPosition=this.local.root.position;
   const groundY=groundHeightAt(result.x,result.z,this.halls);
   const wantsJump=!!input.jump;
-  if(wantsJump&&!this.jumpHeld&&this.jumpOffset<=.001&&canMove)this.jumpVelocity=4.35;
+  if(wantsJump&&!this.jumpHeld&&this.jumpOffset<=.001)this.jumpVelocity=4.35;
   this.jumpHeld=wantsJump;
   if(this.jumpOffset>0||this.jumpVelocity>0){
    this.jumpVelocity-=12.8*dt;this.jumpOffset+=this.jumpVelocity*dt;
