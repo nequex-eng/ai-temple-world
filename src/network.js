@@ -56,7 +56,7 @@ export class TempleNetwork {
       body: JSON.stringify({ player_id: this.playerId, message, history, language, location })
     }, 60000);
   }
-  async health() { return this.request("/api/health"); }
+  async health() { return this.request("/api/health", {}, 30000); }
   async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
   async loadProfile() {
     try {
