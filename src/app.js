@@ -13,7 +13,7 @@ let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>world.lotusLights.map(i=>({boat:!!i.group.userData.boat,progress:i.progress,x:i.group.position.x,z:i.group.position.z})),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -114,8 +114,7 @@ function handleMessage(message){
  if(!message||!message.type)return;
  if(message.type==="welcome"){
   if(message.self)world.setDebugPosition(message.self.x,message.self.z);
-  syncPresence(message.players||[]);syncPrayerBoard(message.prayers||[]);
-  for(const offering of message.offerings||[])world.addEffect("lotus");return;
+  syncPresence(message.players||[]);syncPrayerBoard(message.prayers||[]);return;
  }
  if(message.type==="presence"){syncPresence(message.players||[]);return;}
  if(message.type==="player:join"){
@@ -125,7 +124,7 @@ function handleMessage(message){
  if(message.type==="player:move"||message.type==="player:action"){
   if(message.player?.id!==network.playerId){
    world.updateRemote(message.player);
-   if(message.type==="player:action"){world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});playRitualSound(message.player.action,.42);}
+   if(message.type==="player:action"&&message.player.action!=="lotus"){world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});playRitualSound(message.player.action,.42);}
    onlinePlayers.set(message.player.id,message.player);
    if(message.type==="player:action")renderPresence();
   }return;
@@ -361,6 +360,17 @@ function playBeadTick(){
   osc.connect(gain);gain.connect(out);osc.start(now+delay);osc.stop(now+delay+.085);
  }
 }
+function playLotusWater(){
+ if(!soundEnabled||!audio||audio.state!=="running")return;
+ const now=audio.currentTime,length=Math.floor(audio.sampleRate*.72),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++){const t=i/length;data[i]=(Math.random()*2-1)*Math.pow(1-t,2.2);}
+ const source=audio.createBufferSource(),low=audio.createBiquadFilter(),high=audio.createBiquadFilter(),gain=audio.createGain();
+ source.buffer=buffer;low.type="lowpass";low.frequency.setValueAtTime(1050,now);low.frequency.exponentialRampToValueAtTime(420,now+.55);
+ high.type="highpass";high.frequency.value=130;
+ gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.075*audioVolumes.effects,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.7);
+ source.connect(high);high.connect(low);low.connect(gain);gain.connect(effectsGain||audioMaster||audio.destination);
+ source.start(now);source.stop(now+.73);
+}
 function playRitualSound(action,volume=1){
  if(!soundEnabled||!audio||audio.state!=="running")return;
  if(action==="bell"){playBell(false,.9*volume);return;}
@@ -377,8 +387,8 @@ function playRitualSound(action,volume=1){
   const osc=audio.createOscillator(),gain=audio.createGain();osc.type="triangle";osc.frequency.setValueAtTime(145,now);osc.frequency.exponentialRampToValueAtTime(82,now+.12);
   gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.11*volume,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.2);
   osc.connect(gain);gain.connect(out);osc.start(now);osc.stop(now+.21);
- }else if(action==="incense"||action==="lotus"){
-  const notes=action==="incense"?[659,988]:[784,1174];
+ }else if(action==="incense"){
+  const notes=[659,988];
   notes.forEach((hz,i)=>{const osc=audio.createOscillator(),gain=audio.createGain();osc.type="sine";osc.frequency.value=hz;
    gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.035*volume,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.8);
    osc.connect(gain);gain.connect(out);osc.start(now+i*.12);osc.stop(now+i*.12+.82);});
@@ -413,6 +423,13 @@ function doAction(action){
  if(!world.canAct(action)){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
+ }
+ if(action==="lotus"){
+  playLotusWater();
+  text("character-state",t().actionText.lotus||"放莲灯");
+  toast("一盏莲灯随愿入水，愿你心安自在。");
+  network.logActivity(action,world.currentLocation().key);
+  return;
  }
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
