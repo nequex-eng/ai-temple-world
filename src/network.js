@@ -30,6 +30,7 @@ export class TempleNetwork {
     this.lastSent = 0;
     this.lastBroadcastPosition = null;
     this.pendingChatQueue = [];
+    this.chatFlushTimer = null;
   }
   async request(path, options = {}, timeoutMs = 15000) {
     const controller = new AbortController();
@@ -119,11 +120,7 @@ export class TempleNetwork {
         if (this.socket === socket && socket.readyState === WebSocket.OPEN) this.send({ type: "ping", at: Date.now() });
       }, 15000);
       this.onStatus("online");
-      while (this.pendingChatQueue.length && this.socket === socket && socket.readyState === WebSocket.OPEN) {
-        const queued = this.pendingChatQueue[0];
-        if (!this.send({ type: "chat", message: queued })) break;
-        this.pendingChatQueue.shift();
-      }
+      this.flushChatQueue(socket);
     });
     socket.addEventListener("message", event => {
       try { this.onMessage(JSON.parse(event.data)); } catch {}
@@ -132,6 +129,7 @@ export class TempleNetwork {
     socket.addEventListener("close", event => {
       if (this.socket !== socket) return;
       clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
+      clearTimeout(this.chatFlushTimer);this.chatFlushTimer=null;
       this.socket = null;
       if (event.code === 4001) { this.closedByUser = true; this.onStatus("offline"); return; }
       if (this.closedByUser) return;
@@ -164,21 +162,28 @@ export class TempleNetwork {
     this.send({ type: "move", ...position });
   }
   action(action) { this.send({ type: "action", action }); }
+  flushChatQueue(socket = this.socket) {
+    if (!socket || this.socket !== socket || socket.readyState !== WebSocket.OPEN || !this.pendingChatQueue.length || this.chatFlushTimer) return;
+    const queued = this.pendingChatQueue.shift();
+    if (!this.send({ type: "chat", message: queued })) { this.pendingChatQueue.unshift(queued); return; }
+    if (this.pendingChatQueue.length) this.chatFlushTimer = setTimeout(() => {
+      this.chatFlushTimer = null;
+      this.flushChatQueue(socket);
+    }, 1050);
+  }
   chat(message) {
     const clean = String(message || "").trim().slice(0, 220);
-    if (!clean) return false;
-    if (this.send({ type: "chat", message: clean })) return true;
-    if (this.pendingChatQueue.length >= 10) return false;
+    if (!clean || this.pendingChatQueue.length >= 10) return false;
+    if (this.socket?.readyState === WebSocket.OPEN && !this.pendingChatQueue.length) return this.send({ type: "chat", message: clean });
     this.pendingChatQueue.push(clean);
-    if (!this.closedByUser) {
-      if (this.socket?.readyState !== WebSocket.CONNECTING) this.openSocket();
-      if (!this.reconnectTimer && this.socket?.readyState !== WebSocket.OPEN) this.scheduleReconnect();
-    }
+    if (!this.closedByUser && this.socket?.readyState !== WebSocket.CONNECTING) this.openSocket();
+    if (this.socket?.readyState === WebSocket.OPEN) this.flushChatQueue();
     return true;
   }
   close() {
     this.closedByUser = true;
     clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
+    clearTimeout(this.chatFlushTimer);this.chatFlushTimer=null;
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
     const socket = this.socket;
