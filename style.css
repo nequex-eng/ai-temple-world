@@ -103,3 +103,9 @@
 .abbot-form .primary-button{width:88px;flex:none}
 .abbot-status{font-size:9px;line-height:1.7;color:#9f9a88;margin-top:10px}
 @media(max-width:660px){.abbot-modal{padding:22px 17px}.abbot-messages{height:42vh;min-height:160px}.abbot-form .primary-button{width:70px;font-size:9px}}
+
+
+/* Mobile jump control */
+.jump-toggle{height:48px;width:48px;border:1px solid #e4cb9877;border-radius:50%;background:rgba(35,49,39,.82);color:#f0dfbd;font-family:var(--serif);font-size:17px;box-shadow:0 3px 12px #0005;touch-action:none;user-select:none;-webkit-user-select:none}
+.jump-toggle:active{background:#a18454;transform:scale(.96)}
+@media(max-width:660px){.jump-toggle{height:45px;width:45px;font-size:16px}.mobile-controls{gap:7px}}
