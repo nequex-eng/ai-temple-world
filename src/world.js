@@ -512,7 +512,7 @@ export class TempleWorld{
   }
   // Meditation hall interior: a smaller Buddha shrine, four cushions, timber screens and warm lamps.
   const meditationRoom=new THREE.Group();meditationRoom.position.set(-28,0,-25);s.add(meditationRoom);meditationRoom.visible=false;
-  add(new THREE.PlaneGeometry(12.5,9.5),hallFloor,meditationRoom,[0,.546,0],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(12.5,9.5),m.stoneLight,meditationRoom,[0,.546,0],[-Math.PI/2,0,0],false);
   const smallShrine=new THREE.Group();smallShrine.position.set(0,0,-3.45);meditationRoom.add(smallShrine);
   add(new THREE.CylinderGeometry(1.15,1.3,.28,32),darkWood,smallShrine,[0,.72,0]);
   add(new THREE.CylinderGeometry(1.02,1.12,.18,32),goldLeaf,smallShrine,[0,.94,0]);
