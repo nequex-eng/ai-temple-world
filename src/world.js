@@ -445,6 +445,42 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
    for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
   }
+  // Meditation hall interior: a smaller Buddha shrine, four cushions, timber screens and warm lamps.
+  const meditationRoom=new THREE.Group();meditationRoom.position.set(-28,0,-25);s.add(meditationRoom);
+  add(new THREE.PlaneGeometry(12.5,9.5),hallFloor,meditationRoom,[0,.546,0],[-Math.PI/2,0,0],false);
+  const smallShrine=new THREE.Group();smallShrine.position.set(0,0,-3.45);meditationRoom.add(smallShrine);
+  add(new THREE.CylinderGeometry(1.15,1.3,.28,32),darkWood,smallShrine,[0,.72,0]);
+  add(new THREE.CylinderGeometry(1.02,1.12,.18,32),goldLeaf,smallShrine,[0,.94,0]);
+  for(let i=0;i<12;i++){const a=i*Math.PI*2/12,petal=add(new THREE.SphereGeometry(.28,10,8),bud,smallShrine,[Math.cos(a)*.62,1.1,Math.sin(a)*.62]);petal.scale.set(.45,.2,1.1);petal.rotation.y=-a;}
+  const smallSeat=add(new THREE.SphereGeometry(1,18,12),bud,smallShrine,[0,1.22,0]);smallSeat.scale.set(.78,.24,.58);
+  add(new THREE.CylinderGeometry(.38,.48,1.0,20),bud,smallShrine,[0,1.75,0]);
+  const smallFace=add(new THREE.SphereGeometry(.27,20,16),bud,smallShrine,[0,2.42,.015]);smallFace.scale.set(.84,1.12,.8);
+  add(new THREE.SphereGeometry(.12,14,10),bud,smallShrine,[0,2.76,0]).scale.set(.8,1,.8);
+  for(const side of [-1,1]){
+   add(new THREE.SphereGeometry(.065,10,8),bud,smallShrine,[side*.25,2.35,.05]).scale.set(.7,1.45,.7);
+   const eye=new THREE.CatmullRomCurve3([new THREE.Vector3(side*.105,2.43,.238),new THREE.Vector3(side*.055,2.415,.25),new THREE.Vector3(side*.02,2.43,.255)]);
+   smallShrine.add(new THREE.Mesh(new THREE.TubeGeometry(eye,8,.008,5,false),budDark));
+  }
+  add(new THREE.SphereGeometry(.025,8,8),goldLeaf,smallShrine,[0,2.4,.26]);
+  const smallHalo=add(new THREE.TorusGeometry(.78,.035,8,48),goldLeaf,smallShrine,[0,2.42,-.34],[0,0,0]);
+  for(const x of [-4.2,-1.4,1.4,4.2]){
+   const cushionGroup=new THREE.Group();cushionGroup.position.set(x,.58,1.35);meditationRoom.add(cushionGroup);
+   add(new THREE.BoxGeometry(1.12,.18,.96),cushionEdge,cushionGroup,[0,0,0]).scale.set(1,.85,1);
+   add(new THREE.BoxGeometry(1.02,.2,.84),cushion,cushionGroup,[0,.12,0]).scale.set(1,.8,1);
+   add(new THREE.BoxGeometry(.92,.025,.025),goldLeaf,cushionGroup,[0,.225,.41]);
+   for(const side of [-1,1])add(new THREE.SphereGeometry(.03,8,6),goldLeaf,cushionGroup,[side*.42,.23,.34]);
+  }
+  // A low scripture stand and framed calligraphy give the room a clear contemplative purpose.
+  add(new THREE.BoxGeometry(2.4,.18,.72),darkWood,meditationRoom,[0,1.0,-1.55]);
+  for(const x of [-.9,0,.9])add(new THREE.BoxGeometry(.08,.58,.08),goldLeaf,meditationRoom,[x,1.34,-1.55]);
+  const calligraphy=plaqueSprite("止观","CALM ABIDING");calligraphy.scale.set(2.5,.62,1);calligraphy.position.set(0,3.25,-4.72);meditationRoom.add(calligraphy);
+  for(const side of [-1,1]){
+   const lamp=new THREE.Group();lamp.position.set(side*5.35,2.2,-2.5);meditationRoom.add(lamp);
+   add(new THREE.BoxGeometry(.16,.65,.16),darkWood,lamp,[0,-.32,0]);
+   add(new THREE.BoxGeometry(.56,.1,.56),goldLeaf,lamp,[0,.08,0]);
+   add(new THREE.BoxGeometry(.38,.48,.38),m.paper,lamp,[0,.36,0]);
+   const glow=new THREE.PointLight(0xffc77e,.24,4);glow.position.y=.4;lamp.add(glow);
+  }
   // Bell tower & bronze bell
   const bell=new THREE.Group();bell.position.set(-28,0,2);s.add(bell);
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
@@ -474,10 +510,10 @@ export class TempleWorld{
  buildNpcs(){
   const roster=[
    {name:"净行",robe:"#a97950",skin:"#d4a27e",style:"monk",x:-3,z:23,route:[[-3,18],[2,13],[3,20]],routine:["greet","bow"]},
-   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:4,z:4,route:[[4,4],[-4,3],[-4,-1],[3,-2]],routine:["chant","meditate"]},
+   {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:4,z:4,route:[[4,4],[-4,3],[-4,-1],[3,-2]],routine:["chant","bow"]},
    {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-25,z:10,route:[[-25,10],[-21,4],[-21,-1]],routine:["bow","greet"]},
-   {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[19,-15],[17,-18],[20,-20]],routine:["bow","meditate"]},
-   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-22,z:-18,route:[[-22,-18],[-19,-16],[-18,-12],[-24,-12]],routine:["meditate","chant"]},
+   {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[19,-15],[17,-18],[20,-20]],routine:["bow","greet"]},
+   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-29.4,z:-23.65,route:[[-29.4,-23.65]],routine:["meditate","chant"],stationary:true},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]],routine:["sweep","bow"]},
    {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]],routine:["meditate","greet"]},
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]],routine:["greet","bow"]},
@@ -559,8 +595,8 @@ export class TempleWorld{
   if(action==="meditate"){
    const cushions=[[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]];
    const p=this.local.root.position,altarZ=-38.5;
-   const nearest=cushions.map(([x,z])=>({x,z,d:Math.hypot(p.x-x,p.z-(altarZ+z))})).sort((a,b)=>a.d-b.d)[0];
-   if(nearest&&nearest.d<2.35)this.local.setPosition(nearest.x,altarZ+nearest.z,Math.PI,.54);
+   const nearest=cushions.map(([x,z])=>({x,z,d:Math.hypot(p.x-x,p.z-z)})).sort((a,b)=>a.d-b.d)[0];
+   if(nearest&&nearest.d<2.35)this.local.setPosition(nearest.x,nearest.z,Math.PI,.54);
   }
   this.local.setPose(action);
  }
@@ -578,7 +614,7 @@ export class TempleWorld{
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=[[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]];
-   return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-(-38.5+z))<2.35);
+   return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-z)<2.35);
   }
   return true;
  }
