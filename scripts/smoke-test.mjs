@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
-import { createTempleCollision, collidesAt, groundHeightAt, moveWithCollision } from "../src/physics.js";
+import { createTempleCollision, collidesAt, groundHeightAt, moveWithCollision, findWalkPath } from "../src/physics.js";
 import templeWorker from "../worker/index.js";
 
 const read = path => fs.readFileSync(path, "utf8");
@@ -131,19 +131,30 @@ for (const z of [-17,-10.5,2]) {
 }
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
 const realTempleCollision = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
-for (const [x,z] of [[5,-26],[-14.8,-27],[-14.8,-35],[-14.8,-46.5],[0,-55.2],[5,-26],[14.2,-25.6],[19,-26.7]]) {
-  assert.equal(collidesAt(x,z,realTempleCollision),false,"An automatic activity waypoint must be collision-free at "+x+","+z);
+for (const [x,z] of [[0,-25.4],[8,-38],[19,-26.7],[2,-55.8],[0,-32.05]]) {
+  assert.equal(collidesAt(x,z,realTempleCollision),false,"An automatic activity destination must be collision-free at "+x+","+z);
 }
-let teaRoutePosition={x:0,z:-37,y:0};
-for (const [tx,tz] of [[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]]) {
-  let guard=0;
-  while(Math.hypot(tx-teaRoutePosition.x,tz-teaRoutePosition.z)>.18 && guard++<700){
-    const dx=tx-teaRoutePosition.x,dz=tz-teaRoutePosition.z,dist=Math.hypot(dx,dz);
-    const step=Math.min(.11,dist),moved=moveWithCollision(teaRoutePosition,dx/dist*step,dz/dist*step,realTempleCollision);
-    assert.equal(moved.blocked,false,"Tea-house auto-route must not hit a hidden collider");
-    teaRoutePosition={x:moved.x,y:moved.y,z:moved.z};
+const autoRoutes=[
+  {from:{x:10,z:-18,y:0},to:{x:0,z:-25.4},label:"front courtyard to incense"},
+  {from:{x:0,z:-60,y:0},to:{x:19,z:-26.7},label:"tea house to lotus pond"},
+  {from:{x:47,z:24,y:0},to:{x:2,z:-55.8},label:"market to tea house"},
+  {from:{x:-40,z:0,y:0},to:{x:2,z:-55.8},label:"west of wish wall to tea house"}
+];
+for(const route of autoRoutes){
+  const path=findWalkPath(route.from,route.to,realTempleCollision);
+  assert.ok(path?.length,"Collision-aware pathfinding must find "+route.label);
+  let position={...route.from};
+  for(const target of path){
+    let guard=0;
+    while(Math.hypot(target.x-position.x,target.z-position.z)>.16 && guard++<1200){
+      const dx=target.x-position.x,dz=target.z-position.z,dist=Math.hypot(dx,dz);
+      const moved=moveWithCollision(position,dx/dist*Math.min(.1,dist),dz/dist*Math.min(.1,dist),realTempleCollision);
+      assert.equal(moved.blocked,false,"The "+route.label+" path must not hit a hidden collider");
+      position={x:moved.x,y:moved.y,z:moved.z};
+    }
+    assert.ok(Math.hypot(target.x-position.x,target.z-position.z)<=.16,"The "+route.label+" path must reach each waypoint");
   }
-  assert.ok(Math.hypot(tx-teaRoutePosition.x,tz-teaRoutePosition.z)<=.18,"Tea-house path must reach waypoint "+tx+","+tz);
+  assert.ok(Math.hypot(route.to.x-position.x,route.to.z-position.z)<=.16,"The "+route.label+" path must reach its destination");
 }
 assert.equal(collidesAt(19,-32.5,realTempleCollision),true,"The lotus pond water must block walking through the pond");
 const collision = createTempleCollision(testHalls);
@@ -207,7 +218,7 @@ assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_com
 
 assert.ok(worker.includes('https://api.minimaxi.com/v1') && worker.includes('https://api.minimax.io/v1') && worker.includes('error.status !== 401 && error.status !== 403'), 'MiniMax keys must work across either official region without retrying rate-limited requests');
 
-assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes('tea:[[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]]') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
+assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes("findWalkPath(this.local.root.position") && world.includes("const destinations={incense:[0,-25.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
 assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"'), "English must be supported by the interface and API");
 assert.ok(app.includes("const night=!!world.isNight") && app.includes("templeBirds.currentTime=0") && app.includes("templeChant.currentTime=0") && app.includes("Night is a hard mute for birds and chanting"), "Birdsong and chanting must be stopped and blocked after dark");
 assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant"]'), "Action shortcuts must guide visitors to the relevant temple locations");
