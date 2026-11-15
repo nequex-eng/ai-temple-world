@@ -170,12 +170,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
   body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
  }
  add(new THREE.TorusGeometry(.34,.045,8,32),trim,body,[0,.48,0],[Math.PI/2,0,0]);
- // A softly flared, weighted robe hem follows the hips instead of forming a straight-sided barrel.
- const hem=add(new THREE.LatheGeometry([
-  new THREE.Vector2(.29,.06),new THREE.Vector2(.31,.12),new THREE.Vector2(.33,.26),
-  new THREE.Vector2(.36,.43),new THREE.Vector2(.38,.58)
- ],40),robe,body,[0,0,0]);
- hem.geometry.computeVertexNormals();
+ // The lower robe is already shaped into the tapered torso mesh; no cylindrical hem overlay.
  add(new THREE.BoxGeometry(.13,.035,.05),trim,body,[0,1.43,.49]);
  for(const side of [-1,1]){
   const ear=add(new THREE.SphereGeometry(1,14,10),skin,head,[side*.302,.105,-.005]);
