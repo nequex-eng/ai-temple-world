@@ -345,8 +345,18 @@ export class TempleRoom {
     const player = ws.deserializeAttachment();
     if (!player || typeof data.type !== "string") return;
     if (data.type === "ping") {
-      const peers=this.ctx.getWebSockets().filter(socket=>socket!==ws).map(socket=>{try{return socket.deserializeAttachment();}catch{return null;}}).filter(peer=>peer?.id&&peer.id!==player.id);
-      try { ws.send(JSON.stringify({ type: "presence", players: peers, online: peers.length + 1, at: Date.now() })); } catch {}
+      // Reconcile every connected client, not only the sender. This repairs
+      // missed join/leave events after mobile backgrounding or network changes.
+      const sockets = this.ctx.getWebSockets();
+      for (const target of sockets) {
+        let own;
+        try { own = target.deserializeAttachment(); } catch { own = null; }
+        if (!own?.id) continue;
+        const peers = sockets.filter(socket => socket !== target).map(socket => {
+          try { return socket.deserializeAttachment(); } catch { return null; }
+        }).filter(peer => peer?.id && peer.id !== own.id);
+        try { target.send(JSON.stringify({ type: "presence", players: peers, online: peers.length + 1, at: Date.now() })); } catch {}
+      }
       return;
     }
     if (data.type === "move") {
