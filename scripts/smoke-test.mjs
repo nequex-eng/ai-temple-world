@@ -72,7 +72,7 @@ assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
 assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"') && app.includes("--temple-visual-height"), "Mobile abbot sending must remain clickable above the software keyboard");
 assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"') && worker.includes("< 8000"), "Wish wall must enforce 20 characters and avoid an excessively long cooldown");
-assert.ok(world.includes("LOTUS WISHES · SHARED BY ALL") && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The full-length perpendicular west-boundary wish wall must open when approached");
+assert.ok(world.includes('fillText("许愿墙",514,132)') && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The full-length perpendicular west-boundary wish wall must open when approached");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("stationary:true") && world.includes("a.setPose(\"bow\",1200)"), "The resident abbot must remain a visible, stationary NPC");
