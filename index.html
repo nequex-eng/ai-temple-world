@@ -59,8 +59,9 @@
     <button id="quick-profile" aria-label="编辑角色">✎</button>
   </section>
 
+  <div class="chat-floaters" id="chat-floaters" aria-hidden="true"></div>
   <section class="chat-panel glass collapsed" id="chat-panel">
-    <div class="chat-heading"><div><span class="chat-symbol">◌</span><b id="chat-title">云间来信</b><span class="chat-caption" id="chat-caption">与此刻同在的人交谈</span></div><button class="panel-close" id="chat-collapse" aria-label="收起聊天">−</button></div>
+    <div class="chat-heading" id="chat-heading" role="button" tabindex="0" aria-expanded="false"><div><span class="chat-symbol">◌</span><b id="chat-title">云间来信</b><span class="chat-caption" id="chat-caption">与此刻同在的人交谈</span></div><button class="panel-close" id="chat-collapse" type="button" aria-label="打开聊天">＋</button></div>
     <div class="chat-messages" id="chat-messages"><div class="chat-welcome" id="chat-welcome">山门已开。愿每一次相遇，都带来善意。</div></div>
     <form class="chat-form" id="chat-form"><input id="chat-input" maxlength="220" autocomplete="off" placeholder="写下一句问候……"><button type="submit" id="chat-send" aria-label="发送">➤</button></form>
     <div class="chat-foot" id="chat-foot">即时交流 · 对方看到原文语言</div>

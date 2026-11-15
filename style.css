@@ -195,3 +195,31 @@
 .prayer-form button{min-height:46px}
 .prayer-form[aria-busy="true"]{opacity:.82}
 @media(max-width:660px){#prayer-modal{overflow-y:auto;place-items:center;padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))}#prayer-modal .prayer-modal{width:100%;max-height:calc(var(--temple-visual-height,100dvh) - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:24px 16px 16px}#prayer-modal .prayer-form textarea{min-height:88px;font-size:16px}#prayer-modal .prayer-form button{height:48px}}
+
+/* 云间来信：收起时仍以清晰的大号气泡从屏幕横向掠过。 */
+.chat-floaters{position:fixed;z-index:6;inset:0;overflow:hidden;pointer-events:none;contain:layout paint}
+.chat-floater{position:absolute;left:0;display:flex;align-items:center;gap:10px;max-width:min(82vw,720px);padding:12px 18px;border:1px solid rgba(225,196,132,.62);border-left:4px solid #e0bc79;border-radius:18px 18px 18px 5px;background:rgba(13,28,21,.94);box-shadow:0 5px 22px rgba(0,0,0,.34);color:#fff4df;font-size:16px;font-weight:600;line-height:1.45;text-shadow:0 1px 3px #000;overflow-wrap:anywhere;will-change:transform;animation-name:chat-floater-travel;animation-timing-function:linear;animation-fill-mode:forwards}
+.chat-floater strong{flex:none;color:#f1cf8e;font-size:14px;font-weight:700}
+.chat-floater span{color:#fff9ed}
+@keyframes chat-floater-travel{from{transform:translate3d(105vw,0,0)}to{transform:translate3d(-115%,0,0)}}
+.chat-heading{cursor:pointer;user-select:none;-webkit-user-select:none}
+.chat-heading:focus-visible{outline:1px solid var(--gold);outline-offset:3px}
+.chat-heading b{font-size:13px}
+.chat-line{font-size:13px;line-height:1.65}
+.chat-line strong{font-size:12px}
+.chat-line small{font-size:10px}
+.chat-form input{font-size:13px}
+.chat-panel.collapsed{width:148px;max-height:43px;height:43px;border-radius:23px 23px 23px 5px;background:rgba(18,36,28,.92);border:1px solid rgba(221,198,150,.46);box-shadow:0 5px 22px rgba(0,0,0,.28)}
+.chat-panel.collapsed .chat-heading{min-height:23px}
+.chat-panel.collapsed .chat-heading b{font-size:13px}
+.chat-panel.collapsed .panel-close{font-size:19px;color:#f1d69e}
+@media(max-width:660px){
+ .chat-floater{max-width:86vw;padding:9px 13px;font-size:14px;gap:8px}
+ .chat-floater strong{font-size:12px}
+ .chat-panel{right:9px;bottom:105px;width:min(88vw,360px);max-height:42vh;padding:10px 11px 9px}
+ .chat-panel.collapsed{width:135px;height:42px;max-height:42px}
+ .chat-panel:not(.collapsed) .chat-messages{height:min(24vh,185px)}
+ .chat-heading b{font-size:13px}
+ .chat-line{font-size:12px}
+ .chat-form input{font-size:14px;padding:9px}
+}

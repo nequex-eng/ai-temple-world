@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
+let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{localStorage.setItem("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
@@ -79,13 +79,27 @@ function renderPresence(){
 function appendChat(player,message,languageCode,messageId=null){
  const box=$("chat-messages"),welcome=$("chat-welcome");if(welcome)welcome.remove();
  if(messageId&&box.querySelector('[data-chat-id="'+CSS.escape(messageId)+'"]'))return;
+ const displayName=(player?.name||t().unknown)+(player?.id===network.playerId?" · "+t().you:"");
+ const messageText=String(message||"").slice(0,220);
  const line=document.createElement("div");line.className="chat-line";if(messageId)line.dataset.chatId=messageId;
- const name=document.createElement("strong");name.textContent=(player?.name||t().unknown)+(player?.id===network.playerId?" · "+t().you:"");
- const content=document.createElement("span");content.textContent=String(message||"").slice(0,220);
+ const name=document.createElement("strong");name.textContent=displayName;
+ const content=document.createElement("span");content.textContent=messageText;
  const lang=document.createElement("small");lang.textContent=t().chatOriginal;
  line.append(name,content,lang);box.append(line);
  while(box.children.length>45)box.firstElementChild.remove();
  box.scrollTop=box.scrollHeight;
+ const floatLayer=$("chat-floaters");
+ if(floatLayer){
+  const floater=document.createElement("div");floater.className="chat-floater";
+  const floaterName=document.createElement("strong");floaterName.textContent=displayName;
+  const floaterText=document.createElement("span");floaterText.textContent=messageText;
+  floater.append(floaterName,floaterText);
+  floater.style.top=(22+(floatLayer.childElementCount%4)*14)+"%";
+  const duration=Math.min(18,Math.max(10,8+Math.ceil(messageText.length/16)));
+  floater.style.animationDuration=duration+"s";floatLayer.append(floater);
+  while(floatLayer.children.length>4)floatLayer.firstElementChild.remove();
+  setTimeout(()=>floater.remove(),duration*1000+350);
+ }
 }
 function syncPresence(players=[]){
  const peers=new Map((players||[]).filter(p=>p?.id&&p.id!==network.playerId).map(p=>[p.id,p]));
@@ -112,7 +126,8 @@ function handleMessage(message){
   if(message.player?.id!==network.playerId){
    world.updateRemote(message.player);
    if(message.type==="player:action"){world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});playRitualSound(message.player.action,.42);}
-   onlinePlayers.set(message.player.id,message.player);renderPresence();
+   onlinePlayers.set(message.player.id,message.player);
+   if(message.type==="player:action")renderPresence();
   }return;
  }
  if(message.type==="player:leave"){world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;}
@@ -151,6 +166,12 @@ function setProfileUI(){
  text("character-name",profile.name);text("monk-name",profile.name);text("preview-name",profile.name);
  $("preview-body").style.background=profile.robe;
  $("character-name").style.color=profile.robe;
+}
+function openProfileEditor(){
+ if(!profile)return;
+ $("monk-name").value=profile.name||"行者";$("monk-robe").value=profile.robe||"#b49a72";
+ $("monk-skin").value=profile.skin||"#d7ad87";$("monk-style").value=profile.style||"monk";
+ $("profile-modal").classList.remove("hidden");updatePreview();
 }
 async function saveProfile(){
  profile={
@@ -399,7 +420,8 @@ function doAction(action){
  toast(poseText);
 }
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
-$("open-profile").addEventListener("click",()=>{$("profile-modal").classList.remove("hidden");updatePreview();});
+$("open-profile").addEventListener("click",openProfileEditor);
+window.addEventListener("temple:rename",openProfileEditor);
 $("quick-profile").addEventListener("click",()=>$("open-profile").click());
 $("save-profile").addEventListener("click",saveProfile);
 $("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);localStorage.removeItem("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
@@ -414,7 +436,24 @@ $("chat-form").addEventListener("submit",e=>{
  const messageId=network.chat(message);
  if(messageId){appendChat({id:network.playerId,name:profile?.name||"行者"},message,language,messageId);input.value="";}else toast(t().chatError);
 });
-$("chat-collapse").addEventListener("click",()=>$("chat-panel").classList.toggle("collapsed"));
+function setChatPanelOpen(open){
+ $("chat-panel").classList.toggle("collapsed",!open);
+ $("chat-heading").setAttribute("aria-expanded",String(!!open));
+ $("chat-collapse").textContent=open?"×":"＋";
+ $("chat-collapse").setAttribute("aria-label",open?"关闭聊天":"打开聊天");
+ if(open){const box=$("chat-messages");box.scrollTop=box.scrollHeight;}
+}
+$("chat-heading").addEventListener("click",e=>{
+ if(e.target.closest("#chat-collapse"))return;
+ setChatPanelOpen($("chat-panel").classList.contains("collapsed"));
+});
+$("chat-heading").addEventListener("keydown",e=>{
+ if(e.target!==$("chat-heading"))return;
+ if(e.key==="Enter"||e.key===" "){e.preventDefault();setChatPanelOpen($("chat-panel").classList.contains("collapsed"));}
+});
+$("chat-collapse").addEventListener("click",e=>{
+ e.stopPropagation();setChatPanelOpen($("chat-panel").classList.contains("collapsed"));
+});
 $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classList.remove("hidden");await loadPrayers();});
 async function loadPrayers(){
  try{const prayers=await network.getPrayers();syncPrayerBoard(prayers);renderPrayers(prayers);}catch{renderPrayers(sharedPrayers);}
@@ -582,10 +621,16 @@ function inputState(){
 }
 function frame(){
  const dt=Math.min(world.clock.getDelta(),.18),now=performance.now();
- world.update(dt,inputState(),now);updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
- if(profile&&now-lastPositionSend>110){
-  const p=world.getPosition();network.move(p);
-  lastPositionSend=now;
+ const renderFrame=!world.mobile||now-lastMobileRender>=25;
+ if(renderFrame)lastMobileRender=now;
+ world.update(dt,inputState(),now,renderFrame);updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
+ if(profile){
+  const p=world.getPosition(),previous=lastSentNetworkPosition;
+  const angleDelta=previous?Math.atan2(Math.sin(p.rotation-previous.rotation),Math.cos(p.rotation-previous.rotation)):Math.PI;
+  const moved=!previous||Math.hypot(p.x-previous.x,p.z-previous.z)>.085||Math.abs(angleDelta)>.07;
+  if((moved&&now-lastPositionSend>120)||now-lastPositionSend>1600){
+   network.move(p);lastPositionSend=now;lastSentNetworkPosition={x:p.x,z:p.z,rotation:p.rotation};
+  }
  }
  const p=world.getPosition(),nearPrayerWall=Math.abs(p.x+31)<3.7&&p.z>-46&&p.z<19;
  if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}

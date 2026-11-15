@@ -147,6 +147,12 @@ const stairMove = moveWithCollision({ x: 0, z: 9, y: 0 }, 0, -0.4, collision);
 assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread");
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
+assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Outdoor courtyard incense, forest tea pavilion, or expanded gate missing");
+assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag"), "Head name must be tappable for profile editing");
+assert.ok(world.includes("this.mobile?0.95:1.5") && world.includes("shadowMap.enabled=!mobile"), "Mobile renderer must use reduced resolution and disable realtime shadows");
+assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
+assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
+assert.ok(physics.includes("circle(0, -20.5, 1.82)") && physics.includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
   assert.ok(worker.includes(table), "Worker missing D1 table reference: " + table);
@@ -167,13 +173,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-74"), "Service worker cache must refresh the shared-room client fix");
+assert.ok(read("sw.js").includes("temple-world-shell-75"), "Service worker cache must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-74"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-75"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
