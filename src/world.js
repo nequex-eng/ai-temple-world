@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const MEDITATION_CUSHIONS=[[-2.55,-33.8],[-.85,-33.8],[.85,-33.8],[2.55,-33.8],[-1.7,-32.05],[0,-32.05],[1.7,-32.05],[-5.1,-35.2],[-32.2,-23.65],[-29.4,-23.65],[-26.6,-23.65],[-23.8,-23.65]];
 const mat=(c,r=.85,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...e});
 const robeFabric=(()=>{
  const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
@@ -515,7 +516,7 @@ export class TempleWorld{
    {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:23,z:-17,route:[[23,-17],[19,-15],[17,-18],[20,-20]],routine:["bow","greet"]},
    {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-29.4,z:-23.65,route:[[-29.4,-23.65]],routine:["meditate","chant"],stationary:true},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-21,z:23,route:[[-21,23],[-18,25],[-17,29],[-21,31]],routine:["sweep","bow"]},
-   {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]],routine:["meditate","greet"]},
+   {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:18,z:28,route:[[18,28],[22,20],[15,18]],routine:["bow","greet"]},
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:18,z:8,route:[[18,8],[16,12],[19,16],[20,12]],routine:["greet","bow"]},
    {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:-5.1,z:-35.2,route:[[-5.1,-35.2]],stationary:true}
   ];
@@ -593,8 +594,8 @@ export class TempleWorld{
  setLocalPose(action){
   if(!this.local)return;
   if(action==="meditate"){
-   const cushions=[[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]];
-   const p=this.local.root.position,altarZ=-38.5;
+   const cushions=MEDITATION_CUSHIONS;
+   const p=this.local.root.position;
    const nearest=cushions.map(([x,z])=>({x,z,d:Math.hypot(p.x-x,p.z-z)})).sort((a,b)=>a.d-b.d)[0];
    if(nearest&&nearest.d<2.35)this.local.setPosition(nearest.x,nearest.z,Math.PI,.54);
   }
