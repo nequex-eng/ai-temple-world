@@ -123,6 +123,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
   [1.27,.425,.225], [1.37,.465,.22], [1.44,.42,.195], [1.51,.29,.17], [1.57,.18,.15]
  ];
  const robeGeometry=new THREE.LatheGeometry(robeProfile.map(([y,r])=>new THREE.Vector2(r,y)),48);
+ robeGeometry.scale(1,1,.78);
  robeGeometry.computeVertexNormals();
  add(robeGeometry,robe,body);
  add(new THREE.ConeGeometry(.19,.9,4),trim,body,[0,.92,.27]).scale.set(.75,1,.2);
@@ -239,6 +240,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
    const raw=clamp((time-(this.poseStartedAt||time))/460,0,1),blend=raw*raw*(3-2*raw);
    const mix=(key)=>from[key]+(to[key]-from[key])*blend;
    body.rotation.x=mix("bodyX");
+   body.rotation.z=(moving&&this.pose==="walk"?Math.sin(time*.0075)*.018:0);
    body.position.y=mix("bodyY")+Math.sin(time*(this.pose==="meditate"?.00125:.0018))*(this.pose==="meditate"?.012:.006);
    head.rotation.x=mix("headX")+Math.sin(time*.0011)*.004;
    arms[0].rotation.set(mix("armX0"),0,mix("armZ0"));
@@ -795,9 +797,14 @@ export class TempleWorld{
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
    const p=a.root.position,dx=a.target.x-p.x,dz=a.target.z-p.z,len=Math.hypot(dx,dz);
-   if(len>.025){const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.actorCollisionWorld(a));p.set(r.x,r.y,r.z);}
-   else p.y=groundHeightAt(p.x,p.z,this.halls);
-   a.update(dt,time,false);
+   let remoteMoving=false;
+   if(len>.025){
+    const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.actorCollisionWorld(a));
+    p.set(r.x,r.y,r.z);remoteMoving=r.moved;
+   }else p.y=groundHeightAt(p.x,p.z,this.halls);
+   let turn=((a.targetRotation-p.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
+   p.rotation.y+=turn*(1-Math.exp(-dt*10));
+   a.update(dt,time,remoteMoving&&a.pose==="walk");
   }
   this.updateNpcs(dt,time);
   const cameraTargetPosition=this.local.root.position,inside=this.isInsideHall(cameraTargetPosition);
