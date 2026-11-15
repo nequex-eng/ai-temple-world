@@ -169,6 +169,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
  add(new THREE.SphereGeometry(.035,10,8),skin,head,[0,.105,.315]).scale.set(.72,1.2,.72);
  const mouthCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-.055,.035,.292),new THREE.Vector3(0,.027,.305),new THREE.Vector3(.055,.035,.292)]);
  head.add(new THREE.Mesh(new THREE.TubeGeometry(mouthCurve,10,.006,5,false),lip));
+ head.scale.setScalar(.82);
  const incenseStick=new THREE.Group();body.add(incenseStick);incenseStick.visible=false;
  add(new THREE.CylinderGeometry(.018,.018,.72,7),mat(0x98683a,.8),incenseStick,[0,0,0]);
  add(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:0xff9c54}),incenseStick,[0,.37,0]);
@@ -293,14 +294,18 @@ export class TempleWorld{
   const face=add(new THREE.SphereGeometry(.48,28,22),bud,altar,[0,4.12,-.95]);face.scale.set(.84,1.12,.78);
   for(const side of [-1,1]){
    add(new THREE.SphereGeometry(.105,14,12),bud,altar,[side*.43,3.91,-.92]).scale.set(.72,1.55,.6);
-   add(new THREE.SphereGeometry(.035,10,8),budDark,altar,[side*.19,4.18,-.25]).scale.set(1,.55,.5);
-   const brow=add(new THREE.TorusGeometry(.13,.018,6,18,Math.PI),budDark,altar,[side*.18,4.27,-.25],[0,0,side*.06]);brow.rotation.x=Math.PI/2;
+   add(new THREE.SphereGeometry(.035,10,8),budDark,altar,[side*.19,4.18,-.585]).scale.set(1,.55,.5);
+   const brow=add(new THREE.TorusGeometry(.13,.018,6,18,Math.PI),budDark,altar,[side*.18,4.27,-.57],[0,0,side*.06]);
   }
-  add(new THREE.SphereGeometry(.035,10,8),goldLeaf,altar,[0,4.12,-.22]);
+  add(new THREE.SphereGeometry(.035,10,8),goldLeaf,altar,[0,4.12,-.555]);
+  // Softly modelled nose bridge and closed lips, aligned to the face surface.
+  add(new THREE.CapsuleGeometry(.035,.16,5,8),bud,altar,[0,4.095,-.59]);
+  const budMouth=new THREE.CatmullRomCurve3([new THREE.Vector3(-.075,3.985,-.575),new THREE.Vector3(0,3.972,-.602),new THREE.Vector3(.075,3.985,-.575)]);
+  altar.add(new THREE.Mesh(new THREE.TubeGeometry(budMouth,12,.009,6,false),budDark));
   add(new THREE.SphereGeometry(.19,18,14),bud,altar,[0,4.62,-.95]).scale.set(.72,1,.72);
   // Fine raised curls on the scalp catch the warm interior lighting.
   for(let row=0;row<4;row++)for(let col=0;col<11;col++){
-   const x=(col-5)*.064,y=4.39+row*.075,z=-.95-Math.sqrt(Math.max(.04,.19-x*x-(y-4.42)*(y-4.42)))*.72;
+   const x=(col-5)*.064,y=4.39+row*.075,z=-.95+Math.sqrt(Math.max(.04,.19-x*x-(y-4.42)*(y-4.42)))*.72;
    if(Number.isFinite(z))add(new THREE.SphereGeometry(.026,7,6),budDark,altar,[x,y,z]);
   }
   // Twin halo rings and a restrained radial aureole behind the head.
@@ -383,6 +388,14 @@ export class TempleWorld{
    const matGroup=new THREE.Group();matGroup.position.set(x,.58,z);altar.add(matGroup);
    const base=add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]);base.scale.set(1,.85,1);
    const pad=add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]);pad.scale.set(1,.8,1);
+   add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
+   for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
+  }
+  // A dedicated side cushion keeps the resident temple monk from occupying a visitor seat.
+  {
+   const matGroup=new THREE.Group();matGroup.position.set(-5.1,.58,3.3);altar.add(matGroup);
+   add(new THREE.BoxGeometry(1.28,.18,1.05),cushionEdge,matGroup,[0,0,0]).scale.set(1,.85,1);
+   add(new THREE.BoxGeometry(1.16,.2,.93),cushion,matGroup,[0,.12,0]).scale.set(1,.8,1);
    add(new THREE.BoxGeometry(1.05,.025,.025),goldLeaf,matGroup,[0,.225,.46]);
    for(const side of [-1,1])add(new THREE.SphereGeometry(.035,8,6),goldLeaf,matGroup,[side*.48,.23,.38]);
   }
