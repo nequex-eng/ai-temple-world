@@ -7,6 +7,7 @@ const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0;
+let soundPreference=true;try{soundPreference=localStorage.getItem("temple-sound-enabled")!=="false";}catch{}
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
@@ -302,7 +303,8 @@ function playMuyu(){
   osc.connect(gain);gain.connect(output);osc.start(now);osc.stop(now+decay+.01);
  }
 }
-async function setSound(on){
+async function setSound(on,{quiet=false,save=true}={}){
+ if(save){soundPreference=!!on;try{localStorage.setItem("temple-sound-enabled",String(soundPreference));}catch{}}
  const button=$("sound-toggle");
  if(on){
   if(button){button.disabled=true;button.textContent="♫ 正在开启…";}
@@ -311,12 +313,12 @@ async function setSound(on){
   if(!ok){
    soundEnabled=false;
    for(const id of ["sound-toggle","profile-sound-toggle"]){const target=$(id);if(target){target.classList.remove("active");target.textContent="♫ "+t().soundOff;target.setAttribute("aria-pressed","false");}}
-   toast("声音启动失败："+(audioFailureReason||"请检查设备音量与浏览器权限"));
+   if(!quiet)toast("声音启动失败："+(audioFailureReason||"请检查设备音量与浏览器权限"));
    return;
   }
   if(templeBirds?.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
   if(button)button.setAttribute("aria-pressed","true");
-  toast("寺院环境声已开启");
+  if(!quiet)toast("寺院环境声已开启");
   return;
  }
  soundEnabled=false;
@@ -596,6 +598,8 @@ async function start(){
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
   if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
+  armDefaultSoundGesture();
+  if(soundPreference)void setSound(true,{quiet:true,save:false});
 
   // These requests are independent and deliberately non-blocking.
   void network.health().catch(()=>{});
@@ -610,4 +614,14 @@ async function start(){
   toast(t().entered);
 }
 addEventListener("beforeunload",()=>network.close());
+function armDefaultSoundGesture(){
+ if(!soundPreference||soundEnabled)return;
+ const events=["pointerdown","touchstart","keydown"];
+ const activate=()=>{
+  for(const type of events)document.removeEventListener(type,activate,true);
+  if(soundPreference&&!soundEnabled)void setSound(true,{quiet:true,save:false});
+ };
+ for(const type of events)document.addEventListener(type,activate,{once:true,capture:true});
+}
 start();
+
