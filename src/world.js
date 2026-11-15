@@ -117,7 +117,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
  const root=new THREE.Group();root.name="monk-"+id;scene.add(root);
  const robe=mat(profile.robe||"#b49a72",.96,{map:robeFabric,bumpMap:robeFabric,bumpScale:.018}),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
  const body=new THREE.Group();root.add(body);
- add(new THREE.LatheGeometry([new THREE.Vector2(.24,.08),new THREE.Vector2(.32,.18),new THREE.Vector2(.43,.5),new THREE.Vector2(.54,1.06),new THREE.Vector2(.62,1.42),new THREE.Vector2(.52,1.55),new THREE.Vector2(.29,1.63)],24),robe,body);
+ add(new THREE.LatheGeometry([new THREE.Vector2(.22,.08),new THREE.Vector2(.29,.18),new THREE.Vector2(.34,.38),new THREE.Vector2(.30,.68),new THREE.Vector2(.33,.94),new THREE.Vector2(.40,1.18),new THREE.Vector2(.47,1.39),new THREE.Vector2(.42,1.53),new THREE.Vector2(.27,1.63)],32),robe,body);
  add(new THREE.ConeGeometry(.19,.9,4),trim,body,[0,.92,.27]).scale.set(.75,1,.2);
  add(new THREE.TorusGeometry(.42,.045,7,32),trim,body,[0,.43,0],[Math.PI/2,0,0]);
  add(new THREE.TorusGeometry(.23,.04,8,28),trim,body,[0,1.53,0],[Math.PI/2,0,0]);
@@ -125,9 +125,10 @@ function avatar(scene,profile={},id="local",isLocal=false){
  for(const side of [-1,1]){
   const leg=add(new THREE.CapsuleGeometry(.105,.28,4,8),dark,body,[side*.2,.19,0]);legs.push(leg);
   add(new THREE.BoxGeometry(.28,.09,.4),sandal,body,[side*.2,.045,.08]);
-  const pivot=new THREE.Group();pivot.position.set(side*.43,1.36,0);body.add(pivot);
-  add(new THREE.CapsuleGeometry(.155,.62,4,8),robe,pivot,[side*.03,-.28,0],[0,0,side*.16]);
-  add(new THREE.SphereGeometry(.12,10,8),skin,pivot,[side*.03,-.61,.02]);arms.push(pivot);
+  const pivot=new THREE.Group();pivot.position.set(side*.39,1.36,0);body.add(pivot);
+  add(new THREE.CapsuleGeometry(.145,.62,5,10),robe,pivot,[side*.035,-.27,0],[0,0,side*.13]);
+  add(new THREE.CapsuleGeometry(.105,.28,4,8),robe,pivot,[side*.035,-.55,.015],[0,0,side*.08]);
+  add(new THREE.SphereGeometry(.105,12,10),skin,pivot,[side*.035,-.73,.035]);arms.push(pivot);
  }
  add(new THREE.CylinderGeometry(.12,.15,.22,12),skin,body,[0,1.65,0]);
  const head=new THREE.Group();head.position.set(0,1.94,0);body.add(head);
@@ -143,17 +144,17 @@ function avatar(scene,profile={},id="local",isLocal=false){
  const foldMaterial=new THREE.MeshStandardMaterial({color:0x493c2c,roughness:1,transparent:true,opacity:.17});
  for(let i=0;i<7;i++){
   const x=-.34+i*.113;
-  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,.48),new THREE.Vector3(x*.8,1.02,.535),new THREE.Vector3(x,.62,.51),new THREE.Vector3(x*.88,.24,.53)]);
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,.43),new THREE.Vector3(x*.8,1.02,.39),new THREE.Vector3(x,.62,.35),new THREE.Vector3(x*.88,.24,.42)]);
   body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
  }
  for(let i=0;i<7;i++){
   const x=-.34+i*.113;
-  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,-.48),new THREE.Vector3(x*.8,1.02,-.535),new THREE.Vector3(x,.62,-.51),new THREE.Vector3(x*.88,.24,-.53)]);
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,-.43),new THREE.Vector3(x*.8,1.02,-.39),new THREE.Vector3(x,.62,-.35),new THREE.Vector3(x*.88,.24,-.42)]);
   body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
  }
  add(new THREE.TorusGeometry(.39,.055,8,32),trim,body,[0,.55,0],[Math.PI/2,0,0]);
  // Long robe hem covers the trousers; only the sandals remain visible.
- add(new THREE.CylinderGeometry(.48,.58,.42,24,1,true),robe,body,[0,.25,0]);
+ add(new THREE.CylinderGeometry(.39,.45,.38,32,1,true),robe,body,[0,.24,0]);
  add(new THREE.BoxGeometry(.13,.035,.05),trim,body,[0,1.43,.49]);
  for(const side of [-1,1]){
   add(new THREE.SphereGeometry(.064,10,8),skin,head,[side*.3,.11,0]);
@@ -239,7 +240,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.2:1.65));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -628,7 +629,7 @@ export class TempleWorld{
      npc.stuckAt=0;
     }
     else{
-     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.collision);
+     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.actorCollisionWorld(a));
      p.set(r.x,r.y,r.z);
      if(r.blocked){npc.stuckAt=npc.stuckAt||time;if(time-npc.stuckAt>4500){npc.moving=false;npc.nextAt=time+800;npc.stuckAt=0;}}
      else npc.stuckAt=0;
@@ -641,6 +642,17 @@ export class TempleWorld{
    }
    a.update(dt,time,npc.moving);
   }
+ }
+ actorCollisionWorld(exclude){
+  const actors=[];
+  const addActor=a=>{if(!a||a===exclude)return;const p=a.root.position;actors.push({x:p.x,z:p.z,radius:.5});};
+  if(this.local)addActor(this.local);
+  for(const a of this.remotes.values())addActor(a);
+  for(const npc of this.npcs||[])addActor(npc.avatar);
+  return {...this.collision,actors};
+ }
+ isInsideHall(position){
+  return this.halls.some(h=>Math.abs(position.x-h.x)<h.w/2-1.05&&position.z>h.z-h.d/2+1.05&&position.z<h.z+h.d/2-.35);
  }
  bindCamera(){
   const c=this.renderer.domElement;
@@ -730,7 +742,7 @@ export class TempleWorld{
   if(moving&&canMove){
    const localPosition=this.local.root.position;
    // Collision is resolved before vertical motion, so a jump cannot tunnel through masonry or stair edges.
-   result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.collision);
+   result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.actorCollisionWorld(this.local));
    if(result.blocked){this.moveVelocity.multiplyScalar(.28);if(this.moveTarget)this.moveTarget=null;}
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
@@ -749,13 +761,17 @@ export class TempleWorld{
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
    const p=a.root.position,dx=a.target.x-p.x,dz=a.target.z-p.z,len=Math.hypot(dx,dz);
-   if(len>.025){const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.collision);p.set(r.x,r.y,r.z);}
+   if(len>.025){const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.actorCollisionWorld(a));p.set(r.x,r.y,r.z);}
    else p.y=groundHeightAt(p.x,p.z,this.halls);
    a.update(dt,time,false);
   }
   this.updateNpcs(dt,time);
-  const cameraTargetPosition=this.local.root.position,target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*this.distance,cameraTargetPosition.y+3.15+Math.sin(this.pitch)*this.distance*.75,cameraTargetPosition.z+Math.cos(this.yaw)*this.distance);
-  this.camera.position.lerp(target,1-Math.pow(.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+1.2,cameraTargetPosition.z);
+  const cameraTargetPosition=this.local.root.position,inside=this.isInsideHall(cameraTargetPosition);
+  this.indoor=inside;
+  const cameraDistance=inside?clamp(this.distance*.56,4.2,6.2):this.distance;
+  const cameraHeight=inside?1.85+Math.sin(this.pitch)*cameraDistance*.48:3.15+Math.sin(this.pitch)*this.distance*.75;
+  const target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*cameraDistance,cameraTargetPosition.y+cameraHeight,cameraTargetPosition.z+Math.cos(this.yaw)*cameraDistance);
+  this.camera.position.lerp(target,1-Math.pow(inside?.00025:.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+(inside?1.42:1.2),cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
   for(const item of this.lotusLights){item.group.position.y=.35+Math.sin(time*.0012+item.phase)*.09;item.group.rotation.y+=dt*.16;}
   for(const puff of this.incenseSmoke){
