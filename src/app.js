@@ -651,7 +651,7 @@ function updateTempleVisualViewport(){
  document.addEventListener("touchstart",blockPinch,{passive:false,capture:true});
  document.addEventListener("touchmove",blockPinch,{passive:false,capture:true});
  for(const type of ["gesturestart","gesturechange","gestureend"])document.addEventListener(type,e=>e.preventDefault(),{passive:false,capture:true});
- $("restore-view").addEventListener("click",()=>location.reload());
+
 }
 updateTempleVisualViewport();
 function armDefaultSoundGesture(){
