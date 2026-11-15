@@ -27,6 +27,7 @@ assert.ok(app.includes("async function saveProfile()"), "Profile creation handle
 assert.ok(app.includes("network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("async askAbbot") && app.includes('$("open-abbot").addEventListener') && html.includes('id="abbot-modal"'), "AI abbot must be wired from UI through the protected API");
+assert.ok(worker.includes("profoundly cultivated elder Buddhist monk") && worker.includes("NOT a tour guide"), "Abbot must speak as a wise elder, not a tourist guide");
 for (const locale of ["zh", "ja", "ko", "th"]) {
   const start = i18n.indexOf("  " + locale + ":");
   const end = i18n.indexOf("\n  },", start);
@@ -43,6 +44,9 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
+assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("kind==='noodles'") && world.includes("kind==='incense'") && world.includes("kind==='coffee'"), "Gate-side stalls and human vendors must be present");
+assert.ok(world.includes("const washroom=new THREE.Group()"), "West-side washroom model missing");
+assert.ok(read("src/physics.js").includes("Unlabelled washroom") && read("src/physics.js").includes("market counters"), "Washroom and market collision geometry missing");
 assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[[0,-22]") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
 assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
@@ -50,7 +54,7 @@ assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads
 assert.ok(app.includes("function advanceBead()") && app.includes('localStorage.setItem("temple-beads-total"'), "108-bead practice must persist locally");
 assert.ok(!html.includes('id="sound-modal"') && !html.includes('id="sound-settings"'), "Sound adjustment panel must be removed");
 assert.ok(html.includes('id="sound-toggle"'), "Simple sound toggle must remain");
-assert.ok(app.includes("function changeAudioVolume(key,value)") && app.includes("function updateAudioStatus()") && app.includes("function mediaPlay(media,label)") && app.includes('localStorage.setItem("temple-audio-volumes"'), "Sound preferences must persist locally");
+assert.ok(app.includes("function updateAudioStatus()") && app.includes("function mediaPlay(media,label)"), "Sound engine diagnostics must remain available");
 assert.ok(world.includes("setClickDestination(clientX,clientY)") && world.includes("this.moveTarget=new THREE.Vector3"), "Collision-safe click-to-walk navigation missing");
 assert.ok(world.includes("collidesAt(hit.x,hit.z,this.collision)"), "Click-to-walk must reject destinations inside collision geometry");
 assert.ok(app.includes("Birds_chirping_in_a_garden.ogg") && app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Recorded courtyard birds, temple chant and gong must be wired into the audio system");
