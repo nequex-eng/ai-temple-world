@@ -483,7 +483,13 @@ function appendAbbotMessage(role,content){
  while(box.children.length>24)box.children[1]?.remove();
  box.scrollTop=box.scrollHeight;
 }
-$("abbot-form").addEventListener("submit",async e=>{
+// Enter sends the abbot message; Shift+Enter inserts a line break. Ignore IME confirmation.
+ $("abbot-input").addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||e.shiftKey||e.isComposing||e.keyCode===229)return;
+  e.preventDefault();
+  if(!$("abbot-send").disabled)$("abbot-form").requestSubmit();
+ });
+ $("abbot-form").addEventListener("submit",async e=>{
  e.preventDefault();
  const input=$("abbot-input"),message=input.value.trim();if(message.length<2)return;
  const previous=abbotHistory.slice(-8);
