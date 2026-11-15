@@ -36,7 +36,7 @@ export const TEXT = {
     prayerSuccess:"心愿已放入莲池",prayerRate:"请稍候片刻，再点亮下一盏心灯",prayerFailed:"心愿暂时没有送达，请稍后再试",
     connected:"连接成功",disconnected:"与禅境的连接中断，正在重连",chatError:"消息没有送达，请检查连接",
     entered:"欢迎来到云上禅境",online:"在线",you:"我",chatOriginal:"原文",unknown:"行者",
-    bellNear:"钟楼就在寺院北侧，可沿石径前往。",incenseNear:"香炉广场就在殿前，沿石径走近后再上香。",lotusNear:"莲花池在寺院东侧，走近池边再放莲灯。",meditateNear:"请走进大雄宝殿或禅堂，靠近蒲团后再打坐。"
+    bellNear:"请走近大雄宝殿右侧的铜钟后再敲钟。",incenseNear:"请走近大雄宝殿佛前香炉后再上香。",lotusNear:"莲花供灯位于大雄宝殿右前方，走近后再放莲灯。",meditateNear:"请走进大雄宝殿，靠近蒲团后再打坐。"
   },
   ja: {
     soundOn:"音響オン",soundOff:"音響をオン",beadsTitle:"108珠の数珠",soundTitle:"寺院の音",soundDescription:"境内の環境音、堂内の読経、儀式の効果音を個別に調整できます。音は自分でオンにした時だけ再生されます。",soundAmbience:"境内の環境音",soundChant:"堂内の読経",soundEffects:"儀式の効果音",soundTest:"鐘の音を試聴",soundFoot:"音源の読み込みに失敗した場合は、エラーを表示します。",beadsDesc:"一粒ずつ、ゆっくりと。108粒で一周です。順位はなく、静かな時間だけを記録します。",beadsPush:"一粒進める",beadsReset:"この周をリセット",beadsFoot:"記録はこの端末内だけに保存されます。",statusConnecting:"禅境に接続中",statusOnline:"共有の禅境に入りました",statusOffline:"一時的にオフライン",visitors:"人が滞在中",
@@ -70,7 +70,7 @@ export const TEXT = {
     prayerSuccess:"願いを蓮池に灯しました",prayerRate:"次の灯をともす前に少しお待ちください",prayerFailed:"願いを送れませんでした。後でもう一度お試しください",
     connected:"接続しました",disconnected:"接続が切れました。再接続中です",chatError:"メッセージを送信できませんでした",
     entered:"雲上の禅境へようこそ",online:"オンライン",you:"自分",chatOriginal:"原文",unknown:"行者",
-    bellNear:"鐘楼は寺院の奥にあります。石畳を進んでください。",incenseNear:"香炉は本堂前の広場にあります。",lotusNear:"蓮池は寺院の東側です。池の近くまで進んでください。",meditateNear:"本堂または禅堂に入り、座布団の近くで坐禅してください。"
+    bellNear:"本堂右側の鐘に近づいてから鳴らしてください。",incenseNear:"本堂の仏前にある香炉に近づいてください。",lotusNear:"蓮の供灯は本堂の右前方にあります。近づいてください。",meditateNear:"本堂に入り、座布団の近くで坐禅してください。"
   },
   ko: {
     soundOn:"소리 켜짐",soundOff:"소리 켜기",beadsTitle:"108 염주",soundTitle:"사찰 소리",soundDescription:"경내 환경음, 법당 독경, 의식 효과음을 각각 조절할 수 있습니다. 소리는 직접 켰을 때만 재생됩니다.",soundAmbience:"경내 환경음",soundChant:"법당 독경",soundEffects:"의식 효과음",soundTest:"사찰 종소리 미리 듣기",soundFoot:"음원 로딩에 실패하면 오류를 표시합니다.",beadsDesc:"한 알씩 천천히 넘겨보세요. 108알이 한 바퀴입니다. 순위 없이 고요한 시간만 기록합니다.",beadsPush:"한 알 넘기기",beadsReset:"이번 회차 초기화",beadsFoot:"기록은 이 기기에만 저장됩니다.",statusConnecting:"선경에 연결 중",statusOnline:"공유 선경에 입장했습니다",statusOffline:"일시적으로 오프라인",visitors:"명 함께 있음",
@@ -104,7 +104,7 @@ export const TEXT = {
     prayerSuccess:"소원을 연못에 띄웠습니다",prayerRate:"다음 등불을 밝히기 전에 잠시 기다려 주세요",prayerFailed:"소원을 보내지 못했습니다. 잠시 후 다시 시도하세요",
     connected:"연결되었습니다",disconnected:"연결이 끊겼습니다. 다시 연결합니다",chatError:"메시지를 보내지 못했습니다",
     entered:"운상의 선경에 오신 것을 환영합니다",online:"온라인",you:"나",chatOriginal:"원문",unknown:"행자",
-    bellNear:"종루는 사찰 안쪽에 있습니다. 돌길을 따라가세요.",incenseNear:"향로는 본당 앞 광장에 있습니다.",lotusNear:"연꽃 연못은 사찰 동쪽에 있습니다. 연못 가까이 가세요.",meditateNear:"대웅전 또는 선방에 들어가 방석 가까이에서 명상하세요."
+    bellNear:"대웅전 오른쪽의 종 가까이 다가가세요.",incenseNear:"대웅전 불단 앞 향로 가까이 다가가세요.",lotusNear:"연꽃 공양등은 대웅전 오른쪽 앞에 있습니다.",meditateNear:"대웅전에 들어가 방석 가까이에서 명상하세요."
   },
   th: {
     soundOn:"เปิดเสียงแล้ว",soundOff:"เปิดเสียง",beadsTitle:"ลูกประคำ 108 เม็ด",soundTitle:"เสียงวัด",soundDescription:"ปรับเสียงบรรยากาศ เสียงสวดมนต์ และเสียงพิธีกรรมแยกกัน เสียงจะเล่นเมื่อคุณเปิดเองเท่านั้น",soundAmbience:"เสียงบรรยากาศ",soundChant:"เสียงสวดมนต์",soundEffects:"เสียงพิธีกรรม",soundTest:"ทดลองฟังเสียงระฆัง",soundFoot:"จะแสดงข้อผิดพลาดหากโหลดเสียงไม่สำเร็จ",beadsDesc:"ค่อยๆ เลื่อนทีละเม็ด ครบ 108 เม็ดเป็นหนึ่งรอบ ไม่มีการจัดอันดับ บันทึกเพียงช่วงเวลาแห่งความสงบ",beadsPush:"เลื่อนหนึ่งเม็ด",beadsReset:"เริ่มรอบนี้ใหม่",beadsFoot:"บันทึกไว้ในอุปกรณ์นี้เท่านั้น",statusConnecting:"กำลังเชื่อมต่อสถานธรรม",statusOnline:"เข้าสู่สถานธรรมร่วมกันแล้ว",statusOffline:"ออฟไลน์ชั่วคราว",visitors:" คนอยู่ที่นี่",
@@ -138,7 +138,7 @@ export const TEXT = {
     prayerSuccess:"ส่งคำอธิษฐานลงสระบัวแล้ว",prayerRate:"โปรดรอสักครู่ก่อนจุดประทีปดวงถัดไป",prayerFailed:"ส่งคำอธิษฐานไม่สำเร็จ กรุณาลองอีกครั้งภายหลัง",
     connected:"เชื่อมต่อแล้ว",disconnected:"การเชื่อมต่อขาดหาย กำลังเชื่อมใหม่",chatError:"ส่งข้อความไม่สำเร็จ",
     entered:"ยินดีต้อนรับสู่แดนเซนเหนือเมฆ",online:"ออนไลน์",you:"ฉัน",chatOriginal:"ต้นฉบับ",unknown:"ผู้เดินทาง",
-    bellNear:"หอระฆังอยู่ด้านในของวัด เดินตามทางหินไปได้เลย",incenseNear:"กระถางธูปอยู่ที่ลานหน้าพระอุโบสถ",lotusNear:"สระบัวอยู่ทางทิศตะวันออกของวัด เดินเข้าใกล้สระก่อน",meditateNear:"เข้าไปในพระวิหารใหญ่หรือศาลาปฏิบัติธรรม แล้วเข้าใกล้เบาะนั่งก่อนนั่งสมาธิ"
+    bellNear:"เดินเข้าใกล้ระฆังทางขวาของพระวิหารใหญ่ก่อนตีระฆัง",incenseNear:"เดินเข้าใกล้กระถางธูปหน้าองค์พระในพระวิหารใหญ่",lotusNear:"ดอกบัวสำหรับถวายอยู่ด้านหน้าขวาของพระวิหารใหญ่",meditateNear:"เข้าไปในพระวิหารใหญ่และเข้าใกล้เบาะนั่งก่อนนั่งสมาธิ"
   }
 };
 export const localeLabel={zh:"中文",ja:"日本語",ko:"한국어",th:"ไทย"};
