@@ -590,16 +590,24 @@ function frame(){
  requestAnimationFrame(frame);
 }
 async function start(){
- applyLanguage();
- try{await network.health();}catch{}
- await loadProfile();
- if(profile){try{await network.saveProfile(profile,language);}catch{}}
- try{await network.visit();}catch{}
- await updateStats();setInterval(updateStats,30000);
- setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
- $("loading").classList.add("hidden");toast(t().entered);
- if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
- requestAnimationFrame(frame);
+  // Render the already-built local world immediately. Network services must never
+  // hold the full-screen loading gate on a cold mobile connection.
+  applyLanguage();
+  $("loading").classList.add("hidden");
+  requestAnimationFrame(frame);
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}
+
+  // These requests are independent and deliberately non-blocking.
+  void network.health().catch(()=>{});
+  void network.visit().catch(()=>{});
+  void updateStats();
+  setInterval(updateStats,30000);
+  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
+
+  // Profile lookup can take a while on mobile; keep the 3D world interactive.
+  await loadProfile();
+  if(profile){void network.saveProfile(profile,language).catch(()=>{});}
+  toast(t().entered);
 }
 addEventListener("beforeunload",()=>network.close());
 start();
