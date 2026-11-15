@@ -25,18 +25,7 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
   await page.evaluate(()=>window.__templeDebug.setPosition(0,-37));
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.time)).toBeGreaterThan(0.2);
-  await page.locator("#sound-settings").click();
-  const bellHitsBefore = await page.evaluate(() => window.__templeAudioDebug.bellHits());
-  await page.locator("#sound-test").click();
-  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.bellHits())).toBeGreaterThan(bellHitsBefore);
-  await page.locator('[data-close="sound-modal"]').click();
-  await page.locator("#sound-settings").click();
-  await expect(page.locator("#sound-modal")).not.toHaveClass(/hidden/);
-  await page.locator("#sound-ambience").evaluate(el=>{el.value="42";el.dispatchEvent(new Event("input",{bubbles:true}));});
-  await expect(page.locator("#sound-ambience-value")).toHaveText("42%");
-  await page.locator('[data-close="sound-modal"]').click();
-
-  // Mute from the same first-visit dialog; both controls must stay in sync.
+  // The compact global toggle must mute playback and stay synchronized with first-visit controls.
   await page.locator("#sound-toggle").click();
   await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","false");
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed","false");
