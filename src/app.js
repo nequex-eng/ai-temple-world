@@ -418,7 +418,7 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
- if(["incense","bell","lotus","tea","meditate"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
+ if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
