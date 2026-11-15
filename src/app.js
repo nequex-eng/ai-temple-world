@@ -113,7 +113,7 @@ function handleMessage(message){
   world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;
  }
  if(message.type==="chat"){
-  appendChat(message.player,message.message,message.player?.language);return;
+  if(message.player?.id!==network.playerId)appendChat(message.player,message.message,message.player?.language);return;
  }
 }
 async function updateStats(){
@@ -450,7 +450,7 @@ $("language").value=language;$("language").addEventListener("change",async e=>{
 });
 $("chat-form").addEventListener("submit",e=>{
  e.preventDefault();const input=$("chat-input"),message=input.value.trim();if(!message)return;
- if(network.chat(message)){input.value="";}else toast(t().chatError);
+ if(network.chat(message)){appendChat({id:network.playerId,name:profile?.name||"行者"},message,language);input.value="";}else toast(t().chatError);
 });
 $("chat-collapse").addEventListener("click",()=>$("chat-panel").classList.toggle("collapsed"));
 $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classList.remove("hidden");await loadPrayers();});
