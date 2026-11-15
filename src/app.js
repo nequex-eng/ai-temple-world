@@ -6,14 +6,14 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
+let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{localStorage.setItem("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -42,7 +42,7 @@ function applyLanguage(){
   "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
   "wishes-label":d.wishes,"character-state":d.walk,"chat-title":d.chatTitle,"chat-caption":d.chatCaption,
-  "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"run-toggle":d.run,"desktop-hint":d.desktop,
+  "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"desktop-hint":d.desktop,
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"abbot-button-label":d.abbotButton,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
@@ -516,29 +516,22 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden){keys={};resetStick();}
  else if(soundEnabled&&audio?.state==="suspended")audio.resume().then(()=>updateSoundscape()).catch(error=>{console.warn("Audio resume failed",error);});
 });
-const stick=$("joystick"),knob=$("joystick-knob"),jumpButton=$("jump-toggle");
-if(jumpButton){
- let lastPointerJump=0;
- const jumpStart=e=>{e.preventDefault();lastPointerJump=performance.now();keys.jump=true;world.requestJump();try{jumpButton.setPointerCapture(e.pointerId);}catch{}};
- const jumpEnd=e=>{e.preventDefault();keys.jump=false;};
- // Pointer events are primary; click is a fallback for mobile browsers that
- // synthesize a click but drop pointerdown after a canvas gesture.
- jumpButton.addEventListener("pointerdown",jumpStart);
- jumpButton.addEventListener("pointerup",jumpEnd);
- jumpButton.addEventListener("pointercancel",jumpEnd);
- jumpButton.addEventListener("lostpointercapture",jumpEnd);
- jumpButton.addEventListener("click",()=>{if(performance.now()-lastPointerJump>450)world.requestJump();});
-}
+const stick=$("joystick"),knob=$("joystick-knob");
+let lastCenterTap=0;
 function updateStick(e){
- const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
- joy={x:dx*factor/(r.width*.34),y:dy*factor/(r.width*.34)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
+ const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),radius=Math.min(r.width,r.height)/2,length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,radius*.68)/(length||1));
+ joy={x:dx*factor/(radius*.68),y:dy*factor/(radius*.68)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
 }
-stick.addEventListener("pointerdown",e=>{e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);});
+stick.addEventListener("pointerdown",e=>{
+ e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);
+ const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),centerTap=Math.hypot(dx,dy)<=Math.min(r.width,r.height)*.14,now=performance.now();
+ if(centerTap){if(now-lastCenterTap>0&&now-lastCenterTap<=360){world.requestJump();lastCenterTap=0;}else lastCenterTap=now;}else lastCenterTap=0;
+ updateStick(e);
+});
 stick.addEventListener("pointermove",e=>{if(stickPointer===e.pointerId)updateStick(e);});
 function resetStick(){stickPointer=null;joy={x:0,y:0};knob.style.transform="translate(0,0)";}
 stick.addEventListener("pointerup",resetStick);stick.addEventListener("pointercancel",resetStick);stick.addEventListener("lostpointercapture",resetStick);
 addEventListener("blur",()=>{keys={};resetStick();});
-$("run-toggle").addEventListener("click",()=>{mobileRunning=!mobileRunning;$("run-toggle").classList.toggle("active",mobileRunning);});
 function initMobilePanels(){
  const mobile=window.matchMedia("(max-width: 660px)");
  const entries=[["location-card","location-panel-toggle"],["presence-card","presence-panel-toggle"]];
@@ -565,7 +558,7 @@ function inputState(){
  return {
   forward:keys.w||keys.arrowup?1:0,backward:keys.s||keys.arrowdown?1:0,
   left:keys.a||keys.arrowleft?1:0,right:keys.d||keys.arrowright?1:0,
-  run:!!keys.shift||mobileRunning,joyX:joy.x,joyY:-joy.y,jump:!!keys.jump||!!keys[" "]
+  run:!!keys.shift,joyX:joy.x,joyY:-joy.y,jump:!!keys.jump||!!keys[" "]
  };
 }
 function frame(){
