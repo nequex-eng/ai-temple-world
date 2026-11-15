@@ -250,7 +250,7 @@ export class TempleRoom {
     };
     // Allocate a clear spot in the forecourt on the server, so all clients agree on spawn positions.
     const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
-    const npcSpots = [[-3,23],[4,4],[-25,10],[23,-17],[-29.4,-23.65],[-21,23],[18,28],[18,8],[-5.1,-35.2]];
+    const npcSpots = [[-8,-31],[7,-31],[-8,-38],[8,-37],[-4,-42],[-7,-33],[4,-42],[0,-31],[0,-43]];
     const spawnCandidates = [];
     for (let row=0;row<12;row++) for (let col=0;col<20;col++) {
       const x=-11.4+col*1.2,z=15.5+row*1.2;
@@ -306,9 +306,9 @@ export class TempleRoom {
       if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
       player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
-      if (data.action === "incense" && !near(8, 0, 8)) return;
-      if (data.action === "bell" && !near(-28, 2, 8)) return;
-      if (data.action === "lotus" && !near(31, 33, 13)) return;
+      if (data.action === "incense" && !near(0, -37.4, 5.5)) return;
+      if (data.action === "bell" && !near(8, -41, 5.5)) return;
+      if (data.action === "lotus" && !near(7, -32.5, 4.5)) return;
       if (data.action === "lotus") {
         if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
         player.lastLotusAt = Date.now();
