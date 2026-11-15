@@ -10,7 +10,7 @@ export function createTempleCollision(halls) {
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
     circle(8, 0, 1.48), circle(-28, 2, 1.42), circle(31, 33, 9.85),
-    circle(-29, 29, 1.05), circle(0, -39.5, 2.2),
+    circle(-29, 29, 1.05), circle(0, -39.5, 2.2), circle(-28, -28.45, 1.18),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
   for (const h of halls) {
@@ -41,6 +41,12 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
+  // Meditation hall scripture stand.
+  const scriptureZ = -25 - 1.55;
+  segments.push(segment(-29.2, scriptureZ - 0.36, -26.8, scriptureZ - 0.36, 0.12));
+  segments.push(segment(-29.2, scriptureZ + 0.36, -26.8, scriptureZ + 0.36, 0.12));
+  segments.push(segment(-29.2, scriptureZ - 0.36, -29.2, scriptureZ + 0.36, 0.12));
+  segments.push(segment(-26.8, scriptureZ - 0.36, -26.8, scriptureZ + 0.36, 0.12));
   // Boundary stone walls.
   for (const side of [-1, 1]) {
     const x = side * 31;
