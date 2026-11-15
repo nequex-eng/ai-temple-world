@@ -411,19 +411,22 @@ test("four market vendors stand on the east green lawn with product signs", asyn
   expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果"]);
 });
 
-test("lotus release launches a floating boat and the temple has night lights and squat pans", async ({ page }) => {
+test("lotus offering is lightweight and local-only, with no boat animation", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
-  await page.locator("#monk-name").fill("Lotus Boat Test");
+  await page.locator("#monk-name").fill("Lotus Offering Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
-  await page.evaluate(() => window.__templeDebug.releaseLotus());
-  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.lotusBoats().length)).toBe(1);
-  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.lotusBoats()[0]?.progress||0)).toBeGreaterThan(0);
-  const state=await page.evaluate(()=>({boats:window.__templeDebug.lotusBoats(),lights:window.__templeDebug.nightLights(),toilets:window.__templeDebug.squatToilets()}));
-  expect(state.boats[0].boat).toBe(true);
+  await page.evaluate(() => window.__templeDebug.setPosition(19,-32.5));
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.canAct("lotus"))).toBe(true);
+  await page.locator('[data-action="lotus"]').click();
+  await expect(page.locator("#toast")).toContainText("一盏莲灯随愿入水");
+  expect(await page.evaluate(()=>window.__templeDebug.lotusBoats().length)).toBe(0);
+  expect(await page.evaluate(()=>window.__templeDebug.input().pose)).toBe("walk");
+  const state=await page.evaluate(()=>({lights:window.__templeDebug.nightLights(),toilets:window.__templeDebug.squatToilets(),censer:window.__templeDebug.censer()}));
   expect(state.lights).toBeGreaterThanOrEqual(28);
   expect(state.toilets).toBe(2);
+  expect(state.censer).toEqual({x:5.8,z:-19.5});
   await cleanTestGuest(page);
 });
 
