@@ -997,7 +997,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-29.1],bell:[8,-34.8],lotus:[19,-26.7],tea:[0,-57.2],meditate:[0,-29.1],sweep:[0,5],chant:[0,-29.1],kneel:[0,-29.1]};
+  const destinations={incense:[0,-29.1],bell:[8,-38],lotus:[19,-26.7],tea:[0,-57.2],meditate:[0,-32.05],sweep:[0,5],chant:[0,-32.05],kneel:[0,-29.1]};
   const dest=destinations[action];if(!dest)return false;
   this.pendingAction=action;this.moveTarget=new THREE.Vector3(dest[0],0,dest[1]);return true;
  }
