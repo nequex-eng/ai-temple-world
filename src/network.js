@@ -26,6 +26,8 @@ export class TempleNetwork {
     this.closedByUser = false;
     this.reconnectTimer = null;
     this.heartbeatTimer = null;
+    this.welcomeTimer = null;
+    this.welcomed = false;
     this.retry = 0;
     this.lastSent = 0;
     this.lastBroadcastPosition = null;
@@ -112,23 +114,41 @@ export class TempleNetwork {
     });
     const socket = new WebSocket(API_BASE.replace(/^http/, "ws") + "/api/live?" + query.toString());
     this.socket = socket;
+    this.welcomed = false;
     socket.addEventListener("open", () => {
       if (this.socket !== socket) return;
       this.retry = 0;
+      this.onStatus("connecting");
       clearInterval(this.heartbeatTimer);
+      clearTimeout(this.welcomeTimer);
       this.heartbeatTimer = setInterval(() => {
         if (this.socket === socket && socket.readyState === WebSocket.OPEN) this.send({ type: "ping", at: Date.now() });
-      }, 15000);
-      this.onStatus("online");
+      }, 8000);
+      this.welcomeTimer = setTimeout(() => {
+        if (this.socket === socket && !this.welcomed && socket.readyState === WebSocket.OPEN) {
+          this.onStatus("offline");
+          socket.close(4000, "Shared room did not initialize");
+        }
+      }, 12000);
       this.flushChatQueue(socket);
     });
     socket.addEventListener("message", event => {
-      try { this.onMessage(JSON.parse(event.data)); } catch {}
+      try {
+        const message = JSON.parse(event.data);
+        if (message?.type === "welcome") {
+          this.welcomed = true;
+          clearTimeout(this.welcomeTimer);
+          this.welcomeTimer = null;
+          this.onStatus("online");
+        }
+        this.onMessage(message);
+      } catch {}
     });
     socket.addEventListener("error", () => { if (this.socket === socket) this.onStatus("offline"); });
     socket.addEventListener("close", event => {
       if (this.socket !== socket) return;
       clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
+      clearTimeout(this.welcomeTimer);this.welcomeTimer=null;
       clearTimeout(this.chatFlushTimer);this.chatFlushTimer=null;
       this.socket = null;
       if (event.code === 4001) { this.closedByUser = true; this.onStatus("offline"); return; }
@@ -183,6 +203,7 @@ export class TempleNetwork {
   close() {
     this.closedByUser = true;
     clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
+    clearTimeout(this.welcomeTimer);this.welcomeTimer=null;
     clearTimeout(this.chatFlushTimer);this.chatFlushTimer=null;
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
