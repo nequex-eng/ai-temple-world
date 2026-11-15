@@ -127,6 +127,7 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(true);
   await page.waitForTimeout(120);
   const jumpYDuring = await page.evaluate(() => window.__templeDebug.position().y);
+  console.log("mobile-jump-regression", JSON.stringify(await page.evaluate(() => ({position:window.__templeDebug.position(),input:window.__templeDebug.input(),jump:window.__templeDebug.jumpState()}))));
   expect(jumpYDuring).toBeGreaterThan(jumpYBefore + 0.08);
   await page.mouse.up();
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(false);
