@@ -30,10 +30,10 @@ export const TEXT = {
       incense:"一炷心香，寄托善愿。",sweep:"洒扫庭院，也整理自己的心。",
       bell:"钟声清越，愿烦恼渐息。",lotus:"莲灯缓缓漂远，愿平安相随。"
     },
-    prayerTitle:"莲花祈愿墙",prayerDesc:"写下一句善愿，让它与世界各地的心意一同留在莲池边。请勿填写私人敏感信息。",
-    prayerPlaceholder:"愿世界和平，愿众生安宁……",prayerSubmit:"提交心愿",prayerList:"来自世界的心愿",
+    prayerTitle:"莲花祈愿墙",prayerDesc:"山门左侧就是莲花祈愿墙。走近即可写下心愿，限20个字，所有在线访客都能看见。",
+    prayerPlaceholder:"写下不超过20个字的心愿……",prayerSubmit:"提交心愿",prayerList:"来自世界的心愿",
     prayerEmpty:"这里还没有访客祈愿。写下第一条善愿，让莲池亮起第一盏灯。",prayerWelcome:"寺院寄语（系统）：愿来者平安，愿离者自在，愿每一次相遇都带来善意。",prayerFoot:"免费祈愿 · 不设功德排名 · 不以捐赠换取祝福",
-    prayerSuccess:"心愿已放入莲池",prayerRate:"请稍候片刻，再点亮下一盏心灯",prayerFailed:"心愿暂时没有送达，请稍后再试",
+    prayerSuccess:"心愿已放入莲池",prayerRate:"请稍候片刻，再提交下一条心愿",prayerFailed:"心愿暂时没有送达，请稍后再试",
     connected:"连接成功",disconnected:"与禅境的连接中断，正在重连",chatError:"消息没有送达，请检查连接",
     entered:"欢迎来到云上禅境",online:"在线",you:"我",chatOriginal:"原文",unknown:"行者",
     bellNear:"请走近大雄宝殿右侧的铜钟后再敲钟。",incenseNear:"请走近大雄宝殿佛前香炉后再上香。",lotusNear:"莲花供灯位于大雄宝殿右前方，走近后再放莲灯。",meditateNear:"请走进大雄宝殿，靠近蒲团后再打坐。"
