@@ -12,6 +12,7 @@ const style = read("style.css");
 const i18n = read("src/i18n.js");
 const worker = read("worker/index.js");
 const headers = read("_headers");
+const pagesWorker = read("scripts/pages-worker.js");
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 const idSet = new Set(ids);
 assert.equal(ids.length, idSet.size, "HTML contains duplicate IDs");
@@ -69,7 +70,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
 assert.ok(worker.includes('DELETE FROM prayers WHERE id=? AND player_id=?') && worker.includes('type: "prayer:delete"') && network.includes("async deletePrayer(id)") && app.includes("p.player_id===network.playerId"), "Visitors may delete only their own wishes and deletion must sync to everyone");
-assert.ok(world.includes("function robeNamePlate(name)") && !world.includes("function labelSprite(name)") && world.includes("this.body.add(this.tag)"), "Avatar names must be displayed on robe backs");
+assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.48,0)") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)"), "Avatar names must appear above heads as unframed text");
 assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
@@ -92,7 +93,14 @@ assert.ok(world.includes("position.z<h.z+h.d/2-.55"), "Indoor mode must begin ju
 assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world must contain one Great Hall rather than multiple separate halls");
 assert.ok(!html.includes('id="jump-toggle"') && !html.includes('id="run-toggle"') && app.includes("lastCenterTap") && app.includes("now-lastCenterTap<=360") && app.includes("world.requestJump()"), "Mobile movement must use joystick double-tap center to jump without run/jump buttons");
 assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.includes("function playBeadTick()"), "Ritual actions must trigger audible effects");
+assert.ok(network.includes("window.location.origin") && network.includes("localhost"), "Production API and WebSocket must use the Pages origin");
+assert.ok(pagesWorker.includes("new Request(upstreamUrl, request)") && pagesWorker.includes("return env.ASSETS.fetch(request)"), "Pages worker must proxy API requests and serve static assets");
+assert.ok(read("scripts/build-pages.mjs").includes("path.join(output, \"_worker.js\")"), "Build must publish the Pages advanced-mode worker");
 const templeWalkway = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+for (const x of [-6.2,-2.1,2.1,6.2]) assert.equal(collidesAt(x,-14.55,templeWalkway),false,"Removed guardian must not leave an invisible west-route collider");
+let gateWest={x:0,z:-14.55,y:0};
+for(let i=0;i<100;i++)gateWest=moveWithCollision(gateWest,-.16,0,templeWalkway);
+assert.ok(gateWest.x < -12,"The former Heavenly Kings Hall corridor must be walkable to the west");
 let westRoute={x:-24,z:-26.55,y:0};
 for(let i=0;i<45;i++)westRoute=moveWithCollision(westRoute,-.16,0,templeWalkway);
 assert.ok(westRoute.x < -29.5, "The west courtyard route must not be blocked by invisible meditation-room furniture");
@@ -146,13 +154,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the shared-room client fix");
+assert.ok(read("sw.js").includes("temple-world-shell-73"), "Service worker cache must refresh the shared-room client fix");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-72"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-73"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
