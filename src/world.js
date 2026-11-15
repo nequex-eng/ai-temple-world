@@ -331,9 +331,9 @@ export class TempleWorld{
   this.container=container;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x9aaea4);this.scene.fog=new THREE.FogExp2(0x9aaea4,.0068);
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.mobile=matchMedia("(max-width: 660px)").matches;
-  this.renderer=new THREE.WebGLRenderer({antialias:!this.mobile,alpha:false,powerPreference:this.mobile?"low-power":"high-performance"});
-  this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?0.95:1.5));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.lotusLights=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
+  this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
+  this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.35:1.75));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -779,22 +779,37 @@ export class TempleWorld{
   this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
   add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);
-  this.courtyardIncensePosition=new THREE.Vector3(0,0,-20.5);this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
-  const courtyardBronze=mat(0x625b4c,.46,{metalness:.42}),courtyardGold=mat(0xb48b4d,.48,{metalness:.36});
-  add(new THREE.BoxGeometry(2.9,.28,2.35),m.stoneLight,this.courtyardCenser,[0,.2,0]);
-  add(new THREE.BoxGeometry(2.25,.2,1.75),courtyardGold,this.courtyardCenser,[0,.43,0]);
-  add(new THREE.CylinderGeometry(.82,1.05,.35,16),courtyardBronze,this.courtyardCenser,[0,.68,0]);
-  add(new THREE.CylinderGeometry(1.15,1.52,1.18,18),courtyardBronze,this.courtyardCenser,[0,1.43,0]);
-  add(new THREE.TorusGeometry(1.2,.11,10,32),courtyardGold,this.courtyardCenser,[0,2.04,0]);
-  add(new THREE.CylinderGeometry(1.28,1.18,.18,18),courtyardGold,this.courtyardCenser,[0,2.11,0]);
-  add(new THREE.TorusGeometry(.78,.055,8,24),courtyardGold,this.courtyardCenser,[0,2.24,0]);
-  for(const side of [-1,1]){
-   const handle=new THREE.Group();handle.position.set(side*1.34,1.72,0);this.courtyardCenser.add(handle);
-   add(new THREE.TorusGeometry(.34,.075,9,20),courtyardGold,handle,[0,0,0],[0,Math.PI/2,0]);
-   add(new THREE.CylinderGeometry(.13,.16,.25,10),courtyardGold,this.courtyardCenser,[side*1.38,1.72,0],[0,0,Math.PI/2]);
-   for(const legZ of [-.72,.72])add(new THREE.CylinderGeometry(.11,.16,.56,10),courtyardBronze,this.courtyardCenser,[side*.78,.45,legZ],[0,0,side*.12]);
+  // Traditional three-legged bronze ding censer, placed beside rather than on the abbot's walking line.
+  this.courtyardIncensePosition=new THREE.Vector3(5.8,0,-19.5);
+  this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
+  const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
+  const censerBase=this.courtyardCenser;
+  add(new THREE.CylinderGeometry(1.05,1.18,.18,32),m.stoneLight,censerBase,[0,.12,0]);
+  add(new THREE.CylinderGeometry(.78,.92,.2,28),courtyardGold,censerBase,[0,.31,0]);
+  add(new THREE.TorusGeometry(.83,.075,10,32),courtyardBronze,censerBase,[0,.43,0]);
+  const bowlProfile=[[0,.56],[.54,.56],[.82,.7],[1.08,1.02],[1.28,1.42],[1.24,1.82],[1.13,1.96],[1.02,1.82],[1.08,1.48],[.9,1.02],[.64,.78],[0,.76]].map(([r,y])=>new THREE.Vector2(r,y));
+  add(new THREE.LatheGeometry(bowlProfile,40),courtyardBronze,censerBase,[0,0,0]);
+  add(new THREE.TorusGeometry(1.2,.105,12,40),courtyardGold,censerBase,[0,1.91,0]);
+  add(new THREE.CircleGeometry(.98,40),censerDark,censerBase,[0,1.78,0],[-Math.PI/2,0,0],false);
+  add(new THREE.TorusGeometry(.72,.025,7,28),courtyardPatina,censerBase,[0,1.8,0]);
+  for(let i=0;i<3;i++){
+   const a=i*Math.PI*2/3+Math.PI/6,x=Math.cos(a),z=Math.sin(a),leg=new THREE.Group();
+   leg.position.set(x*.82,.53,z*.82);leg.rotation.z=-x*.16;leg.rotation.x=z*.16;censerBase.add(leg);
+   add(new THREE.CylinderGeometry(.14,.2,.72,12),courtyardBronze,leg,[0,-.03,0]);
+   add(new THREE.SphereGeometry(.2,12,9),courtyardGold,leg,[0,.27,0]).scale.set(.82,1.15,.82);
+   add(new THREE.CylinderGeometry(.23,.28,.13,12),courtyardBronze,leg,[0,-.39,0]);
   }
-  const courtyardIncenseGlow=new THREE.PointLight(0xffc17a,.38,10);courtyardIncenseGlow.position.set(0,2.6,0);this.courtyardCenser.add(courtyardIncenseGlow);this.nightLights.push({light:courtyardIncenseGlow,base:.38});
+  for(const side of [-1,1]){
+   const handle=new THREE.Group();handle.position.set(side*1.23,1.62,0);censerBase.add(handle);
+   add(new THREE.TorusGeometry(.31,.075,10,24),courtyardGold,handle,[side*.12,.05,0],[0,Math.PI/2,0]);
+   add(new THREE.SphereGeometry(.17,12,10),courtyardBronze,censerBase,[side*1.15,1.62,0]);
+  }
+  for(let i=0;i<3;i++){
+   const a=i*Math.PI*2/3;
+   add(new THREE.CylinderGeometry(.018,.024,.62,7),mat(0x9a6840,.8),censerBase,[Math.cos(a)*(.16+i*.06),2.05,Math.sin(a)*(.16+i*.06)]);
+   add(new THREE.SphereGeometry(.035,8,6),new THREE.MeshBasicMaterial({color:0xff9b52}),censerBase,[Math.cos(a)*(.16+i*.06),2.37,Math.sin(a)*(.16+i*.06)]);
+  }
+  const courtyardIncenseGlow=new THREE.PointLight(0xffc17a,.28,8);courtyardIncenseGlow.position.set(0,2.55,0);censerBase.add(courtyardIncenseGlow);this.nightLights.push({light:courtyardIncenseGlow,base:.28});
   // Lotus pond
   this.pondPosition=new THREE.Vector3(19,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
   add(new THREE.CylinderGeometry(4.05,4.25,.48,64),m.stone,pond,[0,-.03,0]);
@@ -871,11 +886,8 @@ export class TempleWorld{
   }
  }
  npcCollisionWorld(exclude){
-  const actors=[];
-  const addActor=a=>{if(!a||a===exclude)return;const p=a.root.position;actors.push({x:p.x,z:p.z,radius:.5});};
-  if(this.local)addActor(this.local);
-  for(const a of this.remotes.values())addActor(a);
-  return {...this.collision,actors};
+  // Visitors must not pin the abbot in place; static walls and props still block his route.
+  return {...this.collision,actors:[]};
  }
  actorCollisionWorld(exclude){
   const actors=[];
@@ -913,7 +925,11 @@ export class TempleWorld{
   const rect=this.renderer.domElement.getBoundingClientRect();
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.local.root.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointerNdc,this.camera);
-  return this.raycaster.intersectObject(this.local.tag,false).length>0;
+  if(this.raycaster.intersectObject(this.local.tag,false).length>0)return true;
+  const anchor=this.local.root.position.clone().add(new THREE.Vector3(0,2.9,0)).project(this.camera);
+  if(anchor.z< -1||anchor.z>1)return false;
+  const sx=(anchor.x*.5+.5)*rect.width+rect.left,sy=(-anchor.y*.5+.5)*rect.height+rect.top;
+  return Math.abs(clientX-sx)<=76&&Math.abs(clientY-sy)<=34;
  }
  setClickDestination(clientX,clientY){
   const rect=this.renderer.domElement.getBoundingClientRect();
@@ -1043,15 +1059,6 @@ export class TempleWorld{
   const target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*cameraDistance,cameraTargetPosition.y+cameraHeight,cameraTargetPosition.z+Math.cos(this.yaw)*cameraDistance);
   this.camera.position.lerp(target,1-Math.pow(inside?.00025:.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+(inside?1.42:1.2),cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
-  for(const item of this.lotusLights){
-   item.age+=dt;item.progress=clamp(item.age/item.duration,0,1);
-   const p=item.progress,eased=p*p*(3-2*p),drift=Math.max(0,item.age-item.duration);
-   item.group.position.x=THREE.MathUtils.lerp(item.start.x,item.target.x,eased)+Math.sin(time*.00042+item.phase)*Math.min(.1,drift*.025);
-   item.group.position.z=THREE.MathUtils.lerp(item.start.z,item.target.z,eased)+Math.cos(time*.00038+item.phase)*Math.min(.1,drift*.025);
-   item.group.position.y=.26+Math.sin(time*.0022+item.phase)*.025;
-   item.group.rotation.y=item.heading+Math.sin(time*.0014+item.phase)*.045;
-   item.group.rotation.z=Math.sin(time*.0018+item.phase)*.025;
-  }
   for(const puff of this.incenseSmoke){
    const data=puff.userData.smoke,cycle=(time*.000085+data.phase)%1;
    puff.position.set(data.origin[0]+Math.sin(cycle*6.28+data.seed)*(.08+cycle*.34),data.origin[1]+cycle*2.25,data.origin[2]+Math.cos(cycle*5.2+data.seed)*(.07+cycle*.25));
@@ -1096,46 +1103,16 @@ export class TempleWorld{
   this.dayNightState={phase,daylight,twilight,night,periodSeconds:600};
  }
  addEffect(type,position=null){
-  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);if(type==="bell")g.position.set(8,0,-41);if(type==="incense"){const here=this.local?.root.position;const atCourtyard=here&&Math.hypot(here.x-this.courtyardIncensePosition.x,here.z-this.courtyardIncensePosition.z)<6.5;g.position.copy(atCourtyard?this.courtyardIncensePosition:this.incensePosition);}this.scene.add(g);
+  // Lotus offerings intentionally create no 3D object or network effect.
+  if(type==="lotus")return;
+  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);
+  if(type==="bell")g.position.set(8,0,-41);
+  if(type==="incense"){const here=this.local?.root.position;const atCourtyard=here&&Math.hypot(here.x-this.courtyardIncensePosition.x,here.z-this.courtyardIncensePosition.z)<6.5;g.position.copy(atCourtyard?this.courtyardIncensePosition:this.incensePosition);}
+  this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
-  else if(type==="lotus"){
-   const source=position||this.local?.root.position||this.pondPosition;
-   let dx=Number(source.x)-this.pondPosition.x,dz=Number(source.z)-this.pondPosition.z;
-   let distance=Math.hypot(dx,dz);
-   if(!Number.isFinite(distance)||distance<.15){const a=Math.random()*Math.PI*2;dx=Math.cos(a);dz=Math.sin(a);distance=1;}
-   const nx=dx/distance,nz=dz/distance,startRadius=4.32;
-   const start={x:this.pondPosition.x+nx*startRadius,z:this.pondPosition.z+nz*startRadius};
-   const driftAngle=Math.atan2(nz,nx)+(Math.random()-.5)*.7,targetRadius=1.05+Math.random()*1.8;
-   const target={x:this.pondPosition.x+Math.cos(driftAngle)*targetRadius,z:this.pondPosition.z+Math.sin(driftAngle)*targetRadius};
-   const hullShape=new THREE.Shape();
-   hullShape.moveTo(-.34,-.48);hullShape.quadraticCurveTo(-.42,-.25,-.23,.02);
-   hullShape.quadraticCurveTo(0,.53,.23,.02);hullShape.quadraticCurveTo(.42,-.25,.34,-.48);hullShape.closePath();
-   const hullGeometry=new THREE.ExtrudeGeometry(hullShape,{depth:.12,bevelEnabled:true,bevelThickness:.025,bevelSize:.025,bevelSegments:2,steps:1});
-   hullGeometry.rotateX(-Math.PI/2);
-   const hull=new THREE.Mesh(hullGeometry,mat(0x68452e,.82));hull.position.y=.01;hull.castShadow=true;g.add(hull);
-   add(new THREE.BoxGeometry(.46,.045,.68),mat(0x9a7046,.78),g,[0,.13,-.02]);
-   add(new THREE.BoxGeometry(.055,.08,.72),mat(0x4f3625,.9),g,[-.29,.12,0]);
-   add(new THREE.BoxGeometry(.055,.08,.72),mat(0x4f3625,.9),g,[.29,.12,0]);
-   const lanternPaper=mat(0xe9c98e,.45,{emissive:0xffa83e,emissiveIntensity:.48});
-   add(new THREE.CylinderGeometry(.135,.17,.25,8),lanternPaper,g,[0,.34,0]);
-   add(new THREE.CylinderGeometry(.18,.18,.045,8),mat(0x927043,.6),g,[0,.49,0]);
-   add(new THREE.CylinderGeometry(.12,.12,.04,8),mat(0x927043,.6),g,[0,.19,0]);
-   add(new THREE.ConeGeometry(.055,.13,8),this.m.gold,g,[0,.58,0]);
-   for(let i=0;i<7;i++){
-    const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.095,9,7),mat(i%2?0xf0d4cf:0xd99b9e,.55,{emissive:0x6c3035,emissiveIntensity:.22}),g,[Math.cos(a)*.19,.51,Math.sin(a)*.19]);
-    petal.scale.set(.7,1.6,.5);
-   }
-   add(new THREE.SphereGeometry(.07,9,7),this.m.gold,g,[0,.54,0]);
-   const light=new THREE.PointLight(0xffd18a,.72,5.5);light.position.set(0,.72,0);g.add(light);
-   g.position.set(start.x,.26,start.z);g.rotation.y=Math.atan2(target.x-start.x,target.z-start.z);g.userData.boat=true;
-   const heading=g.rotation.y;
-   this.lotusLights.push({group:g,phase:Math.random()*6.28,age:0,duration:9.5,start,target,heading,progress:0});
-   if(this.lotusLights.length>24){const old=this.lotusLights.shift();this.scene.remove(old.group);old.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose();});}
-   return;
-  }
   else {for(let i=0;i<12;i++){const d=add(new THREE.SphereGeometry(.045,6,6),new THREE.MeshBasicMaterial({color:0xf2d59a,transparent:true,opacity:.7}),g,[(Math.random()-.5)*1.5,1.7+Math.random()*1.4,(Math.random()-.5)*.7],[0,0,0],false);d.userData.life=1.5;d.userData.vy=.35;}}
   this.effects.push({group:g,life:type==="sweep"?1.3:3});
  }
  updateEffects(dt){for(let i=this.effects.length-1;i>=0;i--){const e=this.effects[i];e.life-=dt;for(const c of e.group.children)if(c.userData.life){c.userData.life-=dt;c.position.y+=dt*(c.userData.vy||.1);if(c.material?.opacity!==undefined)c.material.opacity=Math.max(0,c.userData.life/3)*.35;}if(e.life<=0){this.scene.remove(e.group);e.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose();});this.effects.splice(i,1);}}}
- dispose(){removeEventListener("resize",this.resizeFn);this.local?.dispose();for(const a of this.remotes.values())a.dispose();for(const item of this.lotusLights){this.scene.remove(item.group);item.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose();});}this.renderer.dispose();if(this.renderer.domElement.parentElement===this.container)this.container.removeChild(this.renderer.domElement);}
+ dispose(){removeEventListener("resize",this.resizeFn);this.local?.dispose();for(const a of this.remotes.values())a.dispose();this.renderer.dispose();if(this.renderer.domElement.parentElement===this.container)this.container.removeChild(this.renderer.domElement);}
 }
