@@ -214,8 +214,10 @@ async function handleApi(request, env, url) {
   if (path === "/api/prayers" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid request." }, 400);
-    const message = Array.from(clean(body.message, 80)).slice(0, 20).join("");
-    if (message.length < 1) return reply(request, { error: "Please write a wish first." }, 400);
+    const message = clean(body.message, 80);
+    const messageLength = Array.from(message).length;
+    if (messageLength < 1) return reply(request, { error: "Please write a wish first." }, 400);
+    if (messageLength > 20) return reply(request, { error: "A wish may contain no more than 20 characters." }, 400);
     const last = await env.DB.prepare("SELECT created_at FROM prayers WHERE player_id=? ORDER BY created_at DESC LIMIT 1").bind(body.player_id).first();
     if (last && Date.now() - Date.parse(last.created_at) < 60000) return reply(request, { error: "Please pause for a moment before posting another wish." }, 429);
     const profile = await env.DB.prepare("SELECT name FROM profiles WHERE id=?").bind(body.player_id).first();
@@ -304,8 +306,11 @@ export class TempleRoom {
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment(player);
     const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(peer => peer && peer.id !== player.id);
-    const offeringRows = await this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] }));
-    server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [] }));
+    const [offeringRows, prayerRows] = await Promise.all([
+      this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] })),
+      this.env.DB.prepare("SELECT id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all().catch(() => ({ results: [] }))
+    ]);
+    server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [], prayers: prayerRows.results || [] }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -322,7 +327,8 @@ export class TempleRoom {
     const player = ws.deserializeAttachment();
     if (!player || typeof data.type !== "string") return;
     if (data.type === "ping") {
-      try { ws.send(JSON.stringify({ type: "pong", at: Date.now() })); } catch {}
+      const peers=this.ctx.getWebSockets().filter(socket=>socket!==ws).map(socket=>{try{return socket.deserializeAttachment();}catch{return null;}}).filter(peer=>peer?.id&&peer.id!==player.id);
+      try { ws.send(JSON.stringify({ type: "presence", players: peers, online: peers.length + 1, at: Date.now() })); } catch {}
       return;
     }
     if (data.type === "move") {

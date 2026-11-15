@@ -6,14 +6,14 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0;
+let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{soundPreference=localStorage.getItem("temple-sound-enabled")!=="false";}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z})),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:mobileRunning,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -86,39 +86,39 @@ function appendChat(player,message,languageCode){
  while(box.children.length>45)box.firstElementChild.remove();
  box.scrollTop=box.scrollHeight;
 }
+function syncPresence(players=[]){
+ const peers=new Map((players||[]).filter(p=>p?.id&&p.id!==network.playerId).map(p=>[p.id,p]));
+ for(const id of [...world.remotes.keys()])if(!peers.has(id))world.removeRemote(id);
+ onlinePlayers.clear();for(const p of peers.values()){world.updateRemote(p);onlinePlayers.set(p.id,p);}renderPresence();
+}
+function syncPrayerBoard(prayers=[]){
+ sharedPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,30);world.setWishWallPrayers(sharedPrayers);
+ if(!$("prayer-modal").classList.contains("hidden"))renderPrayers(sharedPrayers);
+}
 function handleMessage(message){
  if(!message||!message.type)return;
  if(message.type==="welcome"){
-  onlinePlayers.clear();
-  for(const id of [...world.remotes.keys()])world.removeRemote(id);
   if(message.self)world.setDebugPosition(message.self.x,message.self.z);
-  for(const p of message.players||[]){world.addRemote(p);onlinePlayers.set(p.id,p);}
-  for(const offering of message.offerings||[])world.addEffect("lotus");
-  renderPresence();return;
+  syncPresence(message.players||[]);syncPrayerBoard(message.prayers||[]);
+  for(const offering of message.offerings||[])world.addEffect("lotus");return;
  }
+ if(message.type==="presence"){syncPresence(message.players||[]);return;}
  if(message.type==="player:join"){
-  if(message.player?.id!==network.playerId){world.addRemote(message.player);onlinePlayers.set(message.player.id,message.player);renderPresence();}
-  if(message.player?.id!==network.playerId)toast(message.player.name+" · "+t().connected);
-  return;
+  if(message.player?.id!==network.playerId){world.updateRemote(message.player);onlinePlayers.set(message.player.id,message.player);renderPresence();}
+  if(message.player?.id!==network.playerId)toast(message.player.name+" · "+t().connected);return;
  }
  if(message.type==="player:move"||message.type==="player:action"){
   if(message.player?.id!==network.playerId){
    world.updateRemote(message.player);
-   if(message.type==="player:action"){
-    world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});
-    playRitualSound(message.player.action,.42);
-   }
+   if(message.type==="player:action"){world.addEffect(message.player.action,{x:message.player.x,z:message.player.z});playRitualSound(message.player.action,.42);}
    onlinePlayers.set(message.player.id,message.player);renderPresence();
-  }
-  return;
+  }return;
  }
- if(message.type==="player:leave"){
-  world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;
+ if(message.type==="player:leave"){world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;}
+ if(message.type==="chat"){if(message.player?.id!==network.playerId)appendChat(message.player,message.message,message.player?.language);return;}
+ if(message.type==="prayer:new"&&message.prayer?.id&&!sharedPrayers.some(p=>p.id===message.prayer.id)){
+  syncPrayerBoard([message.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(message.prayer);void updateStats();return;
  }
- if(message.type==="chat"){
-  if(message.player?.id!==network.playerId)appendChat(message.player,message.message,message.player?.language);return;
- }
- if(message.type==="prayer:new"){renderPrayerAppend(message.prayer);void updateStats();return;}
 }
 async function updateStats(){
  try{
@@ -142,6 +142,7 @@ async function loadProfile(){
   $("profile-modal").classList.remove("hidden");
   updatePreview();
   world.setLocalProfile(profile,network.playerId);
+  network.connect({...profile,language},world.getPosition());
  }
 }
 function setProfileUI(){
@@ -202,64 +203,34 @@ function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"
  return media;
 }
 async function ensureAudio(){
- try{
-  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-  if(!AudioContextClass)throw new Error("AudioContext unavailable");
-  if(!audio){
-   audio=new AudioContextClass({latencyHint:"playback"});
-   audioMaster=audio.createGain();audioMaster.gain.value=.88;audioMaster.connect(audio.destination);ambienceGain=audio.createGain();ambienceGain.gain.value=audioVolumes.ambience;ambienceGain.connect(audioMaster);effectsGain=audio.createGain();effectsGain.gain.value=audioVolumes.effects;effectsGain.connect(audioMaster);
-  }
-  if(!ambientNodes){
-   const buffer=audio.createBuffer(1,audio.sampleRate*4,audio.sampleRate),data=buffer.getChannelData(0);
-   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.16;
-   const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;
-   const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=520;low.Q.value=.35;
-   const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(ambienceGain||audioMaster);noise.start();
-   const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.065;lfoGain.gain.value=.018;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();
-   ambientNodes={noise,low,wind,lfo,lfoGain};
-  }
-  if(!templeBirds)templeBirds=createTempleMedia(
-   "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3",
-   "https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",
-   {loop:true,volume:.27*audioVolumes.ambience,label:"庭院鸟鸣"}
-  );
-  if(!templeChant)templeChant=createTempleMedia(
-   "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3",
-   "https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg",
-   {loop:true,volume:0,label:"殿内诵经"}
-  );
-  if(!templeBell)templeBell=createTempleMedia(
-   "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2c/Gong55.ogg/Gong55.ogg.mp3",
-   "https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg",
-   {loop:false,volume:.38*audioVolumes.effects,label:"寺院钟声"}
-  );
-  // Start media playback and resume Web Audio synchronously from the visitor's
-  // click gesture; this is essential on iOS Safari and autoplay-restricted browsers.
-  void mediaPlay(templeBirds,"庭院鸟鸣");
-  // Prime the other HTMLAudioElements inside the same user gesture. Mobile Safari
-  // otherwise permits wind/footsteps but rejects later chant and gong playback.
-  for(const media of [templeChant,templeBell]){
-   if(!media)continue;
-   const wasMuted=media.muted,wasVolume=media.volume;media.__templePrimeState={muted:wasMuted,volume:wasVolume};media.muted=true;media.__templePrimePending=true;
-   const prime=media.play();
-   if(prime?.then)prime.then(()=>{if(!media.__templePrimePending)return;media.pause();try{media.currentTime=0;}catch{}media.__templePrimePending=false;media.__templePrimeState=null;media.muted=wasMuted;media.volume=wasVolume;}).catch(()=>{if(media.__templePrimePending){media.__templePrimePending=false;media.__templePrimeState=null;media.muted=wasMuted;media.volume=wasVolume;}});
-  }
-  const resumePromise=audio.state==="running"?Promise.resolve():audio.resume();
-  await Promise.race([resumePromise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Audio resume timed out; tap the sound button to retry")),3500))]);
-  if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
-  soundEnabled=true;
-  audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
-  for(const id of ["sound-toggle","profile-sound-toggle"]){const button=$(id);if(button){button.classList.add("active");button.textContent="♫ "+t().soundOn;button.setAttribute("aria-pressed","true");}}
-  // Retry once if an MP3 transcode failed and the original Ogg fallback has loaded.
-  if(templeBirds.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
-  updateSoundscape();
-  return true;
- }catch(error){
-  audioFailureReason="音频引擎启动失败："+(error?.message||error?.name||"unknown");
-  updateAudioStatus();
-  console.warn("Temple audio could not be started:",error);
-  return false;
- }
+ if(audio?.state==="running"&&soundEnabled)return true;if(audioStarting)return audioStarting;
+ audioStarting=(async()=>{
+  let timeoutId=null;
+  try{
+   const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)throw new Error("AudioContext unavailable");
+   if(!audio){audio=new AudioContextClass({latencyHint:"interactive"});audioMaster=audio.createGain();audioMaster.gain.value=.88;audioMaster.connect(audio.destination);ambienceGain=audio.createGain();ambienceGain.gain.value=audioVolumes.ambience;ambienceGain.connect(audioMaster);effectsGain=audio.createGain();effectsGain.gain.value=audioVolumes.effects;effectsGain.connect(audioMaster);}
+   if(!ambientNodes){
+    const buffer=audio.createBuffer(1,audio.sampleRate*4,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.16;
+    const noise=audio.createBufferSource();noise.buffer=buffer;noise.loop=true;const low=audio.createBiquadFilter();low.type="lowpass";low.frequency.value=520;low.Q.value=.35;
+    const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(ambienceGain||audioMaster);noise.start();
+    const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.065;lfoGain.gain.value=.018;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();ambientNodes={noise,low,wind,lfo,lfoGain};
+   }
+   if(!templeBirds)templeBirds=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",{loop:true,volume:.27*audioVolumes.ambience,label:"庭院鸟鸣"});
+   if(!templeChant)templeChant=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg",{loop:true,volume:0,label:"殿内诵经"});
+   if(!templeBell)templeBell=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2c/Gong55.ogg/Gong55.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/2/2c/Gong55.ogg",{loop:false,volume:.38*audioVolumes.effects,label:"寺院钟声"});
+   const resume=audio.state==="running"?Promise.resolve():audio.resume();
+   await Promise.race([resume,new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("音频启动超时，请再点一次声音按钮")),2800);})]);
+   if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
+   soundEnabled=true;audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
+   for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}}
+   void mediaPlay(templeBirds,"庭院鸟鸣");updateSoundscape();return true;
+  }catch(error){
+   soundEnabled=false;audioFailureReason="音频引擎启动失败："+(error?.message||error?.name||"unknown");
+   for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
+   updateAudioStatus();console.warn("Temple audio could not be started:",error);return false;
+  }finally{if(timeoutId)clearTimeout(timeoutId);}
+ })();
+ try{return await audioStarting;}finally{audioStarting=null;}
 }
 function updateSoundscape(){
  if(!soundEnabled)return;
@@ -462,7 +433,7 @@ $("chat-form").addEventListener("submit",e=>{
 $("chat-collapse").addEventListener("click",()=>$("chat-panel").classList.toggle("collapsed"));
 $("open-prayers").addEventListener("click",async()=>{ $("prayer-modal").classList.remove("hidden");await loadPrayers();});
 async function loadPrayers(){
- try{const prayers=await network.getPrayers();renderPrayers(prayers);}catch{renderPrayers([]);}
+ try{const prayers=await network.getPrayers();syncPrayerBoard(prayers);renderPrayers(prayers);}catch{renderPrayers(sharedPrayers);}
 }
 function renderPrayerAppend(p){
  if(!p?.message)return;
@@ -500,37 +471,31 @@ function appendAbbotMessage(role,content){
  box.scrollTop=box.scrollHeight;
 }
 // Enter sends the abbot message; Shift+Enter inserts a line break. Ignore IME confirmation.
- $("abbot-input").addEventListener("keydown",e=>{
-  if((e.key!=="Enter"&&e.keyCode!==13)||e.shiftKey||e.isComposing||e.keyCode===229)return;
-  e.preventDefault();e.stopPropagation();
-  if(!$("abbot-send").disabled)$("abbot-send").click();
- },true);
- $("abbot-form").addEventListener("submit",async e=>{
- e.preventDefault();
- const input=$("abbot-input"),message=input.value.trim();
- if(!message)return;
- const previous=abbotHistory.slice(-8);
- const submit=$("abbot-send"),status=$("abbot-status");
- submit.disabled=true;status.textContent=t().abbotThinking;
+ let abbotSending=false;
+async function sendAbbotMessage(){
+ if(abbotSending)return;
+ const input=$("abbot-input"),message=input.value.trim();if(!message)return;
+ const submit=$("abbot-send"),status=$("abbot-status");abbotSending=true;submit.disabled=true;status.textContent=t().abbotThinking;
  try{
-  const result=await network.askAbbot(message,previous,language,$("location-title").textContent);
+  const result=await network.askAbbot(message,abbotHistory.slice(-8),language,$("location-title").textContent);
   if(!result?.answer)throw new Error(result?.error||t().abbotUnavailable);
   abbotHistory.push({role:"user",content:message},{role:"assistant",content:result.answer});trimAbbotHistory();
-  appendAbbotMessage("user",message);appendAbbotMessage("assistant",result.answer);
-  if(input.value.trim()===message)input.value="";
-  status.textContent=t().abbotFoot;
- }catch(error){
-  const detail=String(error?.message||t().abbotUnavailable);
-  status.textContent=detail;
-  appendAbbotMessage("assistant",detail);
- }finally{submit.disabled=false;input.focus();}
-});
+  appendAbbotMessage("user",message);appendAbbotMessage("assistant",result.answer);input.value="";status.textContent=t().abbotFoot;
+ }catch(error){const detail=String(error?.message||t().abbotUnavailable);status.textContent=detail;appendAbbotMessage("assistant",detail);}
+ finally{abbotSending=false;submit.disabled=false;input.focus();}
+}
+$("abbot-input").addEventListener("keydown",e=>{
+ if((e.key!=="Enter"&&e.keyCode!==13)||e.shiftKey||e.isComposing||e.keyCode===229)return;
+ e.preventDefault();e.stopPropagation();if(!$("abbot-send").disabled)$("abbot-send").click();
+},true);
+$("abbot-send").addEventListener("click",()=>{void sendAbbotMessage();});
+$("abbot-form").addEventListener("submit",e=>{e.preventDefault();void sendAbbotMessage();});
 $("prayer-input").addEventListener("input",()=>{const chars=[...$("prayer-input").value];if(chars.length>20)$("prayer-input").value=chars.slice(0,20).join("");});
 $("prayer-form").addEventListener("submit",async e=>{
  e.preventDefault();const input=$("prayer-input"),message=[...input.value.trim()].slice(0,20).join("");if(!message){toast("请先写下一句心愿");return;}
  const submit=$("prayer-submit");submit.disabled=true;
  try{
-  const saved=await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);if(saved?.prayer)renderPrayerAppend(saved.prayer);await loadPrayers();await updateStats();
+  const saved=await network.postPrayer(message,language,profile?.name||"行者");input.value="";toast(t().prayerSuccess);if(saved?.prayer){syncPrayerBoard([saved.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(saved.prayer);}await updateStats();
  }catch(error){toast(error.message?.includes("pause")?t().prayerRate:(error.message||t().prayerFailed));}
  finally{submit.disabled=false;}
 });

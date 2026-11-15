@@ -22,6 +22,15 @@ async function cleanTestGuest(page) {
   } catch {}
 }
 
+test("first-time guests connect before saving their optional profile", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  await expect(page.locator("#profile-modal")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 30000 });
+  await expect.poll(async () => Number((await page.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBe(1);
+  await cleanTestGuest(page);
+});
+
 test("desktop: create a monk, connect to the shared room, chat and open the wish wall", async ({ page }) => {
   const pageErrors = [];
   const liveSockets = [];
@@ -240,7 +249,7 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await page.evaluate(() => window.__templeDebug.setPosition(8, -36));
   expect(await page.evaluate(() => window.__templeDebug.canAct("bell"))).toBe(true);
   await page.locator('[data-action="bell"]').click();
-  await page.evaluate(() => window.__templeDebug.setPosition(10, -32.5));
+  await page.evaluate(() => window.__templeDebug.setPosition(19, -32.5));
   expect(await page.evaluate(() => window.__templeDebug.canAct("lotus"))).toBe(true);
   await page.locator('[data-action="lotus"]').click();
   await cleanTestGuest(page);

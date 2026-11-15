@@ -310,6 +310,11 @@ export class TempleWorld{
   add(new THREE.BoxGeometry(4.65,.22,.48),m.darkWood,wishWall,[0,.18,0]);
   const wishTitle=plaqueSprite("莲花祈愿墙","LOTUS WISH WALL");wishTitle.scale.set(2.55,.68,1);wishTitle.position.set(0,2.5,.22);wishWall.add(wishTitle);
   const wishHint=plaqueSprite("靠近此处 · 写下心愿","20 CHARACTERS");wishHint.scale.set(2.45,.52,1);wishHint.position.set(0,.83,.22);wishWall.add(wishHint);
+  this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=1024;this.wishWallCanvas.height=560;
+  this.wishWallTexture=new THREE.CanvasTexture(this.wishWallCanvas);this.wishWallTexture.colorSpace=THREE.SRGBColorSpace;
+  const wishText=new THREE.Mesh(new THREE.PlaneGeometry(3.62,1.8),new THREE.MeshBasicMaterial({map:this.wishWallTexture,transparent:true,depthWrite:false,toneMapped:false}));
+  wishText.position.set(0,1.5,.235);wishWall.add(wishText);
+  this.setWishWallPrayers([]);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
   this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
   this.halls.forEach(h=>hall(s,h,m));
@@ -605,6 +610,25 @@ export class TempleWorld{
   // Floating warm dust
   this.ambient=new THREE.Group();s.add(this.ambient);
   for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
+ }
+ setWishWallPrayers(prayers=[]){
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,5).map(p=>({message:String(p?.message||"").slice(0,20)}));
+  if(!this.wishWallCanvas)return;
+  const ctx=this.wishWallCanvas.getContext("2d");if(!ctx)return;
+  ctx.clearRect(0,0,1024,560);const rows=this.wishWallPrayers;
+  ctx.fillStyle="rgba(255,255,255,.9)";ctx.fillRect(0,0,1024,560);
+  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#796344";
+  if(!rows.length){
+   ctx.font='36px "Songti SC","Noto Serif CJK SC",serif';ctx.fillStyle="#64705c";ctx.fillText("愿此心安 · 愿众生安宁",512,280);
+  }else{
+   ctx.font='bold 27px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("来自云端的心愿",512,34);
+   rows.forEach((p,i)=>{
+    const y=104+i*88;ctx.fillStyle="#a18458";ctx.font="18px Georgia,serif";ctx.textAlign="left";ctx.fillText(String(i+1).padStart(2,"0"),72,y);
+    ctx.fillStyle="#3c4a3c";ctx.font='34px "Songti SC","Noto Serif CJK SC",serif';ctx.textAlign="center";ctx.fillText(p.message,530,y,820);
+    if(i<rows.length-1){ctx.strokeStyle="rgba(120,99,65,.2)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(82,y+42);ctx.lineTo(942,y+42);ctx.stroke();}
+   });
+  }
+  this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
   const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-35.2,stationary:true};
