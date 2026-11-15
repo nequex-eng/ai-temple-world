@@ -70,7 +70,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
 assert.ok(worker.includes('DELETE FROM prayers WHERE id=? AND player_id=?') && worker.includes('type: "prayer:delete"') && network.includes("async deletePrayer(id)") && app.includes("p.player_id===network.playerId"), "Visitors may delete only their own wishes and deletion must sync to everyone");
-assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.48,0)") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)"), "Avatar names must appear above heads as unframed text");
+assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.72,0)") && world.includes("bold 72px") && world.includes("#30251b") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)"), "Avatar names must appear larger and dark above heads without a frame");
 assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
@@ -80,12 +80,17 @@ assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-inp
 assert.ok(world.includes('fillText("福",256,258)') && !world.includes('fillText("许愿墙"') && world.includes("wishWall.position.set(-31,0,-13.5)") && app.includes("Math.abs(p.x+31)<3.7"), "The wish wall must show only one centered 福 character");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
-assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("stationary:true") && world.includes("a.setPose(\"bow\",1200)"), "The resident abbot must remain a visible, stationary NPC");
+assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("const route=[[0,-22]") && world.includes("routine:[\"greet\",\"bow\",\"sweep\",\"meditate\",\"chant\"]") && !world.includes("stationary:true"), "The resident abbot must roam the courtyard and perform simple actions");
 assert.ok(worker.includes("Replaced by a newer session") && worker.includes("peer.id !== player.id") && worker.includes("samePlayerStillConnected"), "Reconnects must not duplicate or prematurely remove the same visitor");
 assert.ok(network.includes("event.code === 4001") && network.includes("this.closedByUser = true"), "Replaced duplicate tabs must not reconnect endlessly");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(-5.4,0,-37.2)") && world.includes("Math.hypot(p.x+5.4,p.z+37.2)<5.5"), "Incense offering must be located inside the Great Hall");
 assert.ok(worker.includes("!near(-5.4, -37.2, 5.5)"), "Worker incense validation must match the Great Hall censer");
+assert.ok(world.includes('if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=13;') && worker.includes("!near(19, -32.5, 13)"), "Lotus placement must use the actual pond center and 13m radius in client and server");
+assert.ok(world.includes("HALL_CUSHION_OFFSETS") && world.includes("this.meditationCushions=MEDITATION_CUSHIONS"), "The Great Hall must have many meditation cushions");
+assert.ok(world.includes("updateDayNight(time)") && world.includes("periodSeconds:600") && world.includes("this.starMaterial.opacity=night*.86") && world.includes("this.moonMesh.material.opacity=night*.92"), "A shared dusk and night cycle must change sky, stars, moon and lights");
+assert.ok(network.includes("!this.welcomed") && network.includes("id: queued.id") && app.includes("messageId&&box.querySelector") && worker.includes("validId(data.id)?data.id"), "Cloud letters must queue until welcome and deduplicate server echoes");
+assert.ok(app.includes('remove.textContent="撤回心愿"') && worker.includes("DELETE FROM prayers WHERE id=? AND player_id=?") && worker.includes('type: "prayer:delete"'), "Visitors may withdraw only their own wishes and synchronize deletion");
 assert.ok(world.includes("censer.visible=true") && world.includes("this.incensePosition=new THREE.Vector3(-5.4,0,-37.2)"), "The Great Hall censer must be visible and reachable");
 assert.ok(network.includes("type: \"ping\"") && worker.includes("data.type === \"ping\""), "Shared-room websocket heartbeats must be enabled");
 assert.ok(worker.includes("env.AI.run") && worker.includes("@cf/zai-org/glm-4.7-flash") && worker.includes("env.AI?.run"), "AI abbot must have a Workers AI fallback when no MiniMax secret is configured");
@@ -154,13 +159,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-73"), "Service worker cache must refresh the shared-room client fix");
+assert.ok(read("sw.js").includes("temple-world-shell-74"), "Service worker cache must refresh the shared-room client fix");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-73"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-74"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
