@@ -602,7 +602,7 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(1.15,1.45,1.2,12),mat(0x71695b,.5,{metalness:.25}),censer,[0,.7,0]);
   add(new THREE.CylinderGeometry(1.36,1.12,.22,12),m.gold,censer,[0,1.4,0]);const incensePlaque=plaqueSprite("上香","INCENSE OFFERING");incensePlaque.scale.set(2.4,.6,1);incensePlaque.position.set(-3.4,2.8,-37.2);s.add(incensePlaque);
   // Lotus pond
-  this.pondPosition=new THREE.Vector3(7,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
+  this.pondPosition=new THREE.Vector3(19,0,-32.5);const pond=new THREE.Group();pond.position.copy(this.pondPosition);s.add(pond);
   add(new THREE.CylinderGeometry(4.05,4.25,.48,64),m.stone,pond,[0,-.03,0]);
   add(new THREE.CircleGeometry(3.88,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
   add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);const lotusPlaque=plaqueSprite("莲花池","LOTUS POND");lotusPlaque.scale.set(3.5,.82,1);lotusPlaque.position.set(0,2.5,4.25);pond.add(lotusPlaque);
@@ -844,7 +844,8 @@ export class TempleWorld{
    for(let i=0;i<7;i++){const a=i*Math.PI*2/7,petal=add(new THREE.SphereGeometry(.17,8,8),mat(0xe6c9c6,.65,{emissive:0x4f2523,emissiveIntensity:.3}),g,[Math.cos(a)*.23,.2,Math.sin(a)*.23]);petal.scale.set(.7,1.6,.55);}
    add(new THREE.SphereGeometry(.11,8,8),this.m.gold,g,[0,.2,0]);
    const l=new THREE.PointLight(0xffdca5,1.7,5);l.position.y=.8;g.add(l);
-   g.position.set(this.pondPosition.x,.35,this.pondPosition.z);
+   const angle=Math.random()*Math.PI*2,radius=.55+Math.random()*2.75;
+   g.position.set(this.pondPosition.x+Math.cos(angle)*radius,.38,this.pondPosition.z+Math.sin(angle)*radius);
    this.lotusLights.push({group:g,phase:Math.random()*6.28});
    if(this.lotusLights.length>24){const old=this.lotusLights.shift();this.scene.remove(old.group);old.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose();});}
    return;
