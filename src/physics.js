@@ -9,7 +9,7 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
-    circle(8, 0, 1.48), circle(31, 33, 9.85),
+    circle(8, 0, 1.48), circle(-28, 2, 1.42), circle(31, 33, 9.85),
     circle(-29, 29, 1.05), circle(0, -39.5, 2.2),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
@@ -35,6 +35,12 @@ export function createTempleCollision(halls) {
       circles.push(circle(h.x + side * (h.w / 2 - 0.35), f - 0.4, 0.31));
     }
   }
+  // The main hall offering table is a solid piece of furniture, not a walk-through prop.
+  const tableZ = -38.5 + 1.12;
+  segments.push(segment(-1.55, tableZ - 0.46, 1.55, tableZ - 0.46, 0.12));
+  segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
+  segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
+  segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
   // Boundary stone walls.
   for (const side of [-1, 1]) {
     const x = side * 31;
