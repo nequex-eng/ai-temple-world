@@ -1059,7 +1059,7 @@ export class TempleWorld{
    direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
   }else if(this.moveTarget&&canMove){
    const dx=this.moveTarget.x-this.local.root.position.x,dz=this.moveTarget.z-this.local.root.position.z;
-   if(Math.hypot(dx,dz)<.22){
+   if(Math.hypot(dx,dz)<.08){
     const next=this.moveWaypoints?.shift();
     if(next){this.moveTarget.copy(next);this.moveVelocity.multiplyScalar(.12);}
     else{
