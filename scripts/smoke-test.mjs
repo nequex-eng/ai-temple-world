@@ -149,10 +149,10 @@ assert.ok(app.includes("movementCodes") && app.includes("document.addEventListen
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
 assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Outdoor courtyard incense, forest tea pavilion, or expanded gate missing");
 assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag"), "Head name must be tappable for profile editing");
-assert.ok(world.includes("this.mobile?0.95:1.5") && world.includes("shadowMap.enabled=!mobile"), "Mobile renderer must use reduced resolution and disable realtime shadows");
+assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Mobile renderer must use reduced resolution and disable realtime shadows");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
-assert.ok(read("src/physics.js").includes("circle(0, -20.5, 1.82)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
+assert.ok(read("src/physics.js").includes("circle(5.8, -19.5, 1.55)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
   assert.ok(worker.includes(table), "Worker missing D1 table reference: " + table);
