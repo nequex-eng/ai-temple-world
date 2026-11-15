@@ -606,6 +606,9 @@ function frame(){
   const p=world.getPosition();network.move(p);
   lastPositionSend=now;
  }
+ const p=world.getPosition(),nearPrayerWall=Math.hypot(p.x+7.35,p.z+10.5)<2.8;
+ if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}
+ else if(!nearPrayerWall&&Math.hypot(p.x+7.35,p.z+10.5)>4.5)prayerWallPromptOpen=false;
  if(now>actionUntil){text("character-state",t().walk);}
  requestAnimationFrame(frame);
 }
@@ -626,7 +629,7 @@ async function start(){
   void network.visit().catch(()=>{});
   void updateStats();
   setInterval(updateStats,30000);
-  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},45000);
+  setInterval(()=>{if(!$("prayer-modal").classList.contains("hidden"))loadPrayers();},12000);
 
   // Profile lookup can take a while on mobile; keep the 3D world interactive.
   await loadProfile();
