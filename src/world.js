@@ -623,11 +623,11 @@ export class TempleWorld{
    {name:"慧远",robe:"#b49a72",skin:"#c99170",style:"monk",x:7,z:-31,route:[[7,-31],[7,-34],[5,-34],[5,-31]],routine:["chant","bow"]},
    {name:"云游僧",robe:"#887b62",skin:"#d7ad87",style:"pilgrim",x:-8,z:-38,route:[[-8,-38],[-7,-41],[-5,-41],[-5,-38]],routine:["bow","greet"]},
    {name:"明心",robe:"#c1ad88",skin:"#e0b995",style:"monk",x:8,z:-37,route:[[8,-37],[8,-40],[6,-40],[6,-37]],routine:["bow","greet"]},
-   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-4,z:-42,route:[[-4,-42]],routine:["meditate","chant"],stationary:true},
+   {name:"守经人",robe:"#8d795d",skin:"#c99472",style:"monk",x:-4,z:-42,route:[[-4,-42],[-5,-42],[-5,-41],[-4,-41]],routine:["meditate","chant"]},
    {name:"行脚客",robe:"#9c805e",skin:"#d4a27e",style:"pilgrim",x:-7,z:-33,route:[[-7,-33],[-5,-32],[-3,-33],[-5,-35]],routine:["sweep","bow"]},
    {name:"莲生",robe:"#ad8c70",skin:"#d6a784",style:"monk",x:4,z:-42,route:[[4,-42],[6,-41],[6,-39],[4,-39]],routine:["bow","greet"]},
    {name:"小沙弥",robe:"#c3a477",skin:"#e0b995",style:"monk",x:0,z:-31,route:[[0,-31],[2,-32],[2,-34],[0,-34]],routine:["greet","bow"]},
-   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:0,z:-43,route:[[0,-43]],routine:["meditate","chant"],stationary:true}
+   {name:"守殿僧",robe:"#a88b68",skin:"#c99170",style:"monk",x:0,z:-43,route:[[0,-43],[1,-43],[1,-42],[0,-42]],routine:["meditate","chant"]}
   ];
   this.npcs=roster.map((spec,index)=>{
    const a=avatar(this.scene,spec,"npc-"+index,true);a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});a.setPosition(spec.x,spec.z,spec.stationary?Math.PI:(index%2?Math.PI:0),groundHeightAt(spec.x,spec.z,this.halls));
