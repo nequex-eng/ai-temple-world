@@ -171,6 +171,12 @@ function updateAudioStatus(){
 }
 function mediaPlay(media,label){
  if(!media)return Promise.resolve(false);
+ if(media.__templePrimePending){
+  media.__templePrimePending=false;
+  const state=media.__templePrimeState;
+  media.__templePrimeState=null;
+  if(state){media.muted=state.muted;media.volume=state.volume;}
+ }
  return media.play().then(()=>{updateAudioStatus();return true;}).catch(error=>{audioFailureReason=label+"播放失败："+(error?.message||error?.name||"unknown");updateAudioStatus();return false;});
 }
 function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"}={}) {
