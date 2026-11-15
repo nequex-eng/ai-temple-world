@@ -145,3 +145,5 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
+
+assert.ok(read("sw.js").includes("temple-world-shell-71"), "Service worker cache must refresh the shared-room client fix");
