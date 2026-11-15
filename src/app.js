@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
-let profile=null,onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="";
+let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="";
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
@@ -40,13 +40,13 @@ function applyLanguage(){
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
   "wishes-label":d.wishes,"character-state":d.walk,"chat-title":d.chatTitle,"chat-caption":d.chatCaption,
   "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"run-toggle":d.run,"desktop-hint":d.desktop,
-  "profile-title":d.profileTitle,"profile-description":d.profileDesc,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
+  "profile-title":d.profileTitle,"profile-description":d.profileDesc,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
   "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot,"sound-title":d.soundTitle,"sound-description":d.soundDescription,"sound-ambience-label":d.soundAmbience,"sound-chant-label":d.soundChant,"sound-effects-label":d.soundEffects,"sound-test":d.soundTest,"sound-foot":d.soundFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
- $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;
+ $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
@@ -418,6 +418,30 @@ function renderPrayers(prayers){
   card.append(body,foot);list.append(card);
  }
 }
+$("open-abbot").addEventListener("click",()=>{$("abbot-modal").classList.remove("hidden");$("abbot-input").focus();});
+function appendAbbotMessage(role,content){
+ const box=$("abbot-messages"),line=document.createElement("div");
+ line.className="abbot-message "+(role==="user"?"user":"assistant");
+ line.textContent=String(content||"").slice(0,1600);box.append(line);
+ while(box.children.length>24)box.children[1]?.remove();
+ box.scrollTop=box.scrollHeight;
+}
+$("abbot-form").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const input=$("abbot-input"),message=input.value.trim();if(message.length<2)return;
+ const previous=abbotHistory.slice(-8);
+ abbotHistory.push({role:"user",content:message});appendAbbotMessage("user",message);input.value="";
+ const submit=$("abbot-send"),status=$("abbot-status");submit.disabled=true;status.textContent=t().abbotThinking;
+ try{
+  const result=await network.askAbbot(message,previous,language,$("location-title").textContent);
+  if(!result?.answer)throw new Error(result?.error||t().abbotUnavailable);
+  abbotHistory.push({role:"assistant",content:result.answer});appendAbbotMessage("assistant",result.answer);
+  status.textContent=t().abbotFoot;
+ }catch(error){
+  appendAbbotMessage("assistant",error?.message||t().abbotUnavailable);
+  status.textContent=t().abbotUnavailable;
+ }finally{submit.disabled=false;input.focus();}
+});
 $("prayer-form").addEventListener("submit",async e=>{
  e.preventDefault();const input=$("prayer-input"),message=input.value.trim();if(message.length<2)return;
  const submit=$("prayer-submit");submit.disabled=true;
