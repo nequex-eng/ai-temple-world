@@ -93,6 +93,9 @@ assert.ok(world.includes('this.halls=[{x:0,z:-37,w:26,d:17,h:7.1'), "The world m
 assert.ok(!html.includes('id="jump-toggle"') && !html.includes('id="run-toggle"') && app.includes("lastCenterTap") && app.includes("now-lastCenterTap<=360") && app.includes("world.requestJump()"), "Mobile movement must use joystick double-tap center to jump without run/jump buttons");
 assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.includes("function playBeadTick()"), "Ritual actions must trigger audible effects");
 const templeWalkway = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+let westRoute={x:-24,z:-26.55,y:0};
+for(let i=0;i<45;i++)westRoute=moveWithCollision(westRoute,-.16,0,templeWalkway);
+assert.ok(westRoute.x < -29.5, "The west courtyard route must not be blocked by invisible meditation-room furniture");
 for (const z of [-17,-10.5,2]) {
   let p={x:-10,z,y:0};
   for(let i=0;i<140;i++)p=moveWithCollision(p,-0.16,0,templeWalkway);
