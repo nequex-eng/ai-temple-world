@@ -71,7 +71,7 @@ assert.ok(worker.includes("Array.from(clean(body.message, 80)).slice(0, 20)") &&
 assert.ok(world.includes("LOTUS WISH WALL") && app.includes("nearPrayerWall"), "The left-of-gate wish wall must open when a visitor approaches");
 assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
-assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("x:9,z:-30,route:[[9,-30],[10,-32],[10,-35],[9,-36]]"), "Named NPCs must have collision-safe active patrol routes");
+assert.ok(world.includes("npcCollisionWorld(a)") && world.includes("stationary:true") && world.includes("a.setPose(\"bow\",1200)"), "The resident abbot must remain a visible, stationary NPC");
 assert.ok(worker.includes("Replaced by a newer session") && worker.includes("peer.id !== player.id") && worker.includes("samePlayerStillConnected"), "Reconnects must not duplicate or prematurely remove the same visitor");
 assert.ok(network.includes("event.code === 4001") && network.includes("this.closedByUser = true"), "Replaced duplicate tabs must not reconnect endlessly");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
