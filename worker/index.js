@@ -48,7 +48,7 @@ async function minimaxChat(env, messages, maxTokens = 480) {
       const response = await fetch(base + "/chat/completions", {
         method: "POST",
         headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
+        body: JSON.stringify({ model, messages, temperature: 0.35, reasoning_effort: "low", max_completion_tokens: Math.max(2048, maxTokens * 4), stream: false })
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
