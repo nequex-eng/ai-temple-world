@@ -294,7 +294,7 @@ export class TempleWorld{
   for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;const hill=add(new THREE.ConeGeometry(17+Math.random()*13,38+Math.random()*30,7),mat(ring?0x70887e:0x81958b,.98),s,[Math.cos(a)*r,8-ring*2,Math.sin(a)*r],[0,Math.random(),(Math.random()-.5)*.12],false);hill.scale.set(1,.85,1.05);}
   for(let i=0;i<(this.mobile?26:56);i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<14&&z>12&&z<43)continue;pine(s,x,z,.72+Math.random()*.72,m);}
   // Four-sided ceremonial gate
-  const gate=new THREE.Group();gate.position.z=31;s.add(gate);
+  const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);add(new THREE.BoxGeometry(3.3,1.1,.17),m.darkWood,gate,[0,5.95,.58]);add(new THREE.BoxGeometry(2.25,.05,.04),m.gold,gate,[0,5.98,.69]);const gatePlaque=plaqueSprite("山门","MOUNTAIN GATE");gatePlaque.scale.set(2.7,.68,1);gatePlaque.position.set(0,5.98,.78);gate.add(gatePlaque);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
@@ -734,7 +734,7 @@ export class TempleWorld{
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
   const p=this.local?.root.position||{x:0,z:25};
-  const pts=[{x:0,z:28,index:0,key:"gate"},{x:0,z:-37,index:1,key:"main"}];
+  const pts=[{x:0,z:-10.5,index:0,key:"gate"},{x:0,z:-37,index:1,key:"main"}];
   return pts.reduce((b,a)=>Math.hypot(p.x-a.x,p.z-a.z)<Math.hypot(p.x-b.x,p.z-b.z)?a:b,pts[0]);
  }
  canAct(a){
