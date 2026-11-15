@@ -493,7 +493,18 @@ document.addEventListener("visibilitychange",()=>{
  else if(soundEnabled&&audio?.state==="suspended")audio.resume().then(()=>updateSoundscape()).catch(error=>{console.warn("Audio resume failed",error);});
 });
 const stick=$("joystick"),knob=$("joystick-knob"),jumpButton=$("jump-toggle");
-if(jumpButton){const jumpStart=e=>{e.preventDefault();keys.jump=true;world.requestJump();jumpButton.setPointerCapture?.(e.pointerId);};const jumpEnd=e=>{e.preventDefault();keys.jump=false;};jumpButton.addEventListener("pointerdown",jumpStart);jumpButton.addEventListener("pointerup",jumpEnd);jumpButton.addEventListener("pointercancel",jumpEnd);jumpButton.addEventListener("lostpointercapture",jumpEnd);}
+if(jumpButton){
+ let lastPointerJump=0;
+ const jumpStart=e=>{e.preventDefault();lastPointerJump=performance.now();keys.jump=true;world.requestJump();try{jumpButton.setPointerCapture(e.pointerId);}catch{}};
+ const jumpEnd=e=>{e.preventDefault();keys.jump=false;};
+ // Pointer events are primary; click is a fallback for mobile browsers that
+ // synthesize a click but drop pointerdown after a canvas gesture.
+ jumpButton.addEventListener("pointerdown",jumpStart);
+ jumpButton.addEventListener("pointerup",jumpEnd);
+ jumpButton.addEventListener("pointercancel",jumpEnd);
+ jumpButton.addEventListener("lostpointercapture",jumpEnd);
+ jumpButton.addEventListener("click",()=>{if(performance.now()-lastPointerJump>450)world.requestJump();});
+}
 function updateStick(e){
  const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
  joy={x:dx*factor/(r.width*.34),y:dy*factor/(r.width*.34)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
