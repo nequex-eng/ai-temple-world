@@ -341,6 +341,10 @@ export class TempleWorld{
   const blessingTexture=new THREE.CanvasTexture(blessingCanvas);blessingTexture.colorSpace=THREE.SRGBColorSpace;
   const blessing=new THREE.Mesh(new THREE.PlaneGeometry(2.75,2.75),new THREE.MeshBasicMaterial({map:blessingTexture,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));
   blessing.position.set(0,2.55,.54);wishWall.add(blessing);
+  this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=4096;this.wishWallCanvas.height=512;
+  this.wishWallTexture=new THREE.CanvasTexture(this.wishWallCanvas);this.wishWallTexture.colorSpace=THREE.SRGBColorSpace;
+  const wishesSurface=new THREE.Mesh(new THREE.PlaneGeometry(wishLength-7.0,3.25),new THREE.MeshBasicMaterial({map:this.wishWallTexture,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));
+  wishesSurface.position.set(0,2.55,.505);wishWall.add(wishesSurface);
   this.setWishWallPrayers([]);
   // One monumental sanctuary: a single Great Hall, with the approach gate outside.
   this.halls=[{x:0,z:-37,w:26,d:17,h:7.1,label:"大雄宝殿",subtitle:"MAHAVIRA · THE GREAT HALL"}];
@@ -624,9 +628,19 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?28:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  setWishWallPrayers(prayers=[]){
-  // Keep the shared prayer data available to the UI/API, but do not print
-  // visitor messages or labels onto the physical wall.
-  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,30).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,16).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
+  if(!this.wishWallCanvas||!this.wishWallTexture)return;
+  const ctx=this.wishWallCanvas.getContext("2d");
+  ctx.clearRect(0,0,this.wishWallCanvas.width,this.wishWallCanvas.height);
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font='42px "Noto Serif SC","Songti SC",serif';
+  ctx.fillStyle="rgba(91,62,32,.94)";
+  // Leave a clear central space for the permanent gold 福; wishes are written
+  // in two quiet columns on either side, without headings, names or timestamps.
+  const left=this.wishWallPrayers.slice(0,8),right=this.wishWallPrayers.slice(8,16);
+  left.forEach((p,i)=>ctx.fillText(p.message,930,56+i*56,1500));
+  right.forEach((p,i)=>ctx.fillText(p.message,3166,56+i*56,1500));
+  this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
   const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-35.2,stationary:true};
