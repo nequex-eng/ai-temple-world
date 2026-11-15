@@ -233,6 +233,13 @@ export class TempleRoom {
   constructor(ctx, env) { this.ctx = ctx; this.env = env; }
   async fetch(request) {
     const current = this.ctx.getWebSockets();
+    const requestedId = validId(new URL(request.url).searchParams.get("id")) ? new URL(request.url).searchParams.get("id") : null;
+    for (const socket of current) {
+      try {
+        const existing = socket.deserializeAttachment();
+        if (requestedId && existing?.id === requestedId) socket.close(4001, "Replaced by a newer session");
+      } catch {}
+    }
     if (current.length >= 120) return new Response("The sanctuary is full. Please try another moment.", { status: 503 });
     const url = new URL(request.url);
     const player = {
@@ -267,7 +274,7 @@ export class TempleRoom {
     const client = pair[0], server = pair[1];
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment(player);
-    const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(Boolean);
+    const peers = this.ctx.getWebSockets().filter(s => s !== server).map(s => s.deserializeAttachment()).filter(peer => peer && peer.id !== player.id);
     const offeringRows = await this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] }));
     server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [] }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
