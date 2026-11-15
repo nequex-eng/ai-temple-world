@@ -109,3 +109,5 @@
 .jump-toggle{height:48px;width:48px;border:1px solid #e4cb9877;border-radius:50%;background:rgba(35,49,39,.82);color:#f0dfbd;font-family:var(--serif);font-size:17px;box-shadow:0 3px 12px #0005;touch-action:none;user-select:none;-webkit-user-select:none}
 .jump-toggle:active{background:#a18454;transform:scale(.96)}
 @media(max-width:660px){.jump-toggle{height:45px;width:45px;font-size:16px}.mobile-controls{gap:7px}}
+
+@media(max-width:660px){.mobile-controls{gap:5px}.joystick{width:82px;height:82px}.joystick-knob{width:30px;height:30px}.run-toggle{min-width:38px;height:36px;padding:0 5px}.jump-toggle{width:38px;height:38px}}
