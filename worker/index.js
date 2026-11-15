@@ -5,18 +5,13 @@ const CORS = {
   "Vary": "Origin"
 };
 const allowedOrigin = (origin) => {
-  if (!origin) return "*";
+  if (!origin || origin === "null") return "*";
   try {
     const u = new URL(origin);
     const localDevelopment = (u.hostname === "localhost" || u.hostname === "127.0.0.1") && (u.protocol === "http:" || u.protocol === "https:");
-    const productionPages = u.protocol === "https:" && (
-      u.hostname === "ai-temple-world.pages.dev" ||
-      u.hostname.endsWith(".ai-temple-world.pages.dev") ||
-      u.hostname === "helixtemple.pages.dev" ||
-      u.hostname.endsWith(".helixtemple.pages.dev")
-    );
-    return localDevelopment || productionPages ? origin : "https://ai-temple-world.pages.dev";
-  } catch { return "https://ai-temple-world.pages.dev"; }
+    // Public anonymous API: support HTTPS custom domains and Pages aliases.
+    return localDevelopment || u.protocol === "https:" ? origin : "https://helixtemple.pages.dev";
+  } catch { return "https://helixtemple.pages.dev"; }
 };
 const headers = (request) => ({ ...CORS, "Access-Control-Allow-Origin": allowedOrigin(request.headers.get("Origin")), "Content-Type": "application/json; charset=utf-8" });
 const reply = (request, data, status = 200) => new Response(JSON.stringify(data), { status, headers: headers(request) });
