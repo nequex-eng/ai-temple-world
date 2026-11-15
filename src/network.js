@@ -11,14 +11,12 @@ export function getPlayerId() {
 export class TempleNetwork {
   constructor({ onStatus = () => {}, onMessage = () => {}, onError = () => {} } = {}) {
     this.playerId = getPlayerId();
-    const params = new URLSearchParams(location.search);
-    const requestedRoom = (params.get("room") || "main").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 24);
-    const requestedRegion = (params.get("region") || "apac").toLowerCase();
-    this.room = requestedRoom || "main";
-    this.instance = Math.max(0, Math.min(99, Math.floor(Number(params.get("instance")) || 0)));
-    this.region = ["auto","wnam","enam","sam","weur","eeur","apac","apac-ne","apac-se","oc","afr","me"].includes(requestedRegion) ? requestedRegion : "apac";
+    // One shared sanctuary: every visitor enters the same live room.
+    this.room = "great-hall";
+    this.instance = 0;
+    this.region = "auto";
     const roomLabel = document.getElementById("room-label");
-    if (roomLabel) roomLabel.textContent = this.room.toUpperCase() + " · " + this.region.toUpperCase() + " · " + this.instance;
+    if (roomLabel) roomLabel.textContent = "GREAT HALL · SHARED";
     this.onStatus = onStatus;
     this.onMessage = onMessage;
     this.onError = onError;
@@ -106,9 +104,6 @@ export class TempleNetwork {
       skin: p.skin || "#d7ad87",
       style: p.style || "monk",
       language: p.language || localStorage.getItem("temple-language") || "zh",
-      room: this.room,
-      instance: String(this.instance),
-      region: this.region,
       x: String(pos.x || 0),
       z: String(pos.z ?? 18)
     });
