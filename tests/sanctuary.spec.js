@@ -187,28 +187,38 @@ test("main hall meditation uses a real cushion and mobile information panels sta
 });
 
 test("two independent guests share live presence and messages", async ({ browser }) => {
+  test.setTimeout(150000);
   const contextA = await browser.newContext();
   const contextB = await browser.newContext();
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
   try {
-    for (const [page, name] of [[pageA, "Room Guest A"], [pageB, "Room Guest B"]]) {
+    const prepareGuest = async (page, name) => {
       await page.goto("/", { waitUntil: "domcontentloaded" });
-      await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+      await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 45000 });
       await page.locator("#monk-name").fill(name);
       await page.locator("#save-profile").click();
       await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
-      await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
-    }
+      await expect(page.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 30000 });
+    };
+    // Load both independent guests concurrently so cold browser startup does not consume
+    // the whole live-room test budget before message delivery is exercised.
+    await Promise.all([
+      prepareGuest(pageA, "Room Guest A"),
+      prepareGuest(pageB, "Room Guest B")
+    ]);
 
     await expect.poll(async () => Number((await pageA.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
     await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
 
     await pageA.locator("#chat-collapse").click();
     await pageB.locator("#chat-collapse").click();
+    await pageA.waitForTimeout(650);
+    await pageB.waitForTimeout(650);
     await pageA.locator("#chat-input").fill("Message from the other side of the courtyard");
     await pageA.locator("#chat-form button").click();
-    await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 15000 });
+    await expect(pageA.locator("#chat-input")).toHaveValue("", { timeout: 5000 });
+    await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
 
     await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
