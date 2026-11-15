@@ -117,7 +117,14 @@ function avatar(scene,profile={},id="local",isLocal=false){
  const root=new THREE.Group();root.name="monk-"+id;scene.add(root);
  const robe=mat(profile.robe||"#b49a72",.96,{map:robeFabric,bumpMap:robeFabric,bumpScale:.018}),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
  const body=new THREE.Group();root.add(body);
- add(new THREE.LatheGeometry([new THREE.Vector2(.22,.08),new THREE.Vector2(.29,.18),new THREE.Vector2(.34,.38),new THREE.Vector2(.30,.68),new THREE.Vector2(.33,.94),new THREE.Vector2(.40,1.18),new THREE.Vector2(.47,1.39),new THREE.Vector2(.42,1.53),new THREE.Vector2(.27,1.63)],32),robe,body);
+ const robeProfile=[
+  [.07,.27,.22], [.15,.32,.245], [.32,.34,.25], [.5,.32,.235],
+  [.68,.29,.21], [.84,.285,.195], [1.0,.31,.195], [1.14,.36,.21],
+  [1.27,.425,.225], [1.37,.465,.22], [1.44,.42,.195], [1.51,.29,.17], [1.57,.18,.15]
+ ];
+ const robeGeometry=new THREE.LatheGeometry(robeProfile.map(([y,r])=>new THREE.Vector2(r,y)),48);
+ robeGeometry.computeVertexNormals();
+ add(robeGeometry,robe,body);
  add(new THREE.ConeGeometry(.19,.9,4),trim,body,[0,.92,.27]).scale.set(.75,1,.2);
  add(new THREE.TorusGeometry(.42,.045,7,32),trim,body,[0,.43,0],[Math.PI/2,0,0]);
  add(new THREE.TorusGeometry(.23,.04,8,28),trim,body,[0,1.53,0],[Math.PI/2,0,0]);
@@ -125,13 +132,23 @@ function avatar(scene,profile={},id="local",isLocal=false){
  for(const side of [-1,1]){
   const leg=add(new THREE.CapsuleGeometry(.105,.28,4,8),dark,body,[side*.2,.19,0]);legs.push(leg);
   add(new THREE.BoxGeometry(.28,.09,.4),sandal,body,[side*.2,.045,.08]);
-  const pivot=new THREE.Group();pivot.position.set(side*.39,1.36,0);body.add(pivot);
-  add(new THREE.CapsuleGeometry(.145,.62,5,10),robe,pivot,[side*.035,-.27,0],[0,0,side*.13]);
-  add(new THREE.CapsuleGeometry(.105,.28,4,8),robe,pivot,[side*.035,-.55,.015],[0,0,side*.08]);
-  add(new THREE.SphereGeometry(.105,12,10),skin,pivot,[side*.035,-.73,.035]);arms.push(pivot);
+  const pivot=new THREE.Group();pivot.position.set(side*.405,1.34,0);body.add(pivot);
+  const shoulder=add(new THREE.SphereGeometry(1,16,12),robe,pivot,[0,-.045,0]);
+  shoulder.scale.set(.205,.205,.19);
+  add(new THREE.CapsuleGeometry(.15,.58,6,12),robe,pivot,[side*.025,-.285,.005],[0,0,side*.12]);
+  add(new THREE.CapsuleGeometry(.105,.27,5,10),robe,pivot,[side*.035,-.565,.025],[0,0,side*.08]);
+  add(new THREE.TorusGeometry(.105,.018,6,20),trim,pivot,[side*.035,-.69,.025],[Math.PI/2,0,0]);
+  const hand=new THREE.Group();hand.position.set(side*.035,-.765,.045);pivot.add(hand);
+  add(new THREE.SphereGeometry(1,12,10),skin,hand,[0,0,0]).scale.set(.092,.115,.055);
+  for(let finger=0;finger<4;finger++){
+   const fx=(finger-1.5)*.043, length=.105+(finger===1||finger===2?.018:0);
+   add(new THREE.CapsuleGeometry(.018,length*.5,4,7),skin,hand,[fx,-.095,.018],[0,0,(finger-1.5)*-.035]);
+  }
+  add(new THREE.CapsuleGeometry(.022,.075,4,7),skin,hand,[side*.105,-.018,.04],[0,0,side*.72]);
+  arms.push(pivot);
  }
  add(new THREE.CylinderGeometry(.12,.15,.22,12),skin,body,[0,1.65,0]);
- const head=new THREE.Group();head.position.set(0,1.94,0);body.add(head);
+ const head=new THREE.Group();head.position.set(0,1.91,0);body.add(head);
  add(new THREE.SphereGeometry(.315,20,16),skin,head,[0,.12,0]);
  // Smooth, clearly shaven monastic scalp (no hair cap or hairstyle).
  const scalp=add(new THREE.SphereGeometry(.318,20,14),skin,head,[0,.235,-.012]);scalp.scale.set(1,.58,.96);
@@ -152,14 +169,24 @@ function avatar(scene,profile={},id="local",isLocal=false){
   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x*.5,1.42,-.43),new THREE.Vector3(x*.8,1.02,-.39),new THREE.Vector3(x,.62,-.35),new THREE.Vector3(x*.88,.24,-.42)]);
   body.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,.008,5,false),foldMaterial));
  }
- add(new THREE.TorusGeometry(.39,.055,8,32),trim,body,[0,.55,0],[Math.PI/2,0,0]);
- // Long robe hem covers the trousers; only the sandals remain visible.
- add(new THREE.CylinderGeometry(.39,.45,.38,32,1,true),robe,body,[0,.24,0]);
+ add(new THREE.TorusGeometry(.34,.045,8,32),trim,body,[0,.48,0],[Math.PI/2,0,0]);
+ // A softly flared, weighted robe hem follows the hips instead of forming a straight-sided barrel.
+ const hem=add(new THREE.LatheGeometry([
+  new THREE.Vector2(.29,.06),new THREE.Vector2(.31,.12),new THREE.Vector2(.33,.26),
+  new THREE.Vector2(.36,.43),new THREE.Vector2(.38,.58)
+ ],40),robe,body,[0,0,0]);
+ hem.geometry.computeVertexNormals();
  add(new THREE.BoxGeometry(.13,.035,.05),trim,body,[0,1.43,.49]);
  for(const side of [-1,1]){
-  add(new THREE.SphereGeometry(.064,10,8),skin,head,[side*.3,.11,0]);
-  add(new THREE.SphereGeometry(.024,8,8),dark,head,[side*.105,.15,.292],[0,0,0],false);
+  const ear=add(new THREE.SphereGeometry(1,14,10),skin,head,[side*.302,.105,-.005]);
+  ear.scale.set(.09,.125,.065);
+  const earInset=add(new THREE.SphereGeometry(1,12,8),mat(0x9c7160,.95),head,[side*.325,.105,.025]);
+  earInset.scale.set(.025,.065,.018);
+  add(new THREE.SphereGeometry(.024,10,8),dark,head,[side*.105,.15,.292],[0,0,0],false);
  }
+ const chin=add(new THREE.SphereGeometry(1,14,10),skin,head,[0,-.005,.205]);chin.scale.set(.17,.105,.12);
+ const noseBridge=add(new THREE.CapsuleGeometry(.027,.095,5,8),skin,head,[0,.105,.316]);
+ noseBridge.rotation.x=-.16;
  add(new THREE.SphereGeometry(.04,8,8),skin,head,[0,.04,.3],[0,0,0],false);
  // Fine facial structure: softly closed eyes, brow ridges, nose and a restrained mouth.
  const feature=mat(0x59463b,.94),lip=mat(0x805c50,.9);
@@ -176,7 +203,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
  add(new THREE.SphereGeometry(.035,10,8),skin,head,[0,.105,.315]).scale.set(.72,1.2,.72);
  const mouthCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-.055,.035,.292),new THREE.Vector3(0,.027,.305),new THREE.Vector3(.055,.035,.292)]);
  head.add(new THREE.Mesh(new THREE.TubeGeometry(mouthCurve,10,.006,5,false),lip));
- head.scale.setScalar(.82);
+ head.scale.setScalar(.96);
  const incenseStick=new THREE.Group();body.add(incenseStick);incenseStick.visible=false;
  add(new THREE.CylinderGeometry(.018,.018,.72,7),mat(0x98683a,.8),incenseStick,[0,0,0]);
  add(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:0xff9c54}),incenseStick,[0,.37,0]);
@@ -681,7 +708,19 @@ export class TempleWorld{
   return true;
  }
  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.2:1.65));}this.renderer.setSize(innerWidth,innerHeight);}
- setLocalProfile(p,id){if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}this.local=avatar(this.scene,p,id,true);this.local.setPosition(0,25,0,groundHeightAt(0,25,this.halls));}
+ setLocalProfile(p,id){
+  if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}
+  this.local=avatar(this.scene,p,id,true);
+  let hash=0;for(const ch of String(id||""))hash=(hash*31+ch.charCodeAt(0))>>>0;
+  const total=240,start=hash%total;let spawn=null;
+  for(let step=0;step<total;step++){
+   const slot=(start+step)%total,x=-11.4+(slot%20)*1.2,z=16+Math.floor(slot/20)*1.2;
+   const occupied=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].some(a=>Math.hypot(a.root.position.x-x,a.root.position.z-z)<1.0);
+   if(!collidesAt(x,z,this.collision)&&!occupied){spawn={x,z};break;}
+  }
+  const pos=spawn||{x:0,z:25};
+  this.local.setPosition(pos.x,pos.z,0,groundHeightAt(pos.x,pos.z,this.halls));
+ }
  addRemote(p){if(!p?.id||p.id===this.local?.id)return;if(this.remotes.has(p.id)){this.updateRemote(p);return;}const a=avatar(this.scene,p,p.id);a.setPosition(p.x,p.z,p.rotation||0);a.setTarget(p);this.remotes.set(p.id,a);}
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
