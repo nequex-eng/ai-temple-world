@@ -493,18 +493,22 @@ function appendAbbotMessage(role,content){
  },true);
  $("abbot-form").addEventListener("submit",async e=>{
  e.preventDefault();
- const input=$("abbot-input"),message=input.value.trim();if(message.length<2)return;
+ const input=$("abbot-input"),message=input.value.trim();
+ if(!message)return;
  const previous=abbotHistory.slice(-8);
- abbotHistory.push({role:"user",content:message});trimAbbotHistory();appendAbbotMessage("user",message);input.value="";
- const submit=$("abbot-send"),status=$("abbot-status");submit.disabled=true;status.textContent=t().abbotThinking;
+ const submit=$("abbot-send"),status=$("abbot-status");
+ submit.disabled=true;status.textContent=t().abbotThinking;
  try{
   const result=await network.askAbbot(message,previous,language,$("location-title").textContent);
   if(!result?.answer)throw new Error(result?.error||t().abbotUnavailable);
-  abbotHistory.push({role:"assistant",content:result.answer});trimAbbotHistory();appendAbbotMessage("assistant",result.answer);
+  abbotHistory.push({role:"user",content:message},{role:"assistant",content:result.answer});trimAbbotHistory();
+  appendAbbotMessage("user",message);appendAbbotMessage("assistant",result.answer);
+  if(input.value.trim()===message)input.value="";
   status.textContent=t().abbotFoot;
  }catch(error){
-  appendAbbotMessage("assistant",error?.message||t().abbotUnavailable);
-  status.textContent=t().abbotUnavailable;
+  const detail=String(error?.message||t().abbotUnavailable);
+  status.textContent=detail;
+  appendAbbotMessage("assistant",detail);
  }finally{submit.disabled=false;input.focus();}
 });
 $("prayer-form").addEventListener("submit",async e=>{
