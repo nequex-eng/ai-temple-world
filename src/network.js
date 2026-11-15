@@ -84,10 +84,10 @@ export class TempleNetwork {
   }
   async deleteMyData() { return this.request("/api/data", { method: "DELETE", body: JSON.stringify({ player_id: this.playerId }) }); }
   async postPrayer(message, language, display_name) {
-    return this.request("/api/prayers", {
-      method: "POST",
-      body: JSON.stringify({ player_id: this.playerId, message, language, display_name })
-    }, 30000);
+    return this.request("/api/prayers", { method: "POST", body: JSON.stringify({ player_id: this.playerId, message, language, display_name }) }, 45000);
+  }
+  async deletePrayer(id) {
+    return this.request("/api/prayers/" + encodeURIComponent(id), { method: "DELETE", body: JSON.stringify({ player_id: this.playerId }) }, 20000);
   }
   connect(profile, position = this.position) {
     this.profile = profile;
