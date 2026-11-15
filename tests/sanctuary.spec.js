@@ -171,6 +171,14 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   expect(stairs.z).toBeLessThan(-25.0);
   expect(stairs.z).toBeGreaterThan(-30.5);
   expect(stairs.y).toBeGreaterThan(0.45);
+  // Walk through the full doorway, not merely onto the first tread.
+  await page.evaluate(() => {
+    const debug = window.__templeDebug;
+    for (let i = 0; i < 18; i++) debug.step({ forward: 1 }, 0.2);
+  });
+  const inside = await page.evaluate(() => ({ position: window.__templeDebug.position(), indoor: window.__templeDebug.inside() }));
+  expect(inside.position.z).toBeLessThan(-29.1);
+  expect(inside.indoor).toBe(true);
 
   // The offering table in the main sanctuary must also stop the player.
   await page.evaluate(() => {
@@ -218,6 +226,18 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   expect(seatedInHall.x).toBeCloseTo(1.7, 1);
   expect(seatedInHall.z).toBeCloseTo(-32.05, 1);
   expect(seatedInHall.rotation).toBeCloseTo(Math.PI, 2);
+
+  // Ritual interaction points must be reachable and the censer must be present.
+  await page.evaluate(() => window.__templeDebug.setPosition(-5.4, -37.2));
+  expect(await page.evaluate(() => window.__templeDebug.canAct("incense"))).toBe(true);
+  await page.locator('[data-action="incense"]').click();
+  await expect(page.locator("#toast")).toHaveClass(/show/);
+  await page.evaluate(() => window.__templeDebug.setPosition(8, -36));
+  expect(await page.evaluate(() => window.__templeDebug.canAct("bell"))).toBe(true);
+  await page.locator('[data-action="bell"]').click();
+  await page.evaluate(() => window.__templeDebug.setPosition(10, -32.5));
+  expect(await page.evaluate(() => window.__templeDebug.canAct("lotus"))).toBe(true);
+  await page.locator('[data-action="lotus"]').click();
   await cleanTestGuest(page);
 });
 
@@ -247,6 +267,14 @@ test("two independent guests share live presence and messages", async ({ browser
     await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBeGreaterThanOrEqual(2);
     await expect.poll(() => pageA.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
     await expect.poll(() => pageB.evaluate(() => window.__templeDebug.remotePlayers().filter(p => p.visible).length)).toBeGreaterThanOrEqual(1);
+    const remoteBefore = await pageB.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
+    await pageA.evaluate(() => {
+      window.__templeDebug.setPosition(2, 12);
+    });
+    await expect.poll(() => pageB.evaluate(before => {
+      const now = window.__templeDebug.remotePlayers();
+      return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .8));
+    }, remoteBefore)).toBe(true);
 
     await pageA.locator("#chat-collapse").click();
     await pageB.locator("#chat-collapse").click();
