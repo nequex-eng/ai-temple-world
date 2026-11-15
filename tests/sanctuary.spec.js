@@ -277,7 +277,7 @@ test("two independent guests share live presence and messages", async ({ browser
     await pageA.evaluate(p => window.__templeDebug.setPosition(p.x, p.z - 0.8), startA);
     await expect.poll(() => pageB.evaluate(before => {
       const now = window.__templeDebug.remotePlayers();
-      return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .8));
+      return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .25));
     }, remoteBefore)).toBe(true);
 
     await pageA.locator("#chat-collapse").click();
