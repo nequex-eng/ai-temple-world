@@ -44,9 +44,7 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
   await expect(page.locator("#abbot-modal")).toHaveClass(/hidden/);
   await expect.poll(() => liveSockets.some(value => {
     const url = new URL(value);
-    return url.searchParams.get("room") === "main" &&
-      url.searchParams.get("instance") === "0" &&
-      url.searchParams.get("region") === "apac";
+    return !url.searchParams.has("room") && !url.searchParams.has("instance") && !url.searchParams.has("region");
   })).toBe(true);
 
   await page.evaluate(() => {
@@ -122,6 +120,14 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   const afterMove = await page.evaluate(() => window.__templeDebug.position().z);
   expect(afterMove).toBeLessThan(beforeMove - 0.5);
 
+  const jumpBox = await page.locator("#jump-toggle").boundingBox();
+  await page.mouse.move(jumpBox.x + jumpBox.width / 2, jumpBox.y + jumpBox.height / 2);
+  await page.mouse.down();
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(true);
+  await page.waitForTimeout(120);
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().keys.jump)).toBe(false);
+
   await page.locator("#run-toggle").click();
   await expect(page.locator("#run-toggle")).toHaveClass(/active/);
   await page.locator("#run-toggle").click();
@@ -141,16 +147,16 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   await page.evaluate(() => {
     const debug = window.__templeDebug;
     debug.setYaw(0);
-    debug.setPosition(8.3, -10);
+    debug.setPosition(12.0, -37);
     for (let i = 0; i < 8; i++) debug.step({ right: 1 }, 0.25);
   });
   const wall = await page.evaluate(() => window.__templeDebug.position());
-  expect(wall.x).toBeGreaterThanOrEqual(8.2);
-  expect(wall.x).toBeLessThan(8.8);
+  expect(wall.x).toBeGreaterThanOrEqual(11.9);
+  expect(wall.x).toBeLessThan(12.8);
 
   await page.evaluate(() => {
     const debug = window.__templeDebug;
-    debug.setPosition(0, 0.9);
+    debug.setPosition(0, -22);
     for (let i = 0; i < 10; i++) debug.step({ forward: 1 }, 0.25);
   });
   const stairs = await page.evaluate(() => window.__templeDebug.position());
@@ -158,7 +164,8 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   console.log("stairs-regression", JSON.stringify({ wall, stairs, stairDebug }));
   expect(stairs.x).toBeLessThan(1);
   expect(stairs.x).toBeGreaterThan(-1);
-  expect(stairs.z).toBeLessThan(-2.5);
+  expect(stairs.z).toBeLessThan(-25.0);
+  expect(stairs.z).toBeGreaterThan(-30.5);
   expect(stairs.y).toBeGreaterThan(0.45);
 
   // The offering table in the main sanctuary must also stop the player.
@@ -201,11 +208,11 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await page.locator('[data-action="meditate"]').click();
   await expect(page.locator("#toast")).toContainText("大雄宝殿");
 
-  await page.evaluate(() => window.__templeDebug.setPosition(-29.4, -23.65));
+  await page.evaluate(() => window.__templeDebug.setPosition(1.7, -32.05));
   await page.locator('[data-action="meditate"]').click();
   const seatedInHall = await page.evaluate(() => window.__templeDebug.position());
-  expect(seatedInHall.x).toBeCloseTo(-29.4, 1);
-  expect(seatedInHall.z).toBeCloseTo(-23.65, 1);
+  expect(seatedInHall.x).toBeCloseTo(1.7, 1);
+  expect(seatedInHall.z).toBeCloseTo(-32.05, 1);
   expect(seatedInHall.rotation).toBeCloseTo(Math.PI, 2);
   await cleanTestGuest(page);
 });
