@@ -10,7 +10,7 @@ export function createTempleCollision(halls) {
   const circles = [
     circle(-4.8, 31, 0.55), circle(4.8, 31, 0.55),
     circle(8, 0, 1.48), circle(-28, 2, 1.42), circle(31, 33, 9.85),
-    circle(-29, 29, 1.05), circle(0, -39.5, 2.2), circle(-28, -28.45, 1.18),
+    circle(-29, 29, 1.05), circle(0, -39.5, 2.2), circle(-5.4, -37.2, 1.15), circle(7, -32.5, 2.05), circle(-28, -28.45, 1.18),
     circle(-10.92, -38.1, .42), circle(10.92, -38.1, .42)
   ];
   for (const h of halls) {
@@ -21,14 +21,14 @@ export function createTempleCollision(halls) {
     segments.push(segment(l, b, l, f, 0.25));
     segments.push(segment(r, b, r, f, 0.25));
     // The front is a real opening, not a rectangular invisible wall.
-    const doorHalf = h.w * 0.19;
+    const doorHalf = h.w * 0.36;
     segments.push(segment(l, f, h.x - doorHalf, f, 0.22));
     segments.push(segment(h.x + doorHalf, f, r, f, 0.22));
     // Front columns and the two columns flanking the side walls.
     const n = Math.max(4, Math.round(h.w / 3));
     for (let i = 0; i < n; i++) {
       const px = -h.w / 2 + (i + 0.5) * h.w / n;
-      if (Math.abs(px) < h.w * 0.2) continue;
+      if (Math.abs(px) < h.w * 0.36) continue;
       circles.push(circle(h.x + px, f - 0.35, 0.31));
     }
     for (const side of [-1, 1]) {
@@ -109,17 +109,15 @@ export function collidesAt(x, z, world, radius = PLAYER_RADIUS) {
 export function groundHeightAt(x, z, halls) {
   for (const h of halls) {
     const front = h.z + h.d / 2;
-    // Raised interior floor and the level landing immediately inside the doorway.
+    // The interior floor and landing meet the inner tread without a gap.
     if (Math.abs(x - h.x) < h.w / 2 - 0.38 &&
-        z > h.z - h.d / 2 + 0.38 && z < front + 1.18) return 0.54;
-    // Three broad, continuous treads: 18 cm rise per step.
-    const stair = [
-      { z: front + 1.72, y: 0.54 },
-      { z: front + 2.72, y: 0.36 },
-      { z: front + 3.72, y: 0.18 }
-    ];
-    if (Math.abs(x - h.x) < h.w * 0.31) {
-      for (const step of stair) if (Math.abs(z - step.z) <= 0.56) return step.y;
+        z > h.z - h.d / 2 + 0.38 && z < front + 1.24) return 0.54;
+    // Exact, non-overlapping tread intervals. Walking toward decreasing z
+    // raises the visitor by 18 cm at each broad stone step.
+    if (Math.abs(x - h.x) < h.w * 0.36) {
+      if (z >= front + 3.22 && z <= front + 4.22) return 0.18;
+      if (z >= front + 2.22 && z < front + 3.22) return 0.36;
+      if (z >= front + 1.22 && z < front + 2.22) return 0.54;
     }
   }
   return 0;
