@@ -123,10 +123,11 @@ export class TempleNetwork {
       try { this.onMessage(JSON.parse(event.data)); } catch {}
     });
     socket.addEventListener("error", () => { if (this.socket === socket) this.onStatus("offline"); });
-    socket.addEventListener("close", () => {
+    socket.addEventListener("close", event => {
       if (this.socket !== socket) return;
       clearInterval(this.heartbeatTimer);this.heartbeatTimer=null;
       this.socket = null;
+      if (event.code === 4001) { this.closedByUser = true; this.onStatus("offline"); return; }
       if (this.closedByUser) return;
       this.onStatus("offline");
       this.scheduleReconnect();
