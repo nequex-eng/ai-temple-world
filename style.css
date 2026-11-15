@@ -93,8 +93,6 @@
 
 /* AI abbot conversation */
 .abbot-modal{width:min(560px,100%)}
-#restore-view{position:fixed;z-index:30;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:none;padding:9px 12px;border:1px solid #d5bf8e66;border-radius:3px;background:rgba(20,35,29,.92);color:#f0dfbd;font-size:11px;letter-spacing:.04em;backdrop-filter:blur(8px);touch-action:manipulation}
-@media(max-width:700px){#restore-view{display:block}}
 .abbot-messages{height:min(40vh,330px);min-height:180px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:15px 2px;margin:12px 0;border-top:1px solid #ffffff16;border-bottom:1px solid #ffffff16}
 .abbot-message{max-width:88%;padding:10px 12px;border:1px solid #ffffff18;background:#ffffff08;border-radius:3px;color:#e9dfce;font:12px/1.85 var(--serif);white-space:pre-wrap;overflow-wrap:anywhere}
 .abbot-message.user{align-self:flex-end;background:#b3966230;border-color:#c4a56c44}
