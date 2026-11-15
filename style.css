@@ -184,3 +184,12 @@
 .mobile-controls{gap:0!important}
 .joystick{position:relative;touch-action:none}
 .joystick::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(239,219,177,.28);border:1px solid rgba(239,219,177,.55);pointer-events:none}
+
+
+/* Reliable touch interaction for the public wish form on iOS and Android. */
+.prayer-form{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation}
+.prayer-form textarea,.prayer-form button{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;-webkit-appearance:none}
+.prayer-form textarea{font-size:16px;min-height:82px;user-select:text;-webkit-user-select:text}
+.prayer-form button{min-height:46px}
+.prayer-form[aria-busy="true"]{opacity:.82}
+@media(max-width:660px){#prayer-modal{overflow-y:auto;place-items:center;padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))}#prayer-modal .prayer-modal{width:100%;max-height:calc(var(--temple-visual-height,100dvh) - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding:24px 16px 16px}#prayer-modal .prayer-form textarea{min-height:88px;font-size:16px}#prayer-modal .prayer-form button{height:48px}}
