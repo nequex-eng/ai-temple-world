@@ -154,6 +154,17 @@ test("temple walls block movement and the entrance stairs are climbable", async 
   expect(stairs.x).toBeGreaterThan(-1);
   expect(stairs.z).toBeLessThan(-2.5);
   expect(stairs.y).toBeGreaterThan(0.45);
+
+  // The offering table in the main sanctuary must also stop the player.
+  await page.evaluate(() => {
+    const debug = window.__templeDebug;
+    debug.setYaw(0);
+    debug.setPosition(0, -35.6);
+    for (let i = 0; i < 45; i++) debug.step({ forward: 1 }, 0.05);
+  });
+  const table = await page.evaluate(() => window.__templeDebug.position());
+  expect(table.z).toBeGreaterThan(-36.8);
+  expect(table.z).toBeLessThan(-35.8);
   await cleanTestGuest(page);
 });
 
