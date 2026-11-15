@@ -62,6 +62,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("const hand=new
 assert.ok(world.includes("const total=240") && world.includes("const occupied="), "New visitors must receive non-overlapping courtyard spawn positions");
 assert.ok(world.includes("new THREE.Vector2(.22,.08)") && world.includes("new THREE.Vector2(.47,1.39)"), "Monk body must have a shaped human torso rather than a barrel silhouette");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
+assert.ok(worker.includes("const spawnCandidates = []") && worker.includes("self: player") && app.includes("world.setDebugPosition(message.self.x,message.self.z)"), "Multiplayer joins must receive a server-authoritative, non-overlapping spawn position");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(8,0,0)") && world.includes("Math.hypot(p.x-8,p.z)<8"), "Incense censer must not block the main hall stairs");
