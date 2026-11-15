@@ -252,6 +252,7 @@ test("two independent guests share live presence and messages", async ({ browser
   const contextB = await browser.newContext();
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
+  let pageA2 = null;
   try {
     const prepareGuest = async (page, name) => {
       await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -291,8 +292,19 @@ test("two independent guests share live presence and messages", async ({ browser
 
     await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
+
+    // A second tab with the same saved player id replaces the older socket.
+    const playerAId = await pageA.evaluate(() => localStorage.getItem("temple-world-player-id"));
+    pageA2 = await contextA.newPage();
+    await pageA2.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(pageA2.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+    await expect(pageA2.locator("#connection-label")).toContainText("已进入共同禅境", { timeout: 25000 });
+    await pageA.close();
+    await expect.poll(() => pageB.evaluate(id => window.__templeDebug.remotePlayers().some(p => p.id === id), playerAId)).toBe(true);
+    await expect.poll(async () => Number((await pageB.locator("#online-count").textContent()).match(/\d+/)?.[0] || 0)).toBe(2);
   } finally {
     await cleanTestGuest(pageA);
+    if (pageA2) await cleanTestGuest(pageA2);
     await cleanTestGuest(pageB);
     await contextA.close();
     await contextB.close();
