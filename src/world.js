@@ -263,6 +263,52 @@ export class TempleWorld{
   const altar=new THREE.Group();altar.position.set(0,0,-38.5);s.add(altar);
   const bud=mat(0xb28a4e,.48,{metalness:.32}),budDark=mat(0x76572f,.62,{metalness:.24}),goldLeaf=mat(0xd6b36f,.42,{metalness:.48});
   const darkWood=mat(0x39271d,.72),cushion=mat(0x8f332d,.92),cushionEdge=mat(0xc29a60,.76);
+  // Worn limestone floor tiles, with fine grout and subtle mineral variation.
+  const hallFloorTexture=texture((ctx,size)=>{
+   ctx.fillStyle="#a69d89";ctx.fillRect(0,0,size,size);
+   const tile=64;
+   for(let y=0;y<size;y+=tile)for(let x=0;x<size;x+=tile){
+    const tone=Math.round(153+Math.random()*20);
+    ctx.fillStyle="rgb("+tone+","+(tone-5)+","+(tone-17)+")";
+    ctx.fillRect(x+2,y+2,tile-4,tile-4);
+    ctx.strokeStyle="rgba(54,48,39,.38)";ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,tile-2,tile-2);
+    ctx.strokeStyle="rgba(255,245,220,.18)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+5,y+5);ctx.lineTo(x+tile-6,y+5);ctx.stroke();
+   }
+   for(let i=0;i<9000;i++){ctx.fillStyle=Math.random()>.5?"rgba(55,49,40,.035)":"rgba(255,255,255,.045)";ctx.fillRect(Math.random()*size,Math.random()*size,1,1);}
+  },3,2);
+  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture});
+  add(new THREE.PlaneGeometry(24.8,15.8),hallFloor,altar,[0,.546,0],[-Math.PI/2,0,0],false);
+  // Hand-painted mineral-pigment murals: distant mountains, auspicious clouds and lotus blooms.
+  const muralCanvas=document.createElement("canvas");muralCanvas.width=768;muralCanvas.height=384;
+  const muralCtx=muralCanvas.getContext("2d");
+  const muralGradient=muralCtx.createLinearGradient(0,0,0,384);
+  muralGradient.addColorStop(0,"#c9b58d");muralGradient.addColorStop(.55,"#9a9b7b");muralGradient.addColorStop(1,"#756f55");
+  muralCtx.fillStyle=muralGradient;muralCtx.fillRect(0,0,768,384);
+  for(let i=0;i<5200;i++){muralCtx.fillStyle=i%2?"rgba(45,38,27,.045)":"rgba(255,238,192,.07)";muralCtx.fillRect(Math.random()*768,Math.random()*384,1+Math.random()*2,1+Math.random()*2);}
+  const mountain=(x,y,w,h,color)=>{muralCtx.fillStyle=color;muralCtx.beginPath();muralCtx.moveTo(x,y+h);muralCtx.lineTo(x+w*.18,y+h*.42);muralCtx.lineTo(x+w*.34,y+h*.62);muralCtx.lineTo(x+w*.56,y);muralCtx.lineTo(x+w*.78,y+h*.54);muralCtx.lineTo(x+w,y+h);muralCtx.closePath();muralCtx.fill();};
+  mountain(0,82,768,230,"#667566");mountain(70,132,650,170,"#7f8066");mountain(0,204,768,112,"#9a8d69");
+  muralCtx.strokeStyle="rgba(225,207,158,.72)";muralCtx.lineWidth=3;
+  for(let i=0;i<6;i++){const y=54+i*18;muralCtx.beginPath();muralCtx.moveTo(40+i*16,y);muralCtx.bezierCurveTo(100+i*16,y-22,130+i*16,y+24,188+i*16,y);muralCtx.stroke();}
+  const lotus=(cx,cy,scale)=>{
+   muralCtx.save();muralCtx.translate(cx,cy);muralCtx.scale(scale,scale);
+   muralCtx.strokeStyle="#d7c18c";muralCtx.lineWidth=3;
+   for(let i=0;i<9;i++){const a=(i-4)*.25;muralCtx.beginPath();muralCtx.ellipse(Math.sin(a)*30,-22-Math.abs(i-4)*3,13,39,a,0,Math.PI*2);muralCtx.stroke();}
+   muralCtx.beginPath();muralCtx.ellipse(0,0,48,10,0,0,Math.PI*2);muralCtx.stroke();
+   muralCtx.restore();
+  };
+  lotus(150,272,1.05);lotus(610,262,.92);
+  muralCtx.strokeStyle="rgba(220,195,137,.72)";muralCtx.lineWidth=2;
+  for(let x=30;x<760;x+=42){muralCtx.beginPath();muralCtx.moveTo(x,340);muralCtx.quadraticCurveTo(x+18,328,x+34,340);muralCtx.stroke();}
+  const muralMap=new THREE.CanvasTexture(muralCanvas);muralMap.colorSpace=THREE.SRGBColorSpace;
+  const muralMaterial=new THREE.MeshStandardMaterial({map:muralMap,roughness:1,side:THREE.DoubleSide});
+  const muralFrame=mat(0x4a3325,.82),muralGold=mat(0xb08c53,.72,{metalness:.18});
+  for(const side of [-1,1]){
+   const x=side*12.64,rotation=-side*Math.PI/2;
+   const panel=add(new THREE.PlaneGeometry(5.45,3.0),muralMaterial,altar,[x,3.86,-37.5],[0,rotation,0],false);
+   for(const y of [2.31,5.41])add(new THREE.BoxGeometry(.13,.13,5.72),muralFrame,altar,[side*12.57,y,-37.5]);
+   for(const z of [-40.36,-34.64])add(new THREE.BoxGeometry(.13,3.22,.13),muralFrame,altar,[side*12.57,3.86,z]);
+   for(const y of [2.42,5.3])add(new THREE.BoxGeometry(.06,.035,5.5),muralGold,altar,[side*12.49,y,-37.5]);
+  }
   // Raised lotus throne and carved altar tiers.
   add(new THREE.CylinderGeometry(2.15,2.35,.42,48),darkWood,altar,[0,.76,-.9]);
   add(new THREE.CylinderGeometry(2.02,2.18,.2,48),goldLeaf,altar,[0,1.05,-.9]);
