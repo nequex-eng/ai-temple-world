@@ -91,8 +91,8 @@ assert.ok(app.includes("function playRitualSound(action,volume=1)") && app.inclu
 const templeWalkway = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
 for (const z of [-17,-10.5,2]) {
   let p={x:-10,z,y:0};
-  for(let i=0;i<120;i++)p=moveWithCollision(p,-0.16,0,templeWalkway);
-  assert.ok(p.x < -29.45, "The west-side path from the main gate must stay passable at z="+z);
+  for(let i=0;i<140;i++)p=moveWithCollision(p,-0.16,0,templeWalkway);
+  assert.ok(p.x < -30.0, "The west-side path from the main gate must stay passable at z="+z);
   assert.ok(collidesAt(-30.5,z,templeWalkway), "The west boundary wall must still block crossing");
 }
 const testHalls = [{ x: 0, z: 0, w: 10, d: 10 }];
