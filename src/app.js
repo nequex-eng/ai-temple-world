@@ -320,7 +320,7 @@ async function setSound(on,{quiet=false,save=true}={}){
    if(!quiet)toast("声音启动失败："+(audioFailureReason||"请检查设备音量与浏览器权限"));
    return;
   }
-  if(templeBirds?.paused)void mediaPlay(templeBirds,"庭院鸟鸣");
+  updateSoundscape();
   if(button)button.setAttribute("aria-pressed","true");
   if(!quiet)toast("寺院环境声已开启");
   return;
@@ -379,6 +379,7 @@ function playLotusWater(){
 }
 function playRitualSound(action,volume=1){
  if(!soundEnabled||!audio||audio.state!=="running")return;
+ if(action==="chant"&&world.isNight)return;
  if(action==="bell"){playBell(false,.9*volume);return;}
  if(action==="chant"){playMuyu();return;}
  if(action==="beads"){playBeadTick();return;}
