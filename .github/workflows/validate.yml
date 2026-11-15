@@ -44,7 +44,7 @@ jobs:
       - name: Inspect the public Pages response
         run: |
           echo "Canonical Pages domain:"
-          curl -sS -L -D /tmp/canonical.headers https://ai-temple-world.pages.dev/ -o /tmp/canonical.html
+          curl -sS -L -D /tmp/canonical.headers https://helixtemple.pages.dev/ -o /tmp/canonical.html
           cat /tmp/canonical.headers
           head -c 900 /tmp/canonical.html
           echo
