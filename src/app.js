@@ -54,6 +54,7 @@ function applyLanguage(){
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
+ text("action-tea",d.actions.tea||({zh:"喝茶",ja:"お茶を飲む",ko:"차 마시기",th:"ดื่มชา",en:"Drink tea"})[language]||"喝茶");
  updateLocation(true);renderPresence();if(profile)text("character-state",d.walk);
 }
 function updateLocation(force=false){
