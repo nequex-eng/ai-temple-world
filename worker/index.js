@@ -45,22 +45,26 @@ async function reserveAiRequest(env, playerId, kind, dailyLimit, minIntervalMs) 
 }
 
 async function minimaxChat(env, messages, maxTokens = 480) {
-  // Prefer the existing MiniMax credential when configured; otherwise use
-  // Cloudflare Workers AI so the abbot works without a separate provider key.
+  // Prefer MiniMax, but fall back to Workers AI on provider errors, timeouts or empty responses.
   if (env.MINIMAX_API_KEY) {
-    const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
-    const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
-    const response = await fetch(base + "/chat/completions", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
-    const raw = data?.choices?.[0]?.message?.content;
-    const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
-    if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
-    return answer.trim().slice(0, 1400);
+    try {
+      const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
+      const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
+      const response = await fetch(base + "/chat/completions", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
+      const raw = data?.choices?.[0]?.message?.content;
+      const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
+      if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
+      return answer.trim().slice(0, 1400);
+    } catch (error) {
+      console.error("MiniMax failed; attempting Workers AI fallback", error);
+      if (!env.AI?.run) throw error;
+    }
   }
   if (!env.AI?.run) throw new Error("AI_NOT_CONFIGURED");
   const result = await env.AI.run(env.AI_MODEL || "@cf/zai-org/glm-4.7-flash", {
