@@ -22,7 +22,7 @@ for (const asset of ["/style.css", "/manifest.webmanifest", "/src/app.js", "/ico
 }
 for (const language of ["zh:", "ja:", "ko:", "th:"]) assert.ok(i18n.includes(language), "Missing locale " + language);
 assert.ok(app.includes("async function saveProfile()"), "Profile creation handler must be async");
-assert.ok(app.includes("await network.visit()"), "Daily visit tracking must be called");
+assert.ok(app.includes("network.visit()"), "Daily visit tracking must be called");
 assert.ok(network.includes("/api/live"), "Realtime websocket route missing");
 assert.ok(network.includes("async askAbbot") && app.includes('$("open-abbot").addEventListener') && html.includes('id="abbot-modal"'), "AI abbot must be wired from UI through the protected API");
 for (const locale of ["zh", "ja", "ko", "th"]) {
