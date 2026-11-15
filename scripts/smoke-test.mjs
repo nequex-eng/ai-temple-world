@@ -41,7 +41,8 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
-assert.ok(world.includes("name:\"小沙弥\"") && world.includes("name:\"守经人\""), "Temple NPC roles missing");
+assert.ok(world.includes('name:"净行"') && world.includes('name:"慧远"') && world.includes('name:"云游僧"'), "The three approved temple NPCs are missing");
+assert.equal((world.match(/name:"(?:净行|慧远|云游僧)"/g)||[]).length, 3, "Temple NPC roster must remain limited to three");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
 assert.ok(app.includes("function advanceBead()") && app.includes('localStorage.setItem("temple-beads-total"'), "108-bead practice must persist locally");
