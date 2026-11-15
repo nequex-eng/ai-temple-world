@@ -719,7 +719,7 @@ export class TempleWorld{
  addRemote(p){if(!p?.id||p.id===this.local?.id)return;if(this.remotes.has(p.id)){this.updateRemote(p);return;}const a=avatar(this.scene,p,p.id);a.setPosition(p.x,p.z,p.rotation||0);a.setTarget(p);this.remotes.set(p.id,a);}
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
- requestJump(){if(!this.local)return false;if(this.jumpOffset<=.001&&this.jumpVelocity<=.01){this.jumpVelocity=4.35;this.jumpHeld=true;return true;}return false;}
+ requestJump(){if(!this.local)return false;if(this.jumpOffset<=.001&&this.jumpVelocity<=.01){this.jumpOffset=.14;this.jumpVelocity=4.35;this.jumpHeld=true;const p=this.local.root.position;this.local.root.position.y=groundHeightAt(p.x,p.z,this.halls)+this.jumpOffset;return true;}return false;}
  setDebugPosition(x,z){if(this.local)this.local.setPosition(x,z,this.local.root.rotation.y,groundHeightAt(x,z,this.halls));}
  setDebugYaw(yaw){this.yaw=Number(yaw)||0;}
  setLocalPose(action){
