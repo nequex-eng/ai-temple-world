@@ -44,6 +44,9 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
+assert.ok(world.includes("root.userData.animateInteraction") && world.includes("npc.nextGestureAt") && world.includes("shopper:true"), "Market sellers and pilgrims must visibly interact");
+assert.ok(world.includes("labels={zh:{noodles:") && world.includes("en:{noodles:") && html.includes('<option value="en">English</option>'), "Market signs and the language selector must support English");
+assert.ok(world.includes("lotus:[[5,-26],[14.2,-25.6],[19,-26.7]]") && world.includes("incense:[[5,-26],[0,-25.4]]"), "Lotus and incense actions must auto-route to their destinations");
 assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
 assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
 assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-20.48,-32.58,.48)"), "Washroom and grass-market collision geometry missing");
@@ -150,8 +153,8 @@ const stairMove = moveWithCollision({ x: 0, z: 9, y: 0 }, 0, -0.4, collision);
 assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread");
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
-assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Outdoor courtyard incense, forest tea pavilion, or expanded gate missing");
-assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag"), "Head name must be tappable for profile editing");
+assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("new THREE.Vector3(0,0,-22.4)") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Central outdoor censer, forest tea pavilion, or expanded gate missing");
+assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag") && world.includes("mesh.position.set(0,.93,-.245)"), "Robe-back name must be tappable for profile editing");
 assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Renderer must preserve clear pixel density while keeping mobile shadows disabled");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
@@ -167,7 +170,7 @@ assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting ac
 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
 
-assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-submit").addEventListener("click"') && network.includes('}, 45000);'), "Wish submission must be touch-safe, single-flight, and tolerate slow mobile connections");
+assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-form").addEventListener("submit",submitPrayer)') && !app.includes('$("prayer-submit").addEventListener("pointerup"') && network.includes('}, 45000);'), "Wish submission must use one native submit event, remain single-flight, and tolerate slow mobile connections");
 assert.ok(app.includes('document.addEventListener("touchmove",blockPinch,{passive:false,capture:true})') && !app.includes('$("restore-view")') && !html.includes('id="restore-view"'), "Mobile pinch handling remains and the restore button is removed");
 assert.ok(app.includes('$("abbot-send").addEventListener("pointerup"') && app.includes('lastAbbotSubmitAt') && app.includes('$("abbot-form").addEventListener("submit"'), "Mobile abbot send must support touch, keyboard and duplicate-submit protection");
 assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !world.includes("incensePlaque") && !world.includes("lotusPlaque"), "All floating plaques and signboards must be removed to prevent clipping");
@@ -176,19 +179,19 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-76"), "Service worker cache must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-77"), "Service worker cache must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-76"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-77"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
 assert.ok(worker.includes('https://api.minimaxi.com/v1') && worker.includes('https://api.minimax.io/v1') && worker.includes('error.status !== 401 && error.status !== 403'), 'MiniMax keys must work across either official region without retrying rate-limited requests');
 
-assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have a dedicated tea-drinking animation and cup");
+assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('else if(name==="tea")') && world.includes('tea:[[5,-26],[14.2,-25.6],[14.2,-46.5],[14.2,-54.2],[0,-55.2]]') && app.includes('world.setLocalPose("tea")') && world.includes('action==="tea"?6500'), "Tea house must have an obstacle-avoiding auto-route and dedicated tea-drinking animation");
 assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"'), "English must be supported by the interface and API");
-assert.ok(app.includes("const night=!!world.isNight") && app.includes("if(night){if(!templeBirds.paused)templeBirds.pause();}") && app.includes("if(night){if(!templeChant.paused)templeChant.pause();return;}"), "Birdsong and chanting must stop after dark");
+assert.ok(app.includes("const night=!!world.isNight") && app.includes("templeBirds.currentTime=0") && app.includes("templeChant.currentTime=0") && app.includes("Night is a hard mute for birds and chanting"), "Birdsong and chanting must be stopped and blocked after dark");
 assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant"]'), "Action shortcuts must guide visitors to the relevant temple locations");
