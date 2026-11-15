@@ -492,15 +492,35 @@ $("abbot-input").addEventListener("keydown",e=>{
 $("abbot-send").addEventListener("click",()=>{void sendAbbotMessage();});
 $("abbot-form").addEventListener("submit",e=>{e.preventDefault();void sendAbbotMessage();});
 $("prayer-input").addEventListener("input",()=>{const chars=[...$("prayer-input").value];if(chars.length>20)$("prayer-input").value=chars.slice(0,20).join("");});
-$("prayer-form").addEventListener("submit",async e=>{
- e.preventDefault();const input=$("prayer-input"),message=[...input.value.trim()].slice(0,20).join("");if(!message){toast("请先写下一句心愿");return;}
- const submit=$("prayer-submit");submit.disabled=true;
+let prayerSending=false;
+async function submitPrayer(e){
+ e?.preventDefault();
+ if(prayerSending)return;
+ const input=$("prayer-input"),message=Array.from(input.value.trim()).slice(0,20).join("");
+ if(!message){toast("请先写下一句心愿");input.focus({preventScroll:true});return;}
+ prayerSending=true;
+ const submit=$("prayer-submit"),form=$("prayer-form");
+ submit.disabled=true;form.setAttribute("aria-busy","true");
  try{
   const saved=await network.postPrayer(message,language,profile?.name||"行者");
   if(!saved?.ok||!saved?.prayer)throw new Error(saved?.error||"心愿没有成功保存，请稍后重试");
-  input.value="";toast(t().prayerSuccess);syncPrayerBoard([saved.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(saved.prayer);await updateStats();
- }catch(error){toast(error.message?.includes("pause")?t().prayerRate:(error.message||t().prayerFailed));}
- finally{submit.disabled=false;}
+  input.value="";
+  toast(t().prayerSuccess);
+  syncPrayerBoard([saved.prayer,...sharedPrayers.filter(p=>p.id!==saved.prayer.id)].slice(0,30));
+  renderPrayerAppend(saved.prayer);
+  await updateStats();
+ }catch(error){
+  const detail=String(error?.message||"心愿没有成功保存，请检查网络后重试");
+  toast(detail.includes("pause")?t().prayerRate:detail);
+ }finally{
+  prayerSending=false;submit.disabled=false;form.removeAttribute("aria-busy");
+ }
+}
+$("prayer-form").addEventListener("submit",submitPrayer);
+$("prayer-submit").addEventListener("click",e=>{
+ // Explicit click handling makes the touch target reliable on mobile Safari;
+ // prevent the native submit so a single tap can never create two requests.
+ e.preventDefault();void submitPrayer(e);
 });
 
 // Keyboard and mobile thumbstick controls
@@ -601,9 +621,29 @@ async function start(){
 }
 addEventListener("beforeunload",()=>network.close());
 function updateTempleVisualViewport(){
- const viewport=window.visualViewport;
- const apply=()=>document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
+ const viewport=window.visualViewport,meta=document.querySelector('meta[name="viewport"]');
+ let recovering=false;
+ const apply=()=>{
+  // iOS can retain a pinch-zoomed visual viewport even though the game uses a
+  // fixed canvas. Reassert the app viewport and resize WebGL to the visible area.
+  if(viewport&&viewport.scale>1.01&&!recovering){
+   recovering=true;
+   if(meta)meta.setAttribute("content","width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover");
+   document.documentElement.style.zoom="1";document.body.style.zoom="1";
+   window.scrollTo(0,0);
+   requestAnimationFrame(()=>{world.resize();recovering=false;});
+  }
+  document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
+  world.resize();
+ };
  apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
+ addEventListener("orientationchange",()=>requestAnimationFrame(apply),{passive:true});
+ // Block browser pinch gestures over the 3D canvas; the joystick remains the
+ // sole movement surface and camera rotation remains a one-finger drag.
+ const canvas=$("world");
+ canvas.addEventListener("touchstart",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+ canvas.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+ for(const type of ["gesturestart","gesturechange","gestureend"])canvas.addEventListener(type,e=>e.preventDefault(),{passive:false});
 }
 updateTempleVisualViewport();
 function armDefaultSoundGesture(){
