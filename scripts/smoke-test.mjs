@@ -117,6 +117,7 @@ for (const [x,z] of [[-4.8,31],[4.8,31],[8,0],[31,33],[7,-32.5]]) {
   assert.equal(collidesAt(x,z,templeWalkway),false,"Legacy invisible collider must not block the walkable map at "+x+","+z);
 }
 for (const x of [-6.2,-2.1,2.1,6.2]) assert.equal(collidesAt(x,-14.55,templeWalkway),false,"Removed guardian must not leave an invisible west-route collider");
+assert.equal(collidesAt(5.8,-19.5,templeWalkway),false,"The old side-censer position must remain clear after the censer moves to the center");
 let gateWest={x:0,z:-14.55,y:0};
 for(let i=0;i<100;i++)gateWest=moveWithCollision(gateWest,-.16,0,templeWalkway);
 assert.ok(gateWest.x < -12,"The former Heavenly Kings Hall corridor must be walkable to the west");
