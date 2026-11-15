@@ -1,6 +1,7 @@
 export const TEXT = {
   zh: {
     soundOn:"音效开启",soundOff:"开启声音",beadsTitle:"108颗念珠",soundTitle:"寺院声音",soundDescription:"分别调节庭院环境、殿内诵经与仪式音效。声音仅在你主动开启后播放。",soundAmbience:"庭院环境",soundChant:"殿内诵经",soundEffects:"仪式音效",soundTest:"试听寺院钟声",soundFoot:"声音资源加载失败时会显示明确提示，不会静默忽略。",beadsDesc:"一颗一念，缓缓拨动。完成108颗为一周，不设排名，只记录自己的静心时刻。",beadsPush:"拨动一颗",beadsReset:"重置本周",beadsFoot:"记录仅保存在本设备，不上传云端。",statusConnecting:"正在连接禅境",statusOnline:"已进入共同禅境",statusOffline:"网络暂时离线",visitors:"位访客",
+    abbotTitle:"与住持谈谈",abbotDescription:"可以询问佛教常识、经典义理、禅修方法，或分享此刻的心情。",abbotGreeting:"阿弥陀佛。愿你此刻身心安稳。有什么想了解或倾诉的？",abbotPlaceholder:"写下你的问题……",abbotSend:"请教",abbotFoot:"AI生成的参考内容，并非真实僧侣；不替代专业医疗、法律或心理帮助。",abbotThinking:"正在整理思路……",abbotUnavailable:"住持暂时无法回应，请稍后再试。",abbotButton:"问住持",
     profile:"我的小和尚",prayers:"祈愿墙",locationEyebrow:"YOU ARE HERE · 当前所在",locationHint:"缓步而行，随心探索",
     presence:"此刻同在",presenceSub:"来自不同地方的人，在此相遇",waiting:"等待远方来客……",
     todayVisitors:"今日到访",todayActivities:"今日礼敬",wishes:"祈愿灯火",
