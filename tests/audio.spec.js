@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("new visitors can start temple ambience before creating a monk", async ({ page }) => {
   const pageErrors=[];
   page.on("pageerror",error=>pageErrors.push(error.message));
+  await page.setViewportSize({width:390,height:844});
   await page.goto("http://127.0.0.1:4173/",{waitUntil:"domcontentloaded"});
   await expect.poll(()=>page.evaluate(()=>location.host)).toBe("127.0.0.1:4173");
   await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
@@ -17,6 +18,14 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.state())).toBe("running");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
+  await page.evaluate(()=>window.__templeDebug.setPosition(0,-37));
+  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.paused)).toBe(false);
+  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.time)).toBeGreaterThan(0.2);
+  await page.locator("#sound-settings").click();
+  await page.locator("#sound-test").click();
+  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().bell.paused)).toBe(false);
+  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().bell.time)).toBeGreaterThan(0.2);
+  await page.locator('[data-close="sound-modal"]').click();
   await page.locator('[data-close="profile-modal"]').click();
   await page.locator("#sound-settings").click();
   await expect(page.locator("#sound-modal")).not.toHaveClass(/hidden/);
