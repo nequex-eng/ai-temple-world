@@ -614,7 +614,7 @@ export class TempleWorld{
   if(a==="lotus")return Math.hypot(p.x-31,p.z-33)<13;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
-   const cushions=[[-2.55,4.7],[-.85,4.7],[.85,4.7],[2.55,4.7],[-1.7,6.45],[0,6.45],[1.7,6.45]];
+   const cushions=MEDITATION_CUSHIONS;
    return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-z)<2.35);
   }
   return true;
