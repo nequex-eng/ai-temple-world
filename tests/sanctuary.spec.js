@@ -123,6 +123,13 @@ test("mobile: virtual joystick, run toggle and action dock are usable", async ({
   await page.locator("#monk-name").fill("Mobile Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await expect(page.locator("#sound-toggle")).not.toContainText("正在开启");
+  await page.locator("#open-abbot").click();
+  await page.locator("#abbot-input").fill("请用一句话解释慈悲。");
+  await page.locator("#abbot-send").click();
+  await expect(page.locator("#abbot-input")).toHaveValue("", { timeout: 5000 });
+  await expect(page.locator(".abbot-message.assistant").last()).toContainText(/慈悲|关怀|众生|同理|他人/, { timeout: 45000 });
+  await page.locator('[data-close="abbot-modal"]').click();
   const joystick = await page.locator("#joystick").boundingBox();
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
   await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height / 2);
