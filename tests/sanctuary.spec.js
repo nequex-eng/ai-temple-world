@@ -402,14 +402,32 @@ test("three independent guests share live presence, messages and wishes", async 
 });
 
 
-test("four market vendors stand beside the gate", async ({ page }) => {
+test("four market vendors stand on the east green lawn with product signs", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
-  const count = await page.evaluate(() => window.__templeDebug.vendors());
-  expect(count).toBe(4);
+  const state = await page.evaluate(() => ({market:window.__templeDebug.market(),labels:window.__templeDebug.marketLabels()}));
+  expect(state.market).toHaveLength(4);
+  expect(state.market.every(v=>v.x>=40)).toBe(true);
+  expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果"]);
 });
 
-test("one resident abbot roams while gate vendors remain separate", async ({ page }) => {
+test("lotus release launches a floating boat and the temple has night lights and squat pans", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  await page.locator("#monk-name").fill("Lotus Boat Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await page.evaluate(() => window.__templeDebug.releaseLotus());
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.lotusBoats().length)).toBe(1);
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.lotusBoats()[0]?.progress||0)).toBeGreaterThan(0);
+  const state=await page.evaluate(()=>({boats:window.__templeDebug.lotusBoats(),lights:window.__templeDebug.nightLights(),toilets:window.__templeDebug.squatToilets()}));
+  expect(state.boats[0].boat).toBe(true);
+  expect(state.lights).toBeGreaterThanOrEqual(28);
+  expect(state.toilets).toBe(2);
+  await cleanTestGuest(page);
+});
+
+test("one resident abbot roams while the green-market vendors remain separate", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
   await page.locator("#monk-name").fill("Abbot Roster Test");
