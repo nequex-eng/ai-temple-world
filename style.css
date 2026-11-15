@@ -90,3 +90,16 @@
  #sound-toggle{z-index:8;right:10px;top:67px;height:32px;padding:0 11px;font-size:9px;border-color:#d7bb8299;background:rgba(20,35,29,.94);box-shadow:0 4px 14px #0005}
  .location-card:not(.collapsed) .mobile-panel-toggle,.presence-card:not(.collapsed) .mobile-panel-toggle{transform:rotate(180deg)}
 }
+
+/* AI abbot conversation */
+.abbot-modal{width:min(560px,100%)}
+.abbot-messages{height:min(40vh,330px);min-height:180px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:15px 2px;margin:12px 0;border-top:1px solid #ffffff16;border-bottom:1px solid #ffffff16}
+.abbot-message{max-width:88%;padding:10px 12px;border:1px solid #ffffff18;background:#ffffff08;border-radius:3px;color:#e9dfce;font:12px/1.85 var(--serif);white-space:pre-wrap;overflow-wrap:anywhere}
+.abbot-message.user{align-self:flex-end;background:#b3966230;border-color:#c4a56c44}
+.abbot-message.assistant{align-self:flex-start}
+.abbot-form{display:flex;align-items:flex-end;gap:8px}
+.abbot-form textarea{flex:1;min-width:0;resize:vertical;min-height:54px;max-height:140px;background:#101f18;border:1px solid #d5bf8e33;border-radius:2px;color:#f3e8d6;padding:10px;font-size:11px;line-height:1.7;outline:none}
+.abbot-form textarea:focus{border-color:#d5bf8e77}
+.abbot-form .primary-button{width:88px;flex:none}
+.abbot-status{font-size:9px;line-height:1.7;color:#9f9a88;margin-top:10px}
+@media(max-width:660px){.abbot-modal{padding:22px 17px}.abbot-messages{height:42vh;min-height:160px}.abbot-form .primary-button{width:70px;font-size:9px}}
