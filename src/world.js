@@ -808,8 +808,9 @@ export class TempleWorld{
     const step=Math.min(len,5.2*dt),r=moveWithCollision(p,dx/len*step,dz/len*step,this.actorCollisionWorld(a));
     p.set(r.x,r.y,r.z);remoteMoving=r.moved;
    }else p.y=groundHeightAt(p.x,p.z,this.halls);
-   let turn=((a.targetRotation-p.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
-   p.rotation.y+=turn*(1-Math.exp(-dt*10));
+   const currentYaw=a.root.rotation.y;
+   let turn=((a.targetRotation-currentYaw+Math.PI*3)%(Math.PI*2))-Math.PI;
+   a.root.rotation.y=currentYaw+turn*(1-Math.exp(-dt*10));
    a.update(dt,time,remoteMoving&&a.pose==="walk");
   }
   this.updateNpcs(dt,time);
