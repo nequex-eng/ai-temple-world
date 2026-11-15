@@ -57,6 +57,9 @@ assert.ok(read("index.html").includes("id=\"profile-sound-toggle\"") && app.incl
 assert.ok(app.includes("mediaPlay(templeBirds") && app.includes("audio.resume()"), "Audio must start from the explicit user gesture and report media errors");
 assert.ok(app.includes("Dingjue_Om_mani_padme_hum.ogg") && app.includes("Gong55.ogg"), "Real temple chant and gong recordings missing");
 assert.ok(world.includes("moveWithCollision") && world.includes("createTempleCollision"), "World collision integration missing");
+assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall") && world.includes("cameraDistance=inside?"), "Player collision and indoor camera modes must be active");
+assert.ok(world.includes("new THREE.Vector2(.22,.08)") && world.includes("new THREE.Vector2(.47,1.39)"), "Monk body must have a shaped human torso rather than a barrel silhouette");
+assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(world.includes("cornerLift") && world.includes("IcosahedronGeometry(1.55"), "Curved Chinese roof eaves and varied Bodhi canopy missing");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
 assert.ok(world.includes("new THREE.Vector3(8,0,0)") && world.includes("Math.hypot(p.x-8,p.z)<8"), "Incense censer must not block the main hall stairs");
@@ -69,6 +72,11 @@ assert.equal(groundHeightAt(0, 8.72, testHalls), 0.18, "Outer stair tread must h
 assert.equal(groundHeightAt(0, 7.72, testHalls), 0.36, "Middle stair tread must have a climbable elevation");
 assert.equal(groundHeightAt(0, 6.72, testHalls), 0.54, "Inner stair tread must meet the hall floor");
 assert.equal(groundHeightAt(0, 6.18, testHalls), 0.54, "Top stair must overlap the hall landing without a drop gap");
+const actorWorld = { ...collision, actors: [{ x: 1, z: 0, radius: 0.5 }] };
+const playerMove = moveWithCollision({ x: 0, z: 0, y: 0 }, 0.6, 0, actorWorld);
+assert.ok(playerMove.x < 0.06, "Players must not walk through another player body");
+const escapeOverlap = moveWithCollision({ x: 0.2, z: 0, y: 0 }, -0.3, 0, actorWorld);
+assert.ok(escapeOverlap.x < 0.2, "A player already overlapping another avatar must still be able to move away");
 const wallMove = moveWithCollision({ x: 4.4, z: 0, y: 0 }, 0.5, 0, collision);
 assert.equal(wallMove.moved, false, "Movement must stop at a wall instead of crossing it");
 const fastWallMove = moveWithCollision({ x: 0, z: 0, y: 0 }, 8, 0, collision);
