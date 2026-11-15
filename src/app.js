@@ -247,7 +247,7 @@ async function ensureAudio(){
    if(audio.state!=="running")throw new Error("AudioContext did not enter running state");
    soundEnabled=true;audioMaster.gain.setTargetAtTime(.88,audio.currentTime,.08);
    for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.add("active");b.textContent="♫ "+t().soundOn;b.setAttribute("aria-pressed","true");}}
-   void mediaPlay(templeBirds,"庭院鸟鸣");updateSoundscape();return true;
+   if(!world.isNight)void mediaPlay(templeBirds,"庭院鸟鸣");updateSoundscape();return true;
   }catch(error){
    soundEnabled=false;audioFailureReason="音频引擎启动失败："+(error?.message||error?.name||"unknown");
    for(const id of ["sound-toggle","profile-sound-toggle"]){const b=$(id);if(b){b.classList.remove("active");b.textContent="♫ "+t().soundOff;b.setAttribute("aria-pressed","false");}}
