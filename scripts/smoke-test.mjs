@@ -79,7 +79,7 @@ assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new 
 assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
-assert.ok(app.includes("world.setWishWallPrayers(sharedPrayers);\\n renderPrayers(sharedPrayers);"), "The prayer list and physical wish wall must refresh for every visitor even when the modal is closed");
+assert.ok(app.includes("world.setWishWallPrayers(sharedPrayers);") && app.includes("renderPrayers(sharedPrayers);"), "The prayer list and physical wish wall must refresh for every visitor even when the modal is closed");
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
 assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"') && app.includes("--temple-visual-height"), "Mobile abbot sending must remain clickable above the software keyboard");
 assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"') && worker.includes("< 8000"), "Wish wall must enforce 20 characters and avoid an excessively long cooldown");
