@@ -161,3 +161,83 @@ export function moveWithCollision(position, dx, dz, world) {
   }
   return { x, z, y: groundHeightAt(x, z, world.halls), blocked, moved: x !== position.x || z !== position.z };
 }
+
+ 
+// Grid pathfinding for one-tap temple activities. It respects the same capsule
+// radius, solid geometry and stair-height limits as real player movement.
+export function findWalkPath(start, goal, world) {
+  const grid = 0.5, padding = 26, low = -79, high = 79;
+  const minIx = Math.max(Math.ceil((low - goal.x) / grid), Math.floor((Math.min(start.x, goal.x) - padding - goal.x) / grid));
+  const maxIx = Math.min(Math.floor((high - goal.x) / grid), Math.ceil((Math.max(start.x, goal.x) + padding - goal.x) / grid));
+  const minIz = Math.max(Math.ceil((low - goal.z) / grid), Math.floor((Math.min(start.z, goal.z) - padding - goal.z) / grid));
+  const maxIz = Math.min(Math.floor((high - goal.z) / grid), Math.ceil((Math.max(start.z, goal.z) + padding - goal.z) / grid));
+  const width = maxIx - minIx + 1, height = maxIz - minIz + 1, total = width * height;
+  if (width < 1 || height < 1 || total > 180000) return null;
+  const index = (ix, iz) => (iz - minIz) * width + ix - minIx;
+  const point = (ix, iz) => ({ x: goal.x + ix * grid, z: goal.z + iz * grid });
+  const actorBlocked = (x, z) => (world.actors || []).some(actor => {
+    const r = PLAYER_RADIUS + actor.radius;
+    return (x - actor.x) ** 2 + (z - actor.z) ** 2 < r * r;
+  });
+  const clear = (x, z) => !collidesAt(x, z, world) && !actorBlocked(x, z);
+  if (!clear(goal.x, goal.z)) return null;
+
+  const centerIx = Math.max(minIx, Math.min(maxIx, Math.round((start.x - goal.x) / grid)));
+  const centerIz = Math.max(minIz, Math.min(maxIz, Math.round((start.z - goal.z) / grid)));
+  const startY = groundHeightAt(start.x, start.z, world.halls);
+  let startIx = null, startIz = null;
+  for (let ring = 0; ring <= 3 && startIx === null; ring++) {
+    for (let dz = -ring; dz <= ring && startIx === null; dz++) {
+      for (let dx = -ring; dx <= ring; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== ring) continue;
+        const ix = centerIx + dx, iz = centerIz + dz;
+        if (ix < minIx || ix > maxIx || iz < minIz || iz > maxIz) continue;
+        const p = point(ix, iz);
+        if (!clear(p.x, p.z) || Math.abs(groundHeightAt(p.x, p.z, world.halls) - startY) > MAX_STEP) continue;
+        const approach = moveWithCollision(start, p.x - start.x, p.z - start.z, world);
+        if (approach.blocked || Math.hypot(approach.x - p.x, approach.z - p.z) > 0.09) continue;
+        startIx = ix; startIz = iz; break;
+      }
+    }
+  }
+  if (startIx === null) return null;
+  const startIndex = index(startIx, startIz), goalIndex = index(0, 0);
+  if (startIndex === goalIndex) return [{ x: goal.x, z: goal.z }];
+
+  const parent = new Int32Array(total); parent.fill(-2);
+  const queue = new Int32Array(total); let head = 0, tail = 0;
+  parent[startIndex] = -1; queue[tail++] = startIndex;
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  while (head < tail && parent[goalIndex] === -2) {
+    const current = queue[head++], cx = current % width + minIx, cz = Math.floor(current / width) + minIz;
+    const from = point(cx, cz), fromY = groundHeightAt(from.x, from.z, world.halls);
+    for (const [dx, dz] of dirs) {
+      const nx = cx + dx, nz = cz + dz;
+      if (nx < minIx || nx > maxIx || nz < minIz || nz > maxIz) continue;
+      const nextIndex = index(nx, nz); if (parent[nextIndex] !== -2) continue;
+      const to = point(nx, nz);
+      if (!clear(to.x, to.z) || Math.abs(groundHeightAt(to.x, to.z, world.halls) - fromY) > MAX_STEP) continue;
+      if (!clear((from.x + to.x) / 2, (from.z + to.z) / 2)) continue;
+      parent[nextIndex] = current; queue[tail++] = nextIndex;
+    }
+  }
+  if (parent[goalIndex] === -2) return null;
+
+  const nodes = [];
+  for (let at = goalIndex; at !== -1; at = parent[at]) {
+    const ix = at % width + minIx, iz = Math.floor(at / width) + minIz;
+    nodes.push(point(ix, iz));
+  }
+  nodes.reverse();
+  const path = [];
+  const first = nodes[0];
+  if (Math.hypot(first.x - start.x, first.z - start.z) > 0.12) path.push(first);
+  for (let i = 1; i < nodes.length - 1; i++) {
+    const before = nodes[i - 1], current = nodes[i], after = nodes[i + 1];
+    const inX = Math.sign(current.x - before.x), inZ = Math.sign(current.z - before.z);
+    const outX = Math.sign(after.x - current.x), outZ = Math.sign(after.z - current.z);
+    if (inX !== outX || inZ !== outZ) path.push(current);
+  }
+  path.push({ x: goal.x, z: goal.z });
+  return path;
+}
