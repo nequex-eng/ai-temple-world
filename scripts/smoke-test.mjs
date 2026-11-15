@@ -152,7 +152,7 @@ assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject
 assert.ok(world.includes("this.mobile?0.95:1.5") && world.includes("shadowMap.enabled=!mobile"), "Mobile renderer must use reduced resolution and disable realtime shadows");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
-assert.ok(physics.includes("circle(0, -20.5, 1.82)") && physics.includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
+assert.ok(read("src/physics.js").includes("circle(0, -20.5, 1.82)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "New censer or moved gate collision missing");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
   assert.ok(worker.includes(table), "Worker missing D1 table reference: " + table);
