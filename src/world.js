@@ -32,9 +32,9 @@ function robeNamePlate(name){
  x.fillStyle="#f6e5bd";x.fillText(label,256,64,490);
  const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
  const material=new THREE.MeshBasicMaterial({map,transparent:true,depthTest:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
- const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.52,.13),material);
- // The name is printed directly on the rear of the robe, not suspended above the head.
- mesh.position.set(0,.93,-.245);mesh.renderOrder=3;
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.72,.18),material);
+ // The name is printed directly on the rear of the robe, facing outward.
+ mesh.position.set(0,.96,-.235);mesh.rotation.y=Math.PI;mesh.renderOrder=3;
  return mesh;
 }
 
@@ -309,7 +309,7 @@ function avatar(scene,profile={},id="local",isLocal=false){
  return {
   id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){this.body.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.body.add(this.tag);},
+  setLabel(name){this.body.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag.geometry?.dispose();this.tag=robeNamePlate(name);this.body.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
@@ -754,7 +754,7 @@ export class TempleWorld{
   add(new THREE.TorusGeometry(1.1,.12,8,32),m.gold,bell,[0,3.15,0],[Math.PI/2,0,0]);
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
   // A discreet, unlabelled washroom on the west (left) side of the Great Hall.
-  const washroom=new THREE.Group();washroom.position.set(-19,0,-32);s.add(washroom);
+  const washroom=new THREE.Group();washroom.position.set(-22.5,0,-32);s.add(washroom);
   const washStone=mat(0xb8ad98,.96),washWood=mat(0x493326,.9),washRoof=mat(0x35483d,.94),washTrim=mat(0x9b7a4d,.8);
   add(new THREE.BoxGeometry(6.1,.22,5.25),washStone,washroom,[0,.11,0]);
   add(new THREE.PlaneGeometry(5.6,4.8),m.stoneLight,washroom,[0,.235,0],[-Math.PI/2,0,0],false);
@@ -873,10 +873,10 @@ export class TempleWorld{
   for(const spec of this.vendorSpecs||[]){
    const seller=marketVendor(this.scene,spec.x+1.72,spec.z,spec.facing,this.m);seller.name='vendor-'+spec.kind;
    this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z});
-   for(const offset of [-1.55,1.55]){
-    const shopper=avatar(this.scene,{name:"香客",robe:offset<0?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+offset,true);
-    shopper.setPosition(39.1,spec.z+offset,Math.PI/2,0);shopper.setPose("greet",2200);
-    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28,nextGestureAt:performance.now()+700+Math.random()*900});
+   for(const [index,offset] of [-1.55,0,1.55].entries()){
+    const shopper=avatar(this.scene,{name:"香客",robe:index===1?"#8d9a85":index===0?"#b49a72":"#746c83",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true);
+    shopper.setPosition(41.15,spec.z+offset,Math.PI/2,0);shopper.setPose("greet",1800);
+    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28,nextGestureAt:performance.now()+500+Math.random()*1100});
    }
   }
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
@@ -962,10 +962,10 @@ export class TempleWorld{
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.local.root.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   if(this.raycaster.intersectObject(this.local.tag,false).length>0)return true;
-  const anchor=this.local.body.localToWorld(new THREE.Vector3(0,.93,-.245)).project(this.camera);
+  const anchor=this.local.body.localToWorld(new THREE.Vector3(0,.96,-.235)).project(this.camera);
   if(anchor.z< -1||anchor.z>1)return false;
   const sx=(anchor.x*.5+.5)*rect.width+rect.left,sy=(-anchor.y*.5+.5)*rect.height+rect.top;
-  return Math.abs(clientX-sx)<=34&&Math.abs(clientY-sy)<=18;
+  return Math.abs(clientX-sx)<=44&&Math.abs(clientY-sy)<=15;
  }
  setClickDestination(clientX,clientY){
   const rect=this.renderer.domElement.getBoundingClientRect();
