@@ -1,5 +1,5 @@
 // Lightweight deterministic capsule collision for the temple's walkable ground plane.
-const PLAYER_RADIUS = 0.46;
+const PLAYER_RADIUS = 0.42;
 const MAX_STEP = 0.191;
 
 const segment = (ax, az, bx, bz, radius = 0.12) => ({ ax, az, bx, bz, radius });
