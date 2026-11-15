@@ -87,7 +87,7 @@ export class TempleNetwork {
     return this.request("/api/prayers", {
       method: "POST",
       body: JSON.stringify({ player_id: this.playerId, message, language, display_name })
-    });
+    }, 30000);
   }
   connect(profile, position = this.position) {
     this.profile = profile;
