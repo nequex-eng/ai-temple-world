@@ -68,7 +68,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
-assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])"), "Physical wish wall must show saved wishes to new and current visitors");
+assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
 assert.ok(app.includes('$("abbot-send").addEventListener("click"') && html.includes('id="abbot-send" type="button"') && app.includes("--temple-visual-height"), "Mobile abbot sending must remain clickable above the software keyboard");
 assert.ok(worker.includes("messageLength > 20") && html.includes('id="prayer-input" maxlength="20"') && worker.includes("< 8000"), "Wish wall must enforce 20 characters and avoid an excessively long cooldown");
@@ -129,3 +129,6 @@ assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"
 assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting action");
 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 4 locales, 3D world and API routes.");
+
+assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-submit").addEventListener("click"') && network.includes('    }, 30000);'), "Wish submission must be touch-safe, single-flight, and tolerate slow mobile connections");
+assert.ok(app.includes("viewport.scale>1.01") && app.includes('for(const type of ["gesturestart","gesturechange","gestureend"])'), "Mobile pinch zoom must recover the viewport and not trap the temple canvas in a zoomed state");
