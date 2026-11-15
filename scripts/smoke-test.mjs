@@ -110,6 +110,9 @@ assert.ok(network.includes("window.location.origin") && network.includes("localh
 assert.ok(pagesWorker.includes("new Request(upstreamUrl, request)") && pagesWorker.includes("return env.ASSETS.fetch(request)"), "Pages worker must proxy API requests and serve static assets");
 assert.ok(read("scripts/build-pages.mjs").includes("path.join(output, \"_worker.js\")"), "Build must publish the Pages advanced-mode worker");
 const templeWalkway = createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+for (const [x,z] of [[-4.8,31],[4.8,31],[8,0],[31,33],[7,-32.5]]) {
+  assert.equal(collidesAt(x,z,templeWalkway),false,"Legacy invisible collider must not block the walkable map at "+x+","+z);
+}
 for (const x of [-6.2,-2.1,2.1,6.2]) assert.equal(collidesAt(x,-14.55,templeWalkway),false,"Removed guardian must not leave an invisible west-route collider");
 let gateWest={x:0,z:-14.55,y:0};
 for(let i=0;i<100;i++)gateWest=moveWithCollision(gateWest,-.16,0,templeWalkway);
