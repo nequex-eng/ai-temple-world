@@ -962,7 +962,7 @@ export class TempleWorld{
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.local.root.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   if(this.raycaster.intersectObject(this.local.tag,false).length>0)return true;
-  const anchor=this.local.root.localToWorld(new THREE.Vector3(0,.93,-.245)).project(this.camera);
+  const anchor=this.local.body.localToWorld(new THREE.Vector3(0,.93,-.245)).project(this.camera);
   if(anchor.z< -1||anchor.z>1)return false;
   const sx=(anchor.x*.5+.5)*rect.width+rect.left,sy=(-anchor.y*.5+.5)*rect.height+rect.top;
   return Math.abs(clientX-sx)<=34&&Math.abs(clientY-sy)<=18;
@@ -1034,7 +1034,7 @@ export class TempleWorld{
    lotus:[[5,-26],[14.2,-25.6],[19,-26.7]],
    // Leave through the Great Hall's front opening, pass the east side of the hall,
    // follow the forest path behind it, then stop outside the tea-house entrance.
-   tea:[[5,-26],[14.2,-25.6],[14.2,-46.5],[14.2,-54.2],[0,-55.2]],
+   tea:[[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]],
    meditate:[[5,-26],[0,-32.05]],
    chant:[[5,-26],[0,-32.05]],
    kneel:[[5,-26],[0,-25.4]]
