@@ -1028,7 +1028,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-25.4]};
+  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
