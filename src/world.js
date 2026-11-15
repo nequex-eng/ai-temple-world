@@ -103,6 +103,8 @@ function hall(scene,cfg,m){
  add(new THREE.CylinderGeometry(.12,.12,w+2.6,10),m.gold,g,[0,ry+.1,0],[0,0,Math.PI/2]);
  for(const sx of [-1,1])for(const sz of [-1,1])add(new THREE.SphereGeometry(.22,9,8),m.gold,g,[sx*(w/2+1.55),ey+.18,sz*(d/2+1.0)]);
  add(new THREE.BoxGeometry(Math.min(w*.4,5),.75,.18),m.sign,g,[0,.54+h*.7,d/2+.17]);
+ // Avoid shadow-map acne on the close, broad masonry surfaces.
+ g.traverse(o=>{if(o.isMesh)o.receiveShadow=false;});
  const plaque=plaqueSprite(cfg.label||"佛殿",cfg.subtitle||"TEMPLE HALL");plaque.scale.set(Math.min(w*.34,4.3),.9,1);plaque.position.set(0,.54+h*.7,d/2+.29);g.add(plaque);
  return g;
 }
@@ -319,8 +321,9 @@ export class TempleWorld{
    }
    for(let i=0;i<9000;i++){ctx.fillStyle=Math.random()>.5?"rgba(55,49,40,.035)":"rgba(255,255,255,.045)";ctx.fillRect(Math.random()*size,Math.random()*size,1,1);}
   },3,2);
-  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture});
-  add(new THREE.PlaneGeometry(24.8,15.8),hallFloor,altar,[0,.546,0],[-Math.PI/2,0,0],false);
+  const hallFloor=mat(0xffffff,.96,{map:hallFloorTexture,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+  const hallFloorMesh=add(new THREE.PlaneGeometry(24.8,15.8),hallFloor,altar,[0,.57,0],[-Math.PI/2,0,0],false);
+  hallFloorMesh.receiveShadow=false;
   // Hand-painted mineral-pigment murals: distant mountains, auspicious clouds and lotus blooms.
   const muralCanvas=document.createElement("canvas");muralCanvas.width=768;muralCanvas.height=384;
   const muralCtx=muralCanvas.getContext("2d");
