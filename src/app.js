@@ -485,10 +485,10 @@ function appendAbbotMessage(role,content){
 }
 // Enter sends the abbot message; Shift+Enter inserts a line break. Ignore IME confirmation.
  $("abbot-input").addEventListener("keydown",e=>{
-  if(e.key!=="Enter"||e.shiftKey||e.isComposing||e.keyCode===229)return;
-  e.preventDefault();
-  if(!$("abbot-send").disabled)$("abbot-form").requestSubmit();
- });
+  if((e.key!=="Enter"&&e.keyCode!==13)||e.shiftKey||e.isComposing||e.keyCode===229)return;
+  e.preventDefault();e.stopPropagation();
+  if(!$("abbot-send").disabled)$("abbot-send").click();
+ },true);
  $("abbot-form").addEventListener("submit",async e=>{
  e.preventDefault();
  const input=$("abbot-input"),message=input.value.trim();if(message.length<2)return;
