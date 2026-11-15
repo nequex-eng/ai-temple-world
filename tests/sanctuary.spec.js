@@ -426,7 +426,7 @@ test("lotus offering is lightweight and local-only, with no boat animation", asy
   const state=await page.evaluate(()=>({lights:window.__templeDebug.nightLights(),toilets:window.__templeDebug.squatToilets(),censer:window.__templeDebug.censer()}));
   expect(state.lights).toBeGreaterThanOrEqual(28);
   expect(state.toilets).toBe(2);
-  expect(state.censer).toEqual({x:5.8,z:-19.5});
+  expect(state.censer).toEqual({x:0,z:-22.4});
   await cleanTestGuest(page);
 });
 
