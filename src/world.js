@@ -359,6 +359,14 @@ export class TempleWorld{
   const gate=new THREE.Group();gate.position.z=-10.5;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);// Mountain gate remains clean architectural timber without an applied plaque.
+  // Four market stalls flank the mountain-gate approach; the central stone route remains open.
+  this.vendorSpecs=[
+   {name:'凉面摊主',x:-8.8,z:-5.5,kind:'noodles',facing:Math.PI/2},
+   {name:'香烛摊主',x:8.8,z:-5.5,kind:'incense',facing:-Math.PI/2},
+   {name:'咖啡摊主',x:-8.8,z:-15.2,kind:'coffee',facing:Math.PI/2},
+   {name:'小食摊主',x:8.8,z:-15.2,kind:'fruit',facing:-Math.PI/2}
+  ];
+  for(const vendor of this.vendorSpecs)marketStall(s,vendor.x,vendor.z,vendor.x<0?-1:1,vendor.kind,m);
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
   // It runs perpendicular to the mountain gate and faces inward toward visitors.
   const wishWall=new THREE.Group();wishWall.position.set(-31,0,-13.5);wishWall.rotation.y=Math.PI/2;s.add(wishWall);
@@ -641,6 +649,24 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
   add(new THREE.TorusGeometry(1.1,.12,8,32),m.gold,bell,[0,3.15,0],[Math.PI/2,0,0]);
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
+  // A discreet, unlabelled washroom on the west (left) side of the Great Hall.
+  const washroom=new THREE.Group();washroom.position.set(-19,0,-32);s.add(washroom);
+  const washStone=mat(0xb8ad98,.96),washWood=mat(0x493326,.9),washRoof=mat(0x35483d,.94),washTrim=mat(0x9b7a4d,.8);
+  add(new THREE.BoxGeometry(6.1,.22,5.25),washStone,washroom,[0,.11,0]);
+  add(new THREE.PlaneGeometry(5.6,4.8),m.stoneLight,washroom,[0,.235,0],[-Math.PI/2,0,0],false);
+  add(new THREE.BoxGeometry(.24,2.65,5.0),washStone,washroom,[-2.8,1.56,0]);
+  add(new THREE.BoxGeometry(.24,2.65,5.0),washStone,washroom,[2.8,1.56,0]);
+  add(new THREE.BoxGeometry(5.6,2.65,.24),washStone,washroom,[0,1.56,-2.38]);
+  add(new THREE.BoxGeometry(1.95,2.65,.24),washStone,washroom,[-1.83,1.56,2.38]);
+  add(new THREE.BoxGeometry(1.95,2.65,.24),washStone,washroom,[1.83,1.56,2.38]);
+  for(const x of [-.94,.94])add(new THREE.BoxGeometry(.16,2.75,.2),washWood,washroom,[x,1.6,2.38]);
+  add(new THREE.BoxGeometry(.18,2.0,1.8),washStone,washroom,[.55,1.18,1.0]);
+  add(new THREE.BoxGeometry(6.5,.2,5.7),washWood,washroom,[0,2.9,0]);
+  const washRoofGroup=new THREE.Group();washroom.add(washRoofGroup);
+  planeRoof(washRoofGroup,6.2,5.4,3.95,3.45,1,washRoof);planeRoof(washRoofGroup,6.2,5.4,3.95,3.45,-1,washRoof);
+  add(new THREE.CylinderGeometry(.08,.08,6.5,8),washTrim,washroom,[0,3.9,0],[0,0,Math.PI/2]);
+  for(const side of [-1,1]){add(new THREE.BoxGeometry(.13,.13,5.0),washTrim,washroom,[side*2.84,2.83,0]);add(new THREE.BoxGeometry(5.7,.13,.13),washTrim,washroom,[0,2.83,side*2.42]);}
+  add(new THREE.PlaneGeometry(2.0,3.0),m.stone,washroom,[0,-.02,3.75],[-Math.PI/2,0,0],false);
   for(const [x,z] of [[-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41]])lantern(s,x,z,m);
   // Incense censer
   this.incensePosition=new THREE.Vector3(-5.4,0,-37.2);const censer=new THREE.Group();censer.position.copy(this.incensePosition);s.add(censer);censer.visible=true;
@@ -685,6 +711,10 @@ export class TempleWorld{
   a.setPose("bow",1500);
   const route=[[0,-22],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22]].map(([x,z])=>new THREE.Vector3(x,0,z));
   this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
+  for(const spec of this.vendorSpecs||[]){
+   const seller=marketVendor(this.scene,spec.x+(spec.x<0?1.55:-1.55),spec.z+.78,spec.facing,this.m);seller.name='vendor-'+spec.kind;
+   this.npcs.push({avatar:{root:seller,update(){},dispose(){seller.parent?.remove(seller);}},stationary:true});
+  }
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
