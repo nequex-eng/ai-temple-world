@@ -8,7 +8,7 @@ let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],onlinePlayers=new Map(),actionUntil=0,lastPositionSend=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,mobileRunning=false,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0;
 let soundPreference=true;try{soundPreference=localStorage.getItem("temple-sound-enabled")!=="false";}catch{}
-const touchAudioGate=matchMedia("(pointer: coarse)").matches;
+const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
@@ -640,8 +640,9 @@ addEventListener("beforeunload",()=>network.close());
 function armDefaultSoundGesture(){
  if(!soundPreference||soundEnabled)return;
  const events=["pointerdown","touchstart","keydown"];
- const activate=()=>{
+ const activate=event=>{
   for(const type of events)document.removeEventListener(type,activate,true);
+  if(event?.target?.closest?.("#sound-toggle,#profile-sound-toggle"))return;
   if(soundPreference&&!soundEnabled)void setSound(true,{quiet:false,save:false});
  };
  for(const type of events)document.addEventListener(type,activate,{once:true,capture:true});
