@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt } from "./physics.js";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -1028,21 +1028,15 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const routes={
-   incense:[[5,-26],[0,-25.4]],
-   bell:[[5,-26],[8,-38]],
-   lotus:[[5,-26],[14.2,-25.6],[19,-26.7]],
-   // Leave through the Great Hall's front opening, pass the east side of the hall,
-   // follow the forest path behind it, then stop outside the tea-house entrance.
-   tea:[[5,-26],[-14.8,-27],[-14.8,-46.5],[0,-55.2]],
-   meditate:[[5,-26],[0,-32.05]],
-   chant:[[5,-26],[0,-32.05]],
-   kneel:[[5,-26],[0,-25.4]]
-  };
-  const route=routes[action];if(!route?.length)return false;
+  const destinations={incense:[0,-25.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-25.4]};
+  const destination=destinations[action];if(!destination)return false;
+  const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
+  if(!path?.length)return false;
+  const targets=path.map(p=>new THREE.Vector3(p.x,0,p.z));
   this.pendingAction=action;
-  this.moveWaypoints=route.slice(1).map(([x,z])=>new THREE.Vector3(x,0,z));
-  this.moveTarget=new THREE.Vector3(route[0][0],0,route[0][1]);
+  this.moveTarget=targets.shift();
+  this.moveWaypoints=targets;
+  this.moveVelocity.set(0,0);
   return true;
  }
  setLanguage(lang){
@@ -1065,9 +1059,9 @@ export class TempleWorld{
    direction=fw.multiplyScalar(f).add(rt.multiplyScalar(side)).normalize();
   }else if(this.moveTarget&&canMove){
    const dx=this.moveTarget.x-this.local.root.position.x,dz=this.moveTarget.z-this.local.root.position.z;
-   if(Math.hypot(dx,dz)<.62){
+   if(Math.hypot(dx,dz)<.22){
     const next=this.moveWaypoints?.shift();
-    if(next)this.moveTarget.copy(next);
+    if(next){this.moveTarget.copy(next);this.moveVelocity.multiplyScalar(.12);}
     else{
      this.moveTarget=null;
      if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}
