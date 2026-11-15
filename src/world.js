@@ -652,7 +652,7 @@ export class TempleWorld{
   return {...this.collision,actors};
  }
  isInsideHall(position){
-  return this.halls.some(h=>Math.abs(position.x-h.x)<h.w/2-1.05&&position.z>h.z-h.d/2+1.05&&position.z<h.z+h.d/2-.35);
+  return this.halls.some(h=>Math.abs(position.x-h.x)<h.w/2-1.05&&position.z>h.z-h.d/2+1.05&&position.z<h.z+h.d/2-4.0);
  }
  bindCamera(){
   const c=this.renderer.domElement;
@@ -768,8 +768,8 @@ export class TempleWorld{
   this.updateNpcs(dt,time);
   const cameraTargetPosition=this.local.root.position,inside=this.isInsideHall(cameraTargetPosition);
   this.indoor=inside;
-  const cameraDistance=inside?clamp(this.distance*.56,4.2,6.2):this.distance;
-  const cameraHeight=inside?1.85+Math.sin(this.pitch)*cameraDistance*.48:3.15+Math.sin(this.pitch)*this.distance*.75;
+  const cameraDistance=inside?clamp(this.distance*.36,2.6,3.8):this.distance;
+  const cameraHeight=inside?1.72+Math.sin(this.pitch)*cameraDistance*.42:3.15+Math.sin(this.pitch)*this.distance*.75;
   const target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*cameraDistance,cameraTargetPosition.y+cameraHeight,cameraTargetPosition.z+Math.cos(this.yaw)*cameraDistance);
   this.camera.position.lerp(target,1-Math.pow(inside?.00025:.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+(inside?1.42:1.2),cameraTargetPosition.z);
   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
