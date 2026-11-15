@@ -5,7 +5,7 @@ import { getText } from "./i18n.js";
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
-if(!["zh","ja","ko","th"].includes(language))language="zh";
+if(!["zh","en","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{localStorage.setItem("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
@@ -35,7 +35,8 @@ function toast(message){
 }
 function applyLanguage(){
  const d=t();
- document.documentElement.lang=({zh:"zh-CN",ja:"ja",ko:"ko",th:"th"})[language];
+ document.documentElement.lang=({zh:"zh-CN",en:"en",ja:"ja",ko:"ko",th:"th"})[language];
+ world.setLanguage(language);
  const labels={
   "connection-label":d.statusConnecting,"profile-button-label":d.profile,"sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"profile-sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"location-eyebrow":d.locationEyebrow,
   "location-hint":d.locationHint,"presence-title":d.presence,"presence-sub":d.presenceSub,
@@ -256,14 +257,10 @@ async function ensureAudio(){
 }
 function updateSoundscape(){
  if(!soundEnabled)return;
- if(templeBirds){
-  templeBirds.volume=.27*audioVolumes.ambience;
-  if(templeBirds.paused&&performance.now()>birdRetryAt){
-   birdRetryAt=performance.now()+5000;
-   void mediaPlay(templeBirds,"庭院鸟鸣");
-  }
- }
+ const night=!!world.isNight;
+ if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(night){if(!templeBirds.paused)templeBirds.pause();}else if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
  if(!templeChant||!world.local)return;
+ if(night){if(!templeChant.paused)templeChant.pause();return;}
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
  const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
  templeChant.volume=chantVolume;
@@ -420,9 +417,13 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
+ if(["incense","bell","lotus","tea","meditate"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
+ }
+ if(action==="tea"){
+  world.setLocalPose("meditate");world.addEffect("tea");playRitualSound("tea");text("character-state",t().actionText.tea||"品茶");toast(t().teaEnjoy||"静坐品茶，稍歇片刻");network.logActivity(action,"tea-house");return;
  }
  if(action==="lotus"){
   playLotusWater();
@@ -437,6 +438,7 @@ function doAction(action){
  toast(poseText);
 }
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
+window.addEventListener("temple:arrived-action",event=>{if(event.detail?.action)doAction(event.detail.action);});
 $("open-profile").addEventListener("click",openProfileEditor);
 window.addEventListener("temple:rename",openProfileEditor);
 $("quick-profile").addEventListener("click",()=>$("open-profile").click());
