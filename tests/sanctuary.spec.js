@@ -312,21 +312,18 @@ test("two independent guests share live presence and messages", async ({ browser
 });
 
 
-test("named monks move through autonomous patrol routes", async ({ page }) => {
+test("only one stationary abbot NPC is present", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
-  await page.locator("#monk-name").fill("NPC Patrol Test");
+  await page.locator("#monk-name").fill("Abbot Roster Test");
   await page.locator("#save-profile").click();
   await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
-  const before = await page.evaluate(() => window.__templeDebug.npcs());
-  expect(before).toHaveLength(9);
-  await page.waitForTimeout(7500);
+  const npcs = await page.evaluate(() => window.__templeDebug.npcs());
+  expect(npcs).toHaveLength(1);
+  expect(npcs[0].name).toBe("住持");
+  await page.waitForTimeout(1500);
   const after = await page.evaluate(() => window.__templeDebug.npcs());
-  const moved = before.filter(old => {
-    const current = after.find(n => n.name === old.name);
-    return current && Math.hypot(current.x - old.x, current.z - old.z) > 0.35;
-  }).length;
-  console.log("npc-patrol-regression", JSON.stringify({before,after,moved}));
-  expect(moved).toBeGreaterThanOrEqual(6);
+  expect(after).toHaveLength(1);
+  expect(Math.hypot(after[0].x - npcs[0].x, after[0].z - npcs[0].z)).toBeLessThan(0.05);
   await cleanTestGuest(page);
 });
