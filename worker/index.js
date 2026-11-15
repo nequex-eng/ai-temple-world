@@ -332,7 +332,7 @@ export class TempleRoom {
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       if (data.action === "incense" && !near(-5.4, -37.2, 5.5)) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
-      if (data.action === "lotus" && !near(7, -32.5, 4.5)) return;
+      if (data.action === "lotus" && !near(7, -32.5, 6.2)) return;
       if (data.action === "lotus") {
         if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
         player.lastLotusAt = Date.now();
