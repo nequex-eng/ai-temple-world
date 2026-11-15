@@ -8,6 +8,7 @@ const html = read("index.html");
 const app = read("src/app.js");
 const world = read("src/world.js");
 const network = read("src/network.js");
+const style = read("style.css");
 const i18n = read("src/i18n.js");
 const worker = read("worker/index.js");
 const headers = read("_headers");
@@ -67,6 +68,9 @@ assert.ok(world.includes("slice(0,this.mobile?12:28)") && world.includes("a.root
 assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22]") && world.includes("robeGeometry.scale(1,1,.78)"), "Monk body must have a shaped, tapered and non-cylindrical human torso");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
+assert.ok(worker.includes('DELETE FROM prayers WHERE id=? AND player_id=?') && worker.includes('type: "prayer:delete"') && network.includes("async deletePrayer(id)") && app.includes("p.player_id===network.playerId"), "Visitors may delete only their own wishes and deletion must sync to everyone");
+assert.ok(world.includes("function robeNamePlate(name)") && !world.includes("function labelSprite(name)") && world.includes("this.body.add(this.tag)"), "Avatar names must be displayed on robe backs");
+assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
 assert.ok(app.includes("network.connect({...profile,language},world.getPosition())"), "First-time visitors must join before saving a profile");
