@@ -43,19 +43,32 @@ async function reserveAiRequest(env, playerId, kind, dailyLimit, minIntervalMs) 
 }
 
 async function minimaxChat(env, messages, maxTokens = 480) {
-  if (!env.MINIMAX_API_KEY) throw new Error("AI_NOT_CONFIGURED");
-  const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
-  const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
-  const response = await fetch(base + "/chat/completions", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
+  // Prefer the existing MiniMax credential when configured; otherwise use
+  // Cloudflare Workers AI so the abbot works without a separate provider key.
+  if (env.MINIMAX_API_KEY) {
+    const base = String(env.MINIMAX_BASE_URL || "https://api.minimaxi.com/v1").replace(/\/+$/, "");
+    const model = env.MINIMAX_MODEL || "MiniMax-M3.1-Flash";
+    const response = await fetch(base + "/chat/completions", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + env.MINIMAX_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, messages, temperature: 0.35, max_tokens: maxTokens, stream: false })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
+    const raw = data?.choices?.[0]?.message?.content;
+    const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
+    if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
+    return answer.trim().slice(0, 1400);
+  }
+  if (!env.AI?.run) throw new Error("AI_NOT_CONFIGURED");
+  const result = await env.AI.run(env.AI_MODEL || "@cf/zai-org/glm-4.7-flash", {
+    messages,
+    temperature: 0.35,
+    max_tokens: maxTokens
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error("MiniMax request failed (" + response.status + "): " + clean(data?.base_resp?.status_msg || data?.error?.message || "", 180));
-  const raw = data?.choices?.[0]?.message?.content;
+  const raw = result?.response ?? result?.choices?.[0]?.message?.content ?? result?.result?.response ?? "";
   const answer = Array.isArray(raw) ? raw.map(part => part?.text || "").join("") : String(raw || "");
-  if (!answer.trim()) throw new Error("MiniMax returned an empty response.");
+  if (!answer.trim()) throw new Error("Workers AI returned an empty response.");
   return answer.trim().slice(0, 1400);
 }
 
@@ -69,7 +82,7 @@ async function handleApi(request, env, url) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(request) });
   if (path === "/api/health") {
     const db = await env.DB.prepare("SELECT 1 AS ok").first();
-    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, aiEnabled: !!env.MINIMAX_API_KEY, timestamp: now() });
+    return reply(request, { ok: true, service: "temple-world-api", realtime: true, database: db?.ok === 1, aiEnabled: !!env.MINIMAX_API_KEY || !!env.AI?.run, aiProvider: env.MINIMAX_API_KEY ? "minimax" : env.AI?.run ? "cloudflare-workers-ai" : null, timestamp: now() });
   }
 
   if (path === "/api/translate" && request.method === "POST") {
@@ -80,7 +93,7 @@ async function handleApi(request, env, url) {
     const target = LANGS.has(body.target_language) ? body.target_language : "zh";
     if (!message) return reply(request, { error: "Message is empty." }, 400);
     if (source === target) return reply(request, { available: true, translated: message, cached: true });
-    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, error: "Translation is not configured yet." }, 503);
+    if (!env.MINIMAX_API_KEY && !env.AI?.run) return reply(request, { available: false, error: "Translation is not configured yet." }, 503);
     const cacheKey = await sha256(source + "\u0000" + target + "\u0000" + message);
     const cached = await env.DB.prepare("SELECT translated_text FROM translations WHERE cache_key=?").bind(cacheKey).first();
     if (cached?.translated_text) return reply(request, { available: true, translated: cached.translated_text, cached: true });
@@ -103,7 +116,7 @@ async function handleApi(request, env, url) {
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid player." }, 400);
     const message = clean(body.message, 600);
     if (message.length < 2) return reply(request, { error: "Please write a little more." }, 400);
-    if (!env.MINIMAX_API_KEY) return reply(request, { available: false, code: "AI_NOT_CONFIGURED", error: "AI住持尚未接入：Cloudflare Worker 缺少 MINIMAX_API_KEY。配置该 Secret 后才能开始对话。" }, 503);
+    if (!env.MINIMAX_API_KEY && !env.AI?.run) return reply(request, { available: false, code: "AI_NOT_CONFIGURED", error: "AI住持服务尚未绑定。请检查 Cloudflare Workers AI 绑定。" }, 503);
     const language = LANGS.has(body.language) ? body.language : "zh";
     const history = Array.isArray(body.history) ? body.history.slice(-8).map(item => ({
       role: item?.role === "assistant" ? "assistant" : "user",
