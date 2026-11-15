@@ -794,8 +794,14 @@ export class TempleWorld{
   localPosition.set(result.x,groundY+this.jumpOffset,result.z);
   this.lastMovement={forward:f,side,dt,moving,pose:this.local.pose,blocked:result.blocked,jumping:this.jumpOffset>0,position:{x:localPosition.x,y:localPosition.y,z:localPosition.z}};
   this.local.update(dt,time,moving&&this.local.pose==="walk");
+  // Keep the closest visitors fully rendered; everyone remains online and collidable.
+  const localPos=this.local.root.position;
+  const visibleVisitors=new Set([...this.remotes.values()]
+   .map(a=>({a,d:(a.root.position.x-localPos.x)**2+(a.root.position.z-localPos.z)**2}))
+   .sort((a,b)=>a.d-b.d).slice(0,this.mobile?12:28).map(item=>item.a.id));
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
+   a.root.visible=visibleVisitors.has(a.id);
    const p=a.root.position,dx=a.target.x-p.x,dz=a.target.z-p.z,len=Math.hypot(dx,dz);
    let remoteMoving=false;
    if(len>.025){
