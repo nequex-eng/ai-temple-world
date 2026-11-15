@@ -328,8 +328,16 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.72,5.05,.9),m.darkWood,wishWall,[x,2.6,.44]);
    add(new THREE.BoxGeometry(1.0,.24,1.05),m.gold,wishWall,[x,5.16,.42]);
   }
-  const wishTitle=plaqueSprite("莲花祈愿墙","LOTUS WISHES · SHARED BY ALL");
-  wishTitle.scale.set(7.2,1.8,1);wishTitle.position.set(0,4.35,.54);wishWall.add(wishTitle);
+  // Only three Chinese characters, engraved directly into the stone above the wishes.
+  const engravingCanvas=document.createElement("canvas");engravingCanvas.width=1024;engravingCanvas.height=256;
+  const engravingCtx=engravingCanvas.getContext("2d");engravingCtx.clearRect(0,0,1024,256);
+  engravingCtx.textAlign="center";engravingCtx.textBaseline="middle";
+  engravingCtx.font='bold 142px "Songti SC","Noto Serif CJK SC",serif';
+  engravingCtx.fillStyle="rgba(35,34,29,.72)";engravingCtx.fillText("许愿墙",514,132);
+  engravingCtx.fillStyle="rgba(226,215,190,.32)";engravingCtx.fillText("许愿墙",510,126);
+  const engravingTexture=new THREE.CanvasTexture(engravingCanvas);engravingTexture.colorSpace=THREE.SRGBColorSpace;
+  const wishEngraving=new THREE.Mesh(new THREE.PlaneGeometry(8.8,2.2),new THREE.MeshBasicMaterial({map:engravingTexture,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));
+  wishEngraving.position.set(0,4.35,.54);wishWall.add(wishEngraving);
   this.wishWallCanvas=document.createElement("canvas");this.wishWallCanvas.width=4096;this.wishWallCanvas.height=268;
   this.wishWallTexture=new THREE.CanvasTexture(this.wishWallCanvas);this.wishWallTexture.colorSpace=THREE.SRGBColorSpace;
   const wishText=new THREE.Mesh(new THREE.PlaneGeometry(wishLength-7.0,3.65),new THREE.MeshBasicMaterial({map:this.wishWallTexture,side:THREE.DoubleSide,toneMapped:false}));
