@@ -485,7 +485,7 @@ document.addEventListener("keydown",e=>{
  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
  if(e.code==="Digit2"){e.preventDefault();openBeads();return;}
  const key=movementCodes[e.code]||e.key.toLowerCase();
- if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","jump"," "].includes(key)){e.preventDefault();keys[key]=true;}
+ if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","jump"," "].includes(key)){e.preventDefault();if(key==="jump"||key===" ")world.requestJump();keys[key]=true;}
 },true);
 document.addEventListener("keyup",e=>{const key=movementCodes[e.code]||e.key.toLowerCase();keys[key]=false;},true);
 document.addEventListener("visibilitychange",()=>{
@@ -493,7 +493,7 @@ document.addEventListener("visibilitychange",()=>{
  else if(soundEnabled&&audio?.state==="suspended")audio.resume().then(()=>updateSoundscape()).catch(error=>{console.warn("Audio resume failed",error);});
 });
 const stick=$("joystick"),knob=$("joystick-knob"),jumpButton=$("jump-toggle");
-if(jumpButton){const jumpStart=e=>{e.preventDefault();keys.jump=true;jumpButton.setPointerCapture?.(e.pointerId);};const jumpEnd=e=>{e.preventDefault();keys.jump=false;};jumpButton.addEventListener("pointerdown",jumpStart);jumpButton.addEventListener("pointerup",jumpEnd);jumpButton.addEventListener("pointercancel",jumpEnd);jumpButton.addEventListener("lostpointercapture",jumpEnd);}
+if(jumpButton){const jumpStart=e=>{e.preventDefault();keys.jump=true;world.requestJump();jumpButton.setPointerCapture?.(e.pointerId);};const jumpEnd=e=>{e.preventDefault();keys.jump=false;};jumpButton.addEventListener("pointerdown",jumpStart);jumpButton.addEventListener("pointerup",jumpEnd);jumpButton.addEventListener("pointercancel",jumpEnd);jumpButton.addEventListener("lostpointercapture",jumpEnd);}
 function updateStick(e){
  const r=stick.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),length=Math.hypot(dx,dy),factor=Math.min(1,Math.max(0,r.width*.34)/(length||1));
  joy={x:dx*factor/(r.width*.34),y:dy*factor/(r.width*.34)};knob.style.transform="translate("+dx*factor+"px,"+dy*factor+"px)";
