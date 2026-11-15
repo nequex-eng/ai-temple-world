@@ -307,6 +307,13 @@ test("two independent guests share live presence and messages", async ({ browser
     await expect(pageA.locator("#chat-input")).toHaveValue("", { timeout: 5000 });
     await expect(pageB.locator("#chat-messages")).toContainText("Message from the other side of the courtyard", { timeout: 20000 });
 
+    // Wishes must persist and be broadcast to every connected visitor.
+    await pageA.locator("#open-prayers").click();
+    await pageA.locator("#prayer-input").fill("愿世界和平");
+    await pageA.locator("#prayer-submit").click();
+    await expect(pageA.locator("#prayer-input")).toHaveValue("", { timeout: 15000 });
+    await expect(pageB.locator("#prayer-list")).toContainText("愿世界和平", { timeout: 20000 });
+
     await pageB.locator('[data-action="chant"]').click();
     await expect(pageB.locator("#toast")).toHaveClass(/show/);
 
