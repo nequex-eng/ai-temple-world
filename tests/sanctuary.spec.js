@@ -271,7 +271,7 @@ test("main hall meditation uses a real cushion and mobile information panels sta
 
   await page.evaluate(() => window.__templeDebug.setPosition(0, 0));
   await page.locator('[data-action="meditate"]').click();
-  await expect(page.locator("#toast")).toContainText("大雄宝殿");
+  await expect.poll(() => page.evaluate(() => window.__templeDebug.input().pose), { timeout: 45000 }).toBe("meditate");
 
   await page.evaluate(() => window.__templeDebug.setPosition(1.7, -32.05));
   await page.locator('[data-action="meditate"]').click();
@@ -406,9 +406,9 @@ test("four market vendors stand on the east green lawn with product signs", asyn
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
   const state = await page.evaluate(() => ({market:window.__templeDebug.market(),labels:window.__templeDebug.marketLabels()}));
-  expect(state.market).toHaveLength(4);
+  expect(state.market).toHaveLength(7);
   expect(state.market.every(v=>v.x>=40)).toBe(true);
-  expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果"]);
+  expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果","算命 · 求签","寺院文创 · 纪念品","麦当劳 · 汉堡"]);
 });
 
 test("lotus offering is lightweight and local-only, with no boat animation", async ({ page }) => {
@@ -426,7 +426,7 @@ test("lotus offering is lightweight and local-only, with no boat animation", asy
   const state=await page.evaluate(()=>({lights:window.__templeDebug.nightLights(),toilets:window.__templeDebug.squatToilets(),censer:window.__templeDebug.censer()}));
   expect(state.lights).toBeGreaterThanOrEqual(28);
   expect(state.toilets).toBe(2);
-  expect(state.censer).toEqual({x:0,z:-22.4});
+  expect(state.censer).toEqual({x:3.3,z:-22.4});
   await cleanTestGuest(page);
 });
 
@@ -445,4 +445,28 @@ test("one resident abbot roams while the green-market vendors remain separate", 
   expect(after).toHaveLength(1);
   expect(Math.hypot(after[0].x-before[0].x,after[0].z-before[0].z)).toBeGreaterThan(.4);
   await cleanTestGuest(page);
+});
+
+
+test("mobile performance mode lowers render resolution and restores standard quality", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  const button=page.locator("#smooth-toggle");
+  await expect(button).toBeVisible();
+  await expect(button).toContainText("流畅模式");
+  const standard=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+  await button.click();
+  await expect(button).toContainText("恢复画质");
+  const reduced=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+  expect(reduced).toBeLessThan(standard);
+  expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("smooth");
+  await page.reload({waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+  await expect(page.locator("#smooth-toggle")).toContainText("恢复画质");
+  await page.locator("#smooth-toggle").click();
+  await expect(page.locator("#smooth-toggle")).toContainText("流畅模式");
+  const restored=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+  expect(restored).toBeGreaterThan(reduced);
+  expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("standard");
 });
