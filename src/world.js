@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r8";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r9";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -1077,8 +1077,8 @@ export class TempleWorld{
 
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
   this.npcs.push({avatar:{root:teaHost,update(){},dispose(){teaHost.parent?.remove(teaHost);}},stationary:true});
-  const restaurantHost=marketVendor(this.scene,19.1,27.2,-Math.PI/2,this.m);restaurantHost.name="vegetarian-kitchen-host";
-  this.npcs.push({avatar:{root:restaurantHost,update(dt,time){restaurantHost.userData.animateInteraction?.(time,27.2);},dispose(){restaurantHost.parent?.remove(restaurantHost);}},stationary:true});
+  const restaurantHost=marketVendor(this.scene,23.2,25,-Math.PI/2,this.m);restaurantHost.name="vegetarian-kitchen-host";
+  this.npcs.push({avatar:{root:restaurantHost,update(dt,time){restaurantHost.userData.animateInteraction?.(time,25);},dispose(){restaurantHost.parent?.remove(restaurantHost);}},stationary:true});
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
@@ -1239,7 +1239,7 @@ export class TempleWorld{
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
   if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.8;
-   if(a==="eat")return Math.hypot(p.x-16.8,p.z-25)<2.8;
+   if(a==="eat")return p.x>=17.6&&p.x<=24.2&&p.z>=20.7&&p.z<=29.3;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1254,7 +1254,7 @@ export class TempleWorld{
    // The front doorway can be crowded. Try several reachable dining spots,
    // including positions served by either side entrance, while respecting
    // live visitor and NPC collision.
-   const diningSpots=[[16.8,25],[19,23.8],[19,26.2],[18.7,25],[18.5,24.2],[18.5,25.8]];
+   const diningSpots=[[18.4,25],[19.1,22.1],[19.1,27.9],[21.2,22.1],[21.2,27.9],[22.5,25],[22.2,23.2],[22.2,26.8]];
    const collision=this.actorCollisionWorld(this.local);
    let best=null,bestCost=Infinity;
    for(const [x,z] of diningSpots){
