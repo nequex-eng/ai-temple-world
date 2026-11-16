@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r6";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r7";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -641,8 +641,7 @@ export class TempleWorld{
   const restaurantCtx=restaurantCanvas.getContext("2d");restaurantCtx.fillStyle="#302b22";restaurantCtx.fillRect(0,0,512,256);
   restaurantCtx.strokeStyle="#d7b878";restaurantCtx.lineWidth=12;restaurantCtx.strokeRect(13,13,486,230);
   restaurantCtx.textAlign="center";restaurantCtx.textBaseline="middle";restaurantCtx.fillStyle="#f1dfb9";
-  restaurantCtx.font='bold 154px "Songti SC","Noto Serif CJK SC",serif';restaurantCtx.fillText("斋",256,112);
-  restaurantCtx.font='bold 25px Georgia,serif';restaurantCtx.fillText("VEGETARIAN KITCHEN",256,205);
+  restaurantCtx.font='bold 180px "Songti SC","Noto Serif CJK SC",serif';restaurantCtx.fillText("斋",256,128);
   const restaurantMap=new THREE.CanvasTexture(restaurantCanvas);restaurantMap.colorSpace=THREE.SRGBColorSpace;
   add(new THREE.BoxGeometry(2.5,1.28,.16),restaurantDark,restaurant,[0,3.08,4.72]);
   add(new THREE.PlaneGeometry(2.34,1.12),new THREE.MeshBasicMaterial({map:restaurantMap,toneMapped:false}),restaurant,[0,3.08,4.81],[0,0,0],false);
@@ -1239,6 +1238,7 @@ export class TempleWorld{
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
   if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.8;
+   if(a==="eat")return Math.hypot(p.x-16.8,p.z-25)<2.5;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1248,7 +1248,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],eat:[16.8,25],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
@@ -1265,10 +1265,6 @@ export class TempleWorld{
   if(this.shrineSign){const labels={zh:"神龛",en:"SHRINE",ja:"祠堂",ko:"신단",th:"ศาลบูชา"};const sign=this.shrineSign;sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=8;sign.ctx.strokeRect(10,10,492,124);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font="bold "+(lang==="zh"||lang==="ja"||lang==="ko"?72:54)+"px serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(labels[lang]||labels.zh,256,72,460);sign.map.needsUpdate=true;}
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#a82524":"#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#ffdf75":"#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
-  if(this.restaurantSign){
-   const labels={zh:"素斋 · 清净饮食",en:"VEGETARIAN KITCHEN",ja:"精進料理",ko:"사찰 채식 식당",th:"อาหารเจ"};
-   const sign=this.restaurantSign,ctx=sign.ctx;ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);ctx.fillStyle="#302b22";ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);ctx.strokeStyle="#d7b878";ctx.lineWidth=12;ctx.strokeRect(13,13,486,230);ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#f1dfb9";ctx.font='bold 154px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("斋",256,112);ctx.font="bold 25px Georgia,serif";ctx.fillText(labels[lang]||labels.zh,256,205);sign.map.needsUpdate=true;
-  }
   if(this.parkingSign){
    const labels={zh:"森林停车场",en:"FOREST PARKING",ja:"森林駐車場",ko:"숲속 주차장",th:"ลานจอดรถในป่า"};
    const ctx=this.parkingSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#35453d";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 78px serif":"bold 64px sans-serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.parkingSign.map.needsUpdate=true;

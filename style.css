@@ -236,8 +236,7 @@
  body::-webkit-scrollbar,html::-webkit-scrollbar{display:none}
 }
 
-.mobile-fullscreen{display:none}
-@media(max-width:660px){.topbar{padding-left:8px;padding-right:8px}.language-select{min-width:54px}.profile-settings{width:31px;min-width:31px;padding:0;justify-content:center}.profile-settings .button-icon{display:inline-flex}#profile-button-label{display:none}.mobile-fullscreen{display:flex;width:31px;min-width:31px;height:31px;padding:0;justify-content:center;font-size:15px}.toast{max-width:92vw;line-height:1.55}}
+.toast{max-width:92vw;line-height:1.55}
 
 /* Mobile full-viewport fit and device safe areas. */
 @media(max-width:660px){
@@ -259,3 +258,12 @@
 .beads-drag-hint{font-size:10px;line-height:1.6;color:#bcae91;letter-spacing:.03em}
 .beads-modal .danger-button{margin-top:10px}
 @media(max-width:660px){.beads-ring{width:min(72vw,280px);height:min(72vw,280px)}.prayer-bead{width:6px;height:6px}.beads-modal{max-height:calc(var(--temple-visual-height,100dvh) - 24px);overflow-y:auto;overscroll-behavior:contain}}
+
+/* Mobile: restore action grid to the lower-right and allow genuine page scrolling. */
+@media(max-width:660px){
+ html{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;width:100%!important;height:calc(100vh + 120px)!important;min-height:calc(100vh + 120px)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:none!important;scroll-behavior:auto!important}
+ body{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;width:100%!important;height:100vh!important;min-height:100vh!important;overflow:hidden!important;overscroll-behavior:none!important}
+ .action-dock.glass{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:194px!important;max-width:calc(100vw - 110px)!important;display:grid!important;grid-template-columns:repeat(4,47px)!important;grid-auto-rows:45px;justify-content:end;align-content:end;gap:2px!important;padding:4px!important;overflow:visible!important;transform:none!important}
+ .action-dock .action-button{width:47px!important;height:45px!important}
+ .mobile-controls{left:max(10px,env(safe-area-inset-left))!important;right:auto!important;bottom:max(10px,env(safe-area-inset-bottom))!important}
+}
