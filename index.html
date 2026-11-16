@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#16251f">
-  <meta name="temple-build" content="20261116-r3">
+  <meta name="temple-build" content="20261116-r4">
   <meta name="description" content="一座向世界敞开的数字寺院。创建自己的小和尚，在山门、殿宇、莲池与菩提树下自由行走、礼敬、静坐、交流。">
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261116-r3">
+  <link rel="stylesheet" href="/style.css?v=20261116-r4">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -17,12 +17,12 @@
   <main id="world" aria-label="Interactive 3D Buddhist temple world"></main>
 
   <div class="atmosphere"></div>
-  <div class="loading-screen" id="loading"><div class="loading-mark">☸</div><div class="loading-title">云上禅境</div><div class="loading-sub">A SHARED SANCTUARY FOR EVERYONE</div><div class="loading-line"><i></i></div><div class="loading-note" id="loading-note">正在开启山门 · Preparing the sanctuary</div></div>
+  <div class="loading-screen" id="loading"><div class="loading-mark">☸</div><div class="loading-title" id="loading-title">云上禅境</div><div class="loading-sub">A SHARED SANCTUARY FOR EVERYONE</div><div class="loading-line"><i></i></div><div class="loading-note" id="loading-note">正在开启山门 · Preparing the sanctuary</div></div>
 
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">☸</div>
-      <div><div class="brand-name">云上禅境</div><div class="brand-sub">AI TEMPLE WORLD</div></div>
+      <div><div class="brand-name" id="brand-name">云上禅境</div><div class="brand-sub">AI TEMPLE WORLD</div></div>
     </div>
     <div class="top-center"><span class="live-dot"></span><span id="connection-label">正在连接禅境</span><span class="top-divider"></span><span id="online-count">1 位访客</span><span class="top-divider"></span><span id="room-label" class="room-label">MAIN · APAC · 0</span></div>
     <div class="top-actions">
@@ -147,6 +147,6 @@
       <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
     </section>
   </div>
-  <script type="module" src="/src/app.js?v=20261116-r3"></script>
+  <script type="module" src="/src/app.js?v=20261116-r4"></script>
 </body>
 </html>
