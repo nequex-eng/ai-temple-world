@@ -370,7 +370,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
   setLabel(name){if(!this.showName)return;if(this.tag){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();}this.tag=robeNamePlate(name);this.root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
-  setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
+  setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action==="water"){if(this.pose!=="water")this.setPose("water",0);}else if(p.action==="walk"){if(this.pose!=="walk")this.setPose("walk",0);}else if(p.action&&p.action!==this.pose)this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=ms>0?performance.now()+ms:0;},
   update(dt,time,moving=false){
    if(this.until&&time>this.until){this.previousPose=this.pose;this.pose="walk";this.poseStartedAt=time;this.until=0;}
@@ -409,10 +409,10 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
     feet[0].position.set(-.2,.045,.08);feet[1].position.set(.2,.045,.08);feet[0].rotation.set(0,0,0);feet[1].rotation.set(0,0,0);
    }
    if(this.pose==="water"){arms[0].rotation.z+=Math.sin(time*.004)*.28;arms[1].rotation.z+=Math.sin(time*.004+1.2)*.22;}
-   if(moving&&this.pose==="walk"){
+   if(moving&&(this.pose==="walk"||this.pose==="water")){
     const v=Math.sin(time*.0075)*.34*blend;
     legs[0].rotation.x=v;legs[1].rotation.x=-v;
-    arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;
+    if(this.pose==="walk"){arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;}
     body.position.y+=Math.abs(Math.sin(time*.018))*.035;
    }
    incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";wateringCan.visible=this.pose==="water";fertilizerBag.visible=this.pose==="water";teaCup.visible=this.pose==="tea";if(this.pose==="tea")teaCup.position.y=-.79+Math.sin(time*.0028)*.018;
