@@ -1,10 +1,25 @@
 const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "https://temple-world-api.nequex.workers.dev" : window.location.origin;
 const PLAYER_KEY = "temple-world-player-id";
+const safeStorageGet = (key, fallback = null) => {
+  try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
+};
+const safeStorageSet = (key, value) => {
+  try { localStorage.setItem(key, String(value)); } catch {}
+};
+const createPlayerId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(bytes);
+  else for (let i=0;i<bytes.length;i++) bytes[i]=Math.floor(Math.random()*256);
+  bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+  const hex=[...bytes].map(value=>value.toString(16).padStart(2,"0")).join("");
+  return hex.slice(0,8)+"-"+hex.slice(8,12)+"-"+hex.slice(12,16)+"-"+hex.slice(16,20)+"-"+hex.slice(20);
+};
 export function getPlayerId() {
-  let id = localStorage.getItem(PLAYER_KEY);
+  let id = safeStorageGet(PLAYER_KEY);
   if (!id || !/^[a-f0-9-]{36}$/i.test(id)) {
-    id = crypto.randomUUID();
-    localStorage.setItem(PLAYER_KEY, id);
+    id = createPlayerId();
+    safeStorageSet(PLAYER_KEY, id);
   }
   return id;
 }
@@ -66,7 +81,7 @@ export class TempleNetwork {
   async visit() { return this.request("/api/session", { method: "POST", body: JSON.stringify({ player_id: this.playerId }) }); }
   async loadProfile() {
     try {
-      const data = await this.request("/api/profile?id=" + encodeURIComponent(this.playerId));
+      const data = await this.request("/api/profile?id=" + encodeURIComponent(this.playerId), {}, 5000);
       return data.profile || null;
     } catch { return null; }
   }
@@ -112,7 +127,7 @@ export class TempleNetwork {
       robe: p.robe || "#b49a72",
       skin: p.skin || "#d7ad87",
       style: p.style || "monk",
-      language: p.language || localStorage.getItem("temple-language") || "zh",
+      language: p.language || safeStorageGet("temple-language", "zh"),
       x: String(pos.x || 0),
       z: String(pos.z ?? 18),
       rotation: String(pos.rotation ?? 0),
