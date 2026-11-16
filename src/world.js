@@ -975,7 +975,7 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?14:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  setWishWallPrayers(prayers=[]){
-  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,16).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).filter(p=>! /你的test/i.test(String(p?.message||""))).slice(0,16).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
   if(!this.wishWallCanvas||!this.wishWallTexture)return;
   const ctx=this.wishWallCanvas.getContext("2d");
   ctx.clearRect(0,0,this.wishWallCanvas.width,this.wishWallCanvas.height);
@@ -1113,9 +1113,9 @@ export class TempleWorld{
   this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);this.moveWaypoints=[];this.pendingAction=null;
   return true;
  }
- applyRenderResolution(){const base=Math.min(devicePixelRatio||1,this.mobile?1.35:1.75);this.renderer.setPixelRatio(Math.max(.65,base*(this.smoothMode?.68:1)));this.renderer.setSize(innerWidth,innerHeight,false);}
+ applyRenderResolution(){const base=Math.min(devicePixelRatio||1,this.mobile?1.35:1.75),viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.renderer.setPixelRatio(Math.max(.65,base*(this.smoothMode?.68:1)));this.renderer.setSize(width,height,false);}
  setSmoothMode(enabled){this.smoothMode=!!enabled;this.applyRenderResolution();return this.smoothMode;}
- resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.applyRenderResolution();}
+ resize(){const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.applyRenderResolution();}
  setLocalProfile(p,id){
   if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}
   this.local=avatar(this.scene,p,id,true);
@@ -1158,7 +1158,7 @@ export class TempleWorld{
   if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
-  if(a==="toilet")return Math.hypot(p.x-10,p.z+66.35)<2.2;
+  if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<1.7;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1168,7 +1168,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10,-66.35],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.5],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
