@@ -1239,7 +1239,7 @@ export class TempleWorld{
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
   if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.8;
-   if(a==="eat")return Math.hypot(p.x-16.8,p.z-25)<2.5;
+   if(a==="eat")return Math.hypot(p.x-16.8,p.z-25)<2.8;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1249,7 +1249,27 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],eat:[16.8,25],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  if(action==="eat"){
+   // The front doorway can be crowded. Try several reachable dining spots,
+   // including positions served by either side entrance, while respecting
+   // live visitor and NPC collision.
+   const diningSpots=[[16.8,25],[19,23.8],[19,26.2],[18.7,25],[18.5,24.2],[18.5,25.8]];
+   const collision=this.actorCollisionWorld(this.local);
+   let best=null,bestCost=Infinity;
+   for(const [x,z] of diningSpots){
+    const route=findWalkPath(this.local.root.position,{x,z},collision);
+    if(!route?.length)continue;
+    let cost=0,px=this.local.root.position.x,pz=this.local.root.position.z;
+    for(const point of route){cost+=Math.hypot(point.x-px,point.z-pz);px=point.x;pz=point.z;}
+    if(cost<bestCost){best=route;bestCost=cost;}
+   }
+   if(!best)return false;
+   this.pendingAction=action;
+   const targets=best.map(p=>new THREE.Vector3(p.x,0,p.z));
+   this.moveTarget=targets.shift();this.moveWaypoints=targets;this.moveVelocity.set(0,0);
+   return true;
+  }
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
