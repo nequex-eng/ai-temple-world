@@ -406,8 +406,8 @@ export class TempleRoom {
     }
     if (data.type === "action" && ACTIONS.has(data.action)) {
       const actionStamp = Date.now();
-      if (player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
-      player.lastActionAt = actionStamp;
+      if (data.action !== "walk" && player.lastActionAt && actionStamp - player.lastActionAt < 550) return;
+      if (data.action !== "walk") player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       const insideGreatHall = Math.abs(player.x) < 12.2 && player.z > -45.7 && player.z < -29.05;
       const nearOpenShrine = near(-22.5, -32, 6.2);

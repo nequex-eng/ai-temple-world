@@ -1325,7 +1325,7 @@ export class TempleWorld{
    const spot=this.pendingRestSpot||[...(this.zenRestSpots||[]),...(this.benchRestSpots||[])].sort((a,b)=>Math.hypot(p.x-a.x,p.z-a.z)-Math.hypot(p.x-b.x,p.z-b.z))[0];
    if(spot){this.local.setPosition(spot.x,spot.z,spot.rotation||0,groundHeightAt(spot.x,spot.z,this.halls));this.pendingRestSpot=null;}
   }
-  this.local.setPose(action,(action==="tea"||action==="toilet"||action==="eat")?6500:2600);
+  this.local.setPose(action,action==="water"?0:(action==="tea"||action==="toilet"||action==="eat"||action==="meditate"||action==="chant"||action==="kneel")?6500:2600);
  }
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
