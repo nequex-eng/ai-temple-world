@@ -1,8 +1,8 @@
-const CACHE="temple-world-shell-101";
+const CACHE="temple-world-shell-102";
 const SHELL=[
- "/","/index.html","/style.css?v=20261116-r21",
- "/src/app.js?v=20261116-r21","/src/world.js?v=20261116-r21",
- "/src/network.js?v=20261116-r3","/src/i18n.js?v=20261116-r8",
+ "/","/index.html","/style.css?v=20261116-r22",
+ "/src/app.js?v=20261116-r22","/src/world.js?v=20261116-r22",
+ "/src/network.js?v=20261116-r4","/src/i18n.js?v=20261116-r8",
  "/src/physics.js?v=20261116-r18","/src/vendor/three.module.js",
  "/manifest.webmanifest","/icons/lotus.svg"
 ];
@@ -14,5 +14,5 @@ self.addEventListener("fetch",event=>{
  event.respondWith(fetch(request,{cache:"no-store"}).then(response=>{
   if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}
   return response;
- }).catch(async()=>await caches.match(request)||await caches.match("/index.html")));
+ }).catch(async()=>await caches.match(request)||((request.mode==="navigate"||request.destination==="document")?await caches.match("/index.html"):new Response("Offline asset unavailable.",{status:503,headers:{"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store"}}))));
 });
