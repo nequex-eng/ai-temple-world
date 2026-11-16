@@ -456,6 +456,7 @@ function doAction(action){
  if(action==="toilet"){
   world.setLocalPose("toilet");actionUntil=performance.now()+6500;
   text("character-state",t().actionText?.toilet||t().walk);
+  const restroomPosition=world.getPosition();network.move(restroomPosition,true);lastSentNetworkPosition={x:restroomPosition.x,z:restroomPosition.z,rotation:restroomPosition.rotation};lastPositionSend=performance.now();
   network.action(action);network.logActivity(action,"washroom");return;
  }
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
