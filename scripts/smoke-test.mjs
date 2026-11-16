@@ -196,7 +196,7 @@ for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]
 }
 assert.ok(world.includes('broom.visible=this.pose==="sweep"'), "Sweeping broom prop missing");
 assert.ok(world.includes('name==="chant"') && world.includes('name==="meditate"'), "Shared chanting and meditation pose profiles missing");
-assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"') && i18n.includes('profile:"角色设置"') && i18n.includes('profile:"Character"'), "Actions and top character settings must be translated across five locales");
+assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"') && i18n.includes('profile:"个性化"') && i18n.includes('profile:"カスタマイズ"') && i18n.includes('profile:"꾸미기"') && i18n.includes('profile:"ปรับแต่ง"') && i18n.includes('profile:"Customize"'), "Actions and top character customization must be translated across five locales");
 assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting action");
 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 5 locales, 3D world and API routes.");
