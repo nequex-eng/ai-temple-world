@@ -478,12 +478,19 @@ function doAction(action){
  if(action==="beads"){world.stopWander();syncWanderButton();openBeads();return;}
  if(!profile)return;
  world.stopWander();syncWanderButton();
+ if(action==="rest"&&!world.canAct(action)){if(world.navigateToAction("rest"))toast(t().walkingToRest||"正在前往禅房歇脚");else toast(t().restUnavailable||"暂时没有空闲的休息位置");return;}
  if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");else toast(t().toiletNear||"请前往洗手间入口");return;}
  if(action==="eat"&&!world.canAct(action)){if(world.navigateToAction("eat"))toast(t().walkingToAction||"正在前往斋馆");else toast(t().restaurantNear||"斋馆入口暂时无法到达");return;}
  if(["incense","bell","lotus","tea","meditate","chant","eat"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
+ }
+ if(action==="rest"){
+  world.setLocalPose("rest");actionUntil=performance.now()+12000;
+  text("character-state",t().actionText.rest||"歇脚");
+  const restPosition=world.getPosition();network.move(restPosition,true);lastSentNetworkPosition={x:restPosition.x,z:restPosition.z,rotation:restPosition.rotation};lastPositionSend=performance.now();
+  network.action("rest");network.logActivity("rest",world.currentLocation().key);toast(t().resting||"在这里安心歇一会儿");return;
  }
  if(action==="tea"){
   world.setLocalPose("tea");world.addEffect("tea");playRitualSound("tea");text("character-state",t().actionText.tea||"品茶");toast(t().teaEnjoy||"静坐品茶，稍歇片刻");network.logActivity(action,"tea-house");return;
@@ -768,7 +775,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r10",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r11",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.

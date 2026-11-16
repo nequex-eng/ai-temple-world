@@ -376,6 +376,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
     else if(name==="greet"){v.armX0=-.75;v.armX1=-.75;v.armZ0=-.42;v.armZ1=.42;}
     else if(name==="incense"){v.armX0=-.6;v.armX1=-.6;}
     else if(name==="sweep"){v.armX0=.15;v.armX1=-.5;v.armZ1=.5*Math.sin(time*.01);}
+    else if(name==="rest"){v.bodyY=-.13;v.bodyX=-.08;v.headX=-.04;v.legX0=-.72;v.legX1=-.72;v.armX0=-.28;v.armX1=-.28;v.armZ0=.2;v.armZ1=-.2;}
     return v;
    };
    const from=pose(this.previousPose||"walk"),to=pose(this.pose);
@@ -1038,6 +1039,46 @@ export class TempleWorld{
   add(new THREE.CircleGeometry(3.88,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
   add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);
   for(let i=0;i<27;i++){const a=Math.random()*Math.PI*2,r=.45+Math.random()*2.95,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.48+Math.random()*.25,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
+  // Spacious Zen rest hall on the open lawn east of the lotus pond.
+  this.zenRoom=new THREE.Group();this.zenRoom.position.set(28,0,-45);s.add(this.zenRoom);
+  this.zenRestSpots=[];this.benchRestSpots=[];
+  const zen=this.zenRoom,zenStone=mat(0xb9ae98,.94),zenWood=mat(0x4a3426,.9),zenTrim=mat(0xb18b55,.78,{metalness:.1}),zenRoof=mat(0x35483d,.94),bedWood=mat(0x5b4030,.86),bedMat=mat(0xc9b995,.96),bedCover=mat(0x9a8060,.94);
+  add(new THREE.BoxGeometry(17.1,.24,14.5),zenStone,zen,[0,.12,0]);
+  add(new THREE.PlaneGeometry(16.6,14.0),m.stoneLight,zen,[0,.245,0],[-Math.PI/2,0,0],false);
+  add(new THREE.BoxGeometry(.24,3.7,14.2),zenStone,zen,[-8.5,1.95,0]);
+  add(new THREE.BoxGeometry(.24,3.7,14.2),zenStone,zen,[8.5,1.95,0]);
+  add(new THREE.BoxGeometry(17.0,3.7,.24),zenStone,zen,[0,1.95,-7.15]);
+  add(new THREE.BoxGeometry(4.8,3.7,.24),zenStone,zen,[-6.1,1.95,7.15]);
+  add(new THREE.BoxGeometry(4.8,3.7,.24),zenStone,zen,[6.1,1.95,7.15]);
+  for(const x of [-8.35,8.35])for(const z of [-7,7])add(new THREE.BoxGeometry(.42,4.05,.42),zenWood,zen,[x,2.0,z]);
+  add(new THREE.BoxGeometry(17.3,.2,.24),zenWood,zen,[0,3.9,-7.15]);
+  add(new THREE.BoxGeometry(17.3,.2,.24),zenWood,zen,[0,3.9,7.15]);
+  const zenRoofGroup=new THREE.Group();zen.add(zenRoofGroup);
+  planeRoof(zenRoofGroup,17.2,14.2,5.25,4.05,1,zenRoof);planeRoof(zenRoofGroup,17.2,14.2,5.25,4.05,-1,zenRoof);
+  add(new THREE.BoxGeometry(17.0,.16,14.0),zenTrim,zen,[0,4.02,0]);
+  for(const bx of [-6,-3,0,3,6])for(const bz of [-3.4,2.4]){
+   const bed=new THREE.Group();bed.position.set(bx,.26,bz);zen.add(bed);
+   add(new THREE.BoxGeometry(2.28,.34,1.62),bedWood,bed,[0,.16,0]);
+   add(new THREE.BoxGeometry(2.12,.18,1.48),bedMat,bed,[0,.42,0]);
+   add(new THREE.BoxGeometry(1.95,.08,1.02),bedCover,bed,[0,.54,.18]);
+   add(new THREE.BoxGeometry(2.28,1.0,.16),bedWood,bed,[0,.74,-.78]);
+   add(new THREE.BoxGeometry(.58,.16,.38),bedMat,bed,[0,.64,-.48]);
+   this.zenRestSpots.push({x:28+bx,z:-45+bz+(bz<0?1.65:-1.65),type:"bed",rotation:bz<0?Math.PI:0});
+  }
+  const zenCanvas=document.createElement("canvas");zenCanvas.width=512;zenCanvas.height=128;const zctx=zenCanvas.getContext("2d");
+  zctx.fillStyle="#493526";zctx.fillRect(0,0,512,128);zctx.strokeStyle="#d8bd82";zctx.lineWidth=7;zctx.strokeRect(8,8,496,112);
+  zctx.textAlign="center";zctx.textBaseline="middle";zctx.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';zctx.fillStyle="#fff0cc";zctx.fillText("禅房",256,64);
+  const zenTexture=new THREE.CanvasTexture(zenCanvas);zenTexture.colorSpace=THREE.SRGBColorSpace;
+  add(new THREE.BoxGeometry(4.2,.86,.18),zenWood,zen,[0,3.25,7.24]);
+  add(new THREE.PlaneGeometry(3.9,.66),new THREE.MeshBasicMaterial({map:zenTexture,toneMapped:false}),zen,[0,3.25,7.34],[0,0,0],false);
+  const benchPositions=[[-24,-15],[-24,8],[25,10],[25,-14],[0,47],[-15,35],[14,35],[-15,-48]];
+  for(const [bx,bz] of benchPositions){
+   const bench=new THREE.Group();bench.position.set(bx,0,bz);s.add(bench);
+   add(new THREE.BoxGeometry(2.5,.18,.68),bedWood,bench,[0,.82,0]);
+   add(new THREE.BoxGeometry(2.5,.78,.16),bedWood,bench,[0,1.25,-.28]);
+   for(const lx of [-.92,.92])add(new THREE.BoxGeometry(.16,.78,.18),zenWood,bench,[lx,.42,0]);
+   this.benchRestSpots.push({x:bx,z:bz+1.25,type:"bench",rotation:Math.PI});
+  }
   // Bodhi tree
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
   for(let i=0;i<7;i++){const a=i*Math.PI*2/7;add(new THREE.CylinderGeometry(.18,.34,4,8),m.bark,bodhi,[Math.cos(a)*1.4,5,Math.sin(a)*1.4],[0,0,-Math.cos(a)*.45]);}
@@ -1218,6 +1259,11 @@ export class TempleWorld{
  setDebugYaw(yaw){this.yaw=Number(yaw)||0;}
  setLocalPose(action){
   if(!this.local)return;this.stopWander();
+  if(action==="rest"){
+   const p=this.local.root.position;
+   const spot=this.pendingRestSpot||[...(this.zenRestSpots||[]),...(this.benchRestSpots||[])].sort((a,b)=>Math.hypot(p.x-a.x,p.z-a.z)-Math.hypot(p.x-b.x,p.z-b.z))[0];
+   if(spot){this.local.setPosition(spot.x,spot.z,spot.rotation||0,groundHeightAt(spot.x,spot.z,this.halls));this.pendingRestSpot=null;}
+  }
   if(action==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
    const p=this.local.root.position;
@@ -1242,6 +1288,7 @@ export class TempleWorld{
   if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.8;
    if(a==="eat")return p.x>=17.6&&p.x<=24.2&&p.z>=20.7&&p.z<=29.3;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
+  if(a==="rest")return [...(this.zenRestSpots||[]),...(this.benchRestSpots||[])].some(s=>Math.hypot(p.x-s.x,p.z-s.z)<2.15);
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
    return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-z)<2.35);
@@ -1293,6 +1340,23 @@ export class TempleWorld{
  navigateToAction(action){
   if(!this.local)return false;
   const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  if(action==="rest"){
+   const p=this.local.root.position,actors=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].map(a=>a.root.position);
+   const nearbyBenches=this.benchRestSpots.filter(s=>Math.hypot(p.x-s.x,p.z-s.z)<5.5);
+   const pool=nearbyBenches.length?nearbyBenches:[...this.zenRestSpots,...this.benchRestSpots];
+   const collision=this.actorCollisionWorld(this.local);let best=null,bestCost=Infinity;
+   for(const spot of pool){
+    if(actors.some(a=>Math.hypot(a.x-spot.x,a.z-spot.z)<1.35))continue;
+    const route=findWalkPath(p,{x:spot.x,z:spot.z},collision);if(!route?.length)continue;
+    let cost=0,px=p.x,pz=p.z;for(const point of route){cost+=Math.hypot(point.x-px,point.z-pz);px=point.x;pz=point.z;}
+    if(spot.type==="bench"&&!nearbyBenches.length)cost+=18;
+    if(cost<bestCost){best=spot;bestCost=cost;}
+   }
+   if(!best)return false;
+   this.pendingRestSpot=best;this.pendingAction=action;
+   const targets=findWalkPath(p,{x:best.x,z:best.z},collision).map(q=>new THREE.Vector3(q.x,0,q.z));
+   this.moveTarget=targets.shift();this.moveWaypoints=targets;this.moveVelocity.set(0,0);return true;
+  }
   if(action==="eat"){
    // The front doorway can be crowded. Try several reachable dining spots,
    // including positions served by either side entrance, while respecting

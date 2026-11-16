@@ -91,8 +91,17 @@ export function createTempleCollision(halls) {
     segments.push(segment(x - 1.325, 5.675, x - 1.325, 9.025, 0.13));
     segments.push(segment(x + 1.325, 5.675, x + 1.325, 9.025, 0.13));
   }
-  // Tea house rear approach path: east-side bypass around the Great Hall and a clear entrance.
-  segments.push(segment(13.5,-46,16.5,-46,.2),segment(16.5,-46,16.5,-60,.2),segment(16.5,-60,5,-60,.2));
+  // The former path-edge colliders created an invisible wall across the road at z=-60.
+  // The visible gravel path remains walkable; it must not be a collision barrier.
+  const zx=28,zz=-45,zhw=8.5,zhd=7.25,zback=zz-zhd,zfront=zz+zhd;
+  segments.push(segment(zx-zhw,zback,zx+zhw,zback,.22),segment(zx-zhw,zback,zx-zhw,zfront,.22),segment(zx+zhw,zback,zx+zhw,zfront,.22));
+  segments.push(segment(zx-zhw,zfront,zx-3.5,zfront,.2),segment(zx+3.5,zfront,zx+zhw,zfront,.2));
+  for(const bx of [-6,-3,0,3,6])for(const bz of [-3.4,2.4]){
+    const l=zx+bx-1.08,r=zx+bx+1.08,b=zz+bz-.72,f=zz+bz+.72;
+    segments.push(segment(l,b,r,b,.1),segment(l,f,r,f,.1),segment(l,b,l,f,.1),segment(r,b,r,f,.1));
+  }
+  const benchPositions=[[-24,-15],[-24,8],[25,10],[25,-14],[0,47],[-15,35],[14,35],[-15,-48]];
+  for(const [bx,bz] of benchPositions)segments.push(segment(bx-1.15,bz,bx+1.15,bz,.18));
   // Full-height west Lotus Wish Wall and the low east boundary.
   segments.push(segment(-31, -45.5, -31, 18.5, 0.36));
   const eastX = 31;
