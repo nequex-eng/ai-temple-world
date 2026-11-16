@@ -218,7 +218,7 @@ assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-vie
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-84"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-85"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
