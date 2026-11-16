@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js";
-import { TempleNetwork } from "./network.js";
-import { getText } from "./i18n.js";
+import { TempleWorld } from "./world.js?v=20261116-r2";
+import { TempleNetwork } from "./network.js?v=20261116-r2";
+import { getText } from "./i18n.js?v=20261116-r2";
 
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
@@ -13,7 +13,8 @@ let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),smoothMode:()=>world.smoothMode,pixelRatio:()=>world.renderer.getPixelRatio(),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+let savedSmoothMode=false;try{savedSmoothMode=localStorage.getItem("temple-render-mode")==="smooth";}catch{}
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),smoothMode:()=>world.smoothMode,pixelRatio:()=>world.renderer.getPixelRatio(),renderMode:()=>world.smoothMode,step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -55,7 +56,7 @@ function applyLanguage(){
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
  text("action-tea",d.actions.tea||({zh:"喝茶",ja:"お茶を飲む",ko:"차 마시기",th:"ดื่มชา",en:"Drink tea"})[language]||"喝茶");
- updateLocation(true);renderPresence();if(profile)text("character-state",d.walk);
+ updateLocation(true);renderPresence();if(profile)text("character-state",d.walk);syncSmoothToggle();
 }
 function updateLocation(force=false){
  const zone=world.currentLocation(),d=t();
@@ -650,13 +651,31 @@ function initMobilePanels(){
  apply();mobile.addEventListener?.("change",apply);
 }
 initMobilePanels();
+const renderModeLabels={
+ zh:{normal:"流畅模式",restore:"恢复画质",normalTitle:"点击降低渲染分辨率并将手机渲染帧率稳定在约30FPS",restoreTitle:"点击恢复标准渲染分辨率",enabled:"已开启流畅模式",restored:"已恢复标准画质"},
+ en:{normal:"Performance",restore:"Restore",normalTitle:"Lower render resolution and target 30 FPS on phones",restoreTitle:"Restore standard render resolution",enabled:"Performance mode enabled",restored:"Standard quality restored"},
+ ja:{normal:"軽量モード",restore:"画質復元",normalTitle:"描画解像度を下げ、スマートフォンを約30FPSに調整",restoreTitle:"標準の描画解像度に戻す",enabled:"軽量モードを有効にしました",restored:"標準画質に戻しました"},
+ ko:{normal:"저부하 모드",restore:"화질 복원",normalTitle:"렌더링 해상도를 낮추고 모바일을 약 30FPS로 제한",restoreTitle:"표준 렌더링 해상도로 복원",enabled:"저부하 모드가 켜졌습니다",restored:"표준 화질로 복원했습니다"},
+ th:{normal:"โหมดลื่นไหล",restore:"คืนคุณภาพ",normalTitle:"ลดความละเอียดการเรนเดอร์และจำกัดมือถือไว้ที่ประมาณ 30 FPS",restoreTitle:"คืนค่าความละเอียดมาตรฐาน",enabled:"เปิดโหมดลื่นไหลแล้ว",restored:"คืนคุณภาพมาตรฐานแล้ว"}
+};
 function syncSmoothToggle(){
  const button=$("smooth-toggle");if(!button)return;
+ const labels=renderModeLabels[language]||renderModeLabels.zh;
  button.classList.toggle("active",world.smoothMode);
  button.setAttribute("aria-pressed",String(world.smoothMode));
- button.title=world.smoothMode?"丝滑模式已启用，点击还原画质":"丝滑：降低分辨率以改善流畅度";
+ button.setAttribute("aria-label",world.smoothMode?labels.restore:labels.normal);
+ button.textContent=world.smoothMode?labels.restore:labels.normal;
+ button.title=world.smoothMode?labels.restoreTitle:labels.normalTitle;
 }
-$("smooth-toggle").addEventListener("click",()=>{world.setSmoothMode(!world.smoothMode);syncSmoothToggle();});
+world.setSmoothMode(savedSmoothMode);
+$("smooth-toggle").addEventListener("click",()=>{
+ const enabled=!world.smoothMode;
+ world.setSmoothMode(enabled);
+ try{localStorage.setItem("temple-render-mode",enabled?"smooth":"standard");}catch{}
+ syncSmoothToggle();
+ const labels=renderModeLabels[language]||renderModeLabels.zh;
+ toast(enabled?labels.enabled+" · "+world.renderer.getPixelRatio().toFixed(2)+"×":labels.restored);
+});
 syncSmoothToggle();
 $("sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 $("profile-sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
@@ -669,7 +688,7 @@ function inputState(){
 }
 function frame(){
  const dt=Math.min(world.clock.getDelta(),.18),now=performance.now();
- const renderFrame=!world.mobile||now-lastMobileRender>=25;
+ const renderFrame=!world.mobile||now-lastMobileRender>=(world.smoothMode?1000/30:25);
  if(renderFrame)lastMobileRender=now;
  world.update(dt,inputState(),now,renderFrame);updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
  if(profile){
@@ -713,19 +732,32 @@ async function start(){
 }
 addEventListener("beforeunload",()=>network.close());
 function updateTempleVisualViewport(){
- const viewport=window.visualViewport;
+ const viewport=window.visualViewport,root=document.documentElement;
+ let queued=false;
  const apply=()=>{
-  const height=viewport?.height||window.innerHeight;
-  const width=viewport?.width||window.innerWidth;
-  document.documentElement.style.setProperty("--temple-visual-height",height+"px");
-  document.documentElement.style.setProperty("--temple-visual-width",width+"px");
-  document.documentElement.style.setProperty("--temple-visual-top",(viewport?.offsetTop||0)+"px");
+  queued=false;
+  const height=Math.max(1,Math.round(viewport?.height||root.clientHeight||window.innerHeight));
+  const width=Math.max(1,Math.round(viewport?.width||root.clientWidth||window.innerWidth));
+  const top=Math.max(0,Math.round(viewport?.offsetTop||0));
+  root.style.setProperty("--temple-visual-height",height+"px");
+  root.style.setProperty("--temple-visual-width",width+"px");
+  root.style.setProperty("--temple-visual-top",top+"px");
+  root.style.setProperty("--temple-visual-bottom",Math.max(0,Math.round(window.innerHeight-height-top))+"px");
   world.resize();
  };
- apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
- addEventListener("resize",apply,{passive:true});
- addEventListener("orientationchange",()=>requestAnimationFrame(apply),{passive:true});
- // Keep the 3D viewport aligned with the actually visible area as browser chrome expands or collapses.
+ const schedule=()=>{
+  if(queued)return;
+  queued=true;requestAnimationFrame(apply);
+ };
+ apply();
+ viewport?.addEventListener("resize",schedule,{passive:true});
+ viewport?.addEventListener("scroll",schedule,{passive:true});
+ addEventListener("resize",schedule,{passive:true});
+ addEventListener("orientationchange",schedule,{passive:true});
+ addEventListener("pageshow",schedule,{passive:true});
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)schedule();});
+ // Safari changes the visual viewport independently when its address bar expands,
+ // collapses, or the device rotates. Re-measure after those browser UI transitions.
 }
 updateTempleVisualViewport();
 
