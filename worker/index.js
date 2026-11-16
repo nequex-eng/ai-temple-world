@@ -313,6 +313,9 @@ export class TempleRoom {
       } catch {}
     }
     if (current.length >= 120) return new Response("The sanctuary is full. Please try another moment.", { status: 503 });
+    const queryX=url.searchParams.get("x"),queryZ=url.searchParams.get("z");
+    const initialX=queryX!==null&&Number.isFinite(Number(queryX))?Number(queryX):0;
+    const initialZ=queryZ!==null&&Number.isFinite(Number(queryZ))?Number(queryZ):18;
     const player = {
       id: validId(url.searchParams.get("id")) ? url.searchParams.get("id") : crypto.randomUUID(),
       name: clean(url.searchParams.get("name"), 18) || "行者",
@@ -320,8 +323,8 @@ export class TempleRoom {
       skin: color(url.searchParams.get("skin"), "#d7ad87"),
       style: url.searchParams.get("style") === "pilgrim" ? "pilgrim" : "monk",
       language: LANGS.has(url.searchParams.get("language")) ? url.searchParams.get("language") : "zh",
-      x: Math.max(-78, Math.min(78, Number(url.searchParams.get("x")) || 0)),
-      z: Math.max(-78, Math.min(78, Number(url.searchParams.get("z")) || 18)),
+      x: Math.max(-78, Math.min(78, initialX)),
+      z: Math.max(-78, Math.min(78, initialZ)),
       rotation: Number.isFinite(Number(url.searchParams.get("rotation"))) ? Number(url.searchParams.get("rotation")) : 0,
       action: "walk",
       joinedAt: Date.now()
