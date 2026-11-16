@@ -583,7 +583,7 @@ export class TempleWorld{
    add(new THREE.CylinderGeometry(.14,.22,2.8,8),m.bark,tree,[0,1.4,0]);
    for(let tier=0;tier<3;tier++)add(new THREE.ConeGeometry(1.55-tier*.23,2.15,8),tier===1?m.pine2:m.pine,tree,[0,2.2+tier*.78,0]);
   }
-  const restaurant=new THREE.Group();restaurant.position.set(22,0,25);restaurant.rotation.y=Math.PI/2;s.add(restaurant);this.restaurant=restaurant;
+  const restaurant=new THREE.Group();restaurant.position.set(22,0,25);restaurant.rotation.y=-Math.PI/2;s.add(restaurant);this.restaurant=restaurant;
   const restaurantWood=mat(0x62452e,.9),restaurantDark=mat(0x3d3025,.94),restaurantTrim=mat(0xb18b55,.68,{metalness:.12}),restaurantFloor=mat(0x9b8160,.94),restaurantWall=mat(0x806c51,.96);
   add(new THREE.BoxGeometry(12.25,.16,9.35),restaurantFloor,restaurant,[0,-.08,0]);
   add(new THREE.PlaneGeometry(12,9.1),restaurantFloor,restaurant,[0,.008,0],[-Math.PI/2,0,0],false);
