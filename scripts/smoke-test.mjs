@@ -258,3 +258,15 @@ assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') &
 
 assert.ok(!html.includes('id="desktop-hint"') && html.includes('id="smooth-toggle"') && world.includes("setSmoothMode(enabled)") && app.includes('$("smooth-toggle").addEventListener("click"'), "Desktop hint must be removed and the Silk Smooth resolution toggle must restore the original pixel ratio");
 assert.ok(app.includes('action==="toilet"&&!world.canAct(action)') && app.includes('network.logActivity(action,"washroom");return;') && app.includes("media.__templePlayPending"), "Restroom auto-routing must be silent and audio playback attempts must be deduplicated");
+
+
+assert.ok(world.includes('this.zenRoom.position.set(-40,0,-65)') && world.includes('this.zenRoomSign={ctx:zctx,canvas:zenCanvas,map:zenTexture}') && world.includes('en:"ZEN HALL"') && world.includes('ja:"禅堂"') && world.includes('ko:"선방"') && world.includes('th:"ศาลาเซน"'), "Forest Zen room and localized sign must be present");
+assert.ok(world.includes('const benchPositions=[[-10,25],[-10,35]]') && world.includes('bench.rotation.y=Math.PI/2') && physics.includes('const benchPositions=[[-10,25],[-10,35]]'), "Only two road-facing benches may remain beside McDonalds");
+const collisionAudit=createTempleCollision([]);
+for(const start of [{x:0,z:-49},{x:-15,z:-49},{x:-31,z:-49}]){
+ const route=findWalkPath(start,{x:-40,z:-64.25},collisionAudit);
+ assert.ok(route?.length, "Forest Zen room route missing from "+JSON.stringify(start));
+ let from=start;
+ for(const step of route){const moved=moveWithCollision(from,step.x-from.x,step.z-from.z,collisionAudit);assert.ok(!moved.blocked||Math.hypot(moved.x-step.x,moved.z-step.z)<.1,"Forest route collides between waypoints");from=step;}
+}
+assert.ok(findWalkPath({x:14,z:-60},{x:20,z:-60},collisionAudit)?.length, "Toilet-to-east-lawn road must remain passable");
