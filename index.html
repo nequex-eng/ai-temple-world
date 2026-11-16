@@ -28,7 +28,7 @@
       <select id="language" class="language-select" aria-label="Language">
         <option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="th">ไทย</option>
       </select>
-      <button class="top-button" id="open-profile" type="button" aria-hidden="true" tabindex="-1"><span id="profile-button-label">我的小和尚</span></button>
+      <button class="top-button profile-settings" id="open-profile" type="button" aria-label="角色设置" title="角色设置"><span class="button-icon" aria-hidden="true">✎</span><span id="profile-button-label">角色设置</span></button>
       <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
     </div>
   </header>
@@ -56,7 +56,6 @@
 
   <section class="character-chip glass">
     <div class="avatar-seal">僧</div><div class="character-meta"><b id="character-name">行者</b><span id="character-state">自在行走</span></div>
-    <button id="quick-profile" aria-label="编辑角色">✎</button>
   </section>
 
   <div class="chat-floaters" id="chat-floaters" aria-hidden="true"></div>
