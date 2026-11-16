@@ -469,8 +469,15 @@ test("mobile performance mode lowers render resolution and restores standard qua
     await button.click();
     await expect(button).toContainText("恢复画质");
     const reduced=await page.evaluate(()=>window.__templeDebug.pixelRatio());
-    expect(reduced).toBeLessThan(standard*.8);
-    expect(reduced).toBeGreaterThanOrEqual(.98);
+    const reducedState=await page.evaluate(()=>window.__templeDebug.renderState());
+    expect(reduced).toBeLessThan(standard*.55);
+    expect(reduced).toBeGreaterThanOrEqual(.62);
+    expect(reduced).toBeLessThanOrEqual(.70);
+    expect(reducedState.frameInterval).toBeGreaterThanOrEqual(41);
+    expect(reducedState.ambientVisible).toBe(false);
+    expect(reducedState.smokeVisible).toBe(false);
+    expect(reducedState.remoteLimit).toBe(5);
+    expect(reducedState.visiblePointLights).toBeLessThanOrEqual(7);
     expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("smooth");
     await page.reload({waitUntil:"domcontentloaded"});
     await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
@@ -478,7 +485,13 @@ test("mobile performance mode lowers render resolution and restores standard qua
     await page.locator("#smooth-toggle").click();
     await expect(page.locator("#smooth-toggle")).toContainText("流畅模式");
     const restored=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+    const restoredState=await page.evaluate(()=>window.__templeDebug.renderState());
     expect(restored).toBeGreaterThan(reduced);
+    expect(restoredState.frameInterval).toBe(25);
+    expect(restoredState.ambientVisible).toBe(true);
+    expect(restoredState.smokeVisible).toBe(true);
+    expect(restoredState.remoteLimit).toBe(12);
+    expect(restoredState.visiblePointLights).toBeGreaterThan(reducedState.visiblePointLights);
     expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("standard");
   } finally {
     await context.close();
@@ -496,4 +509,49 @@ test("mobile scene follows the visual viewport after browser-size changes", asyn
   await expect.poll(async()=>{const v=await measured();return Math.abs(v.visual-v.css);}).toBeLessThanOrEqual(1);
   await page.setViewportSize({width:430,height:932});
   await expect.poll(async()=>{const v=await measured();return Math.abs(v.visual-v.css);}).toBeLessThanOrEqual(1);
+});
+
+
+test("temple logo follows the selected interface language", async ({ page }) => {
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  const brand=page.locator("#brand-name"),loadingTitle=page.locator("#loading-title");
+  await expect(brand).toHaveText("云上禅境");
+  await page.locator("#language").selectOption("en");
+  await expect(brand).toHaveText("Cloud Temple");
+  await expect(loadingTitle).toHaveText("Cloud Temple");
+  await expect(page).toHaveTitle(/Cloud Temple/);
+  await page.locator("#language").selectOption("ja");
+  await expect(brand).toHaveText("雲上の禅境");
+  await page.locator("#language").selectOption("ko");
+  await expect(brand).toHaveText("구름 위 선경");
+  await page.locator("#language").selectOption("th");
+  await expect(brand).toHaveText("แดนเซนเหนือเมฆ");
+  await page.locator("#language").selectOption("zh");
+  await expect(brand).toHaveText("云上禅境");
+});
+
+test("one-tap restroom action walks to the real doorway and activates", async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  await page.locator("#monk-name").fill("Restroom Route Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await page.evaluate(()=>window.__templeDebug.setPosition(4,-61));
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.canAct("toilet"))).toBe(false);
+  await page.locator('[data-action="toilet"]').click();
+  await expect(page.locator("#toast")).toContainText("正在前往目的地");
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.input().pose),{timeout:30000}).toBe("toilet");
+  const final=await page.evaluate(()=>window.__templeDebug.position());
+  expect(Math.hypot(final.x-10.6,final.z+64.5)).toBeLessThan(2.8);
+  await cleanTestGuest(page);
+});
+
+test("server and UI never return the old test wishes", async ({ page }) => {
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  const api=await page.evaluate(async()=>await (await fetch("/api/prayers")).json());
+  expect(api.prayers.some(p=>/你的\\s*test|测试祈愿/i.test(p.message))).toBe(false);
+  expect(await page.evaluate(()=>window.__templeDebug.wishes().some(p=>/你的\\s*test|测试祈愿/i.test(p.message)))).toBe(false);
 });
