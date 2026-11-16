@@ -50,7 +50,7 @@ function applyLanguage(){
   "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
- $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);
+ $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);$("open-profile").title=d.profile;$("open-profile").setAttribute("aria-label",d.profile);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
@@ -450,8 +450,6 @@ function doAction(action){
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
 window.addEventListener("temple:arrived-action",event=>{if(event.detail?.action)doAction(event.detail.action);});
 $("open-profile").addEventListener("click",openProfileEditor);
-window.addEventListener("temple:rename",openProfileEditor);
-$("quick-profile").addEventListener("click",()=>$("open-profile").click());
 $("save-profile").addEventListener("click",saveProfile);
 $("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);localStorage.removeItem("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
 ["monk-name","monk-robe","monk-skin"].forEach(id=>$(id).addEventListener("input",updatePreview));
