@@ -264,9 +264,10 @@ assert.ok(world.includes('this.zenRoom.position.set(-40,0,-65)') && world.includ
 assert.ok(world.includes('const benchPositions=[[-10,25],[-10,35]]') && world.includes('bench.rotation.y=Math.PI/2') && physics.includes('const benchPositions=[[-10,25],[-10,35]]'), "Only two road-facing benches may remain beside McDonalds");
 const collisionAudit=createTempleCollision([]);
 for(const start of [{x:0,z:-49},{x:-15,z:-49},{x:-31,z:-49}]){
- const route=findWalkPath(start,{x:-40,z:-64.25},collisionAudit);
+ const route=findWalkPath(start,{x:-40,z:-66.75},collisionAudit);
  assert.ok(route?.length, "Forest Zen room route missing from "+JSON.stringify(start));
  let from=start;
  for(const step of route){const moved=moveWithCollision(from,step.x-from.x,step.z-from.z,collisionAudit);assert.ok(!moved.blocked||Math.hypot(moved.x-step.x,moved.z-step.z)<.1,"Forest route collides between waypoints");from=step;}
 }
+assert.ok(findWalkPath({x:0,z:-49},{x:-40,z:-60.95},collisionAudit)?.length, "Second bed row must also be reachable from the room entrance");
 assert.ok(findWalkPath({x:14,z:-60},{x:20,z:-60},collisionAudit)?.length, "Toilet-to-east-lawn road must remain passable");

@@ -1072,7 +1072,7 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(1.95,.08,1.02),restBedCover,bed,[0,.54,.18]);
    add(new THREE.BoxGeometry(2.28,1.0,.16),restBedWood,bed,[0,.74,-.78]);
    add(new THREE.BoxGeometry(.58,.16,.38),restBedMat,bed,[0,.64,-.48]);
-   this.zenRestSpots.push({x:-40+bx,z:-65+bz+(bz<0?1.65:-1.65),type:"bed",rotation:bz<0?Math.PI:0});
+   this.zenRestSpots.push({x:-40+bx,z:-65+bz+1.65,type:"bed",rotation:bz<0?Math.PI:0});
   }
   const zenCanvas=document.createElement("canvas");zenCanvas.width=512;zenCanvas.height=128;const zctx=zenCanvas.getContext("2d");
   zctx.fillStyle="#493526";zctx.fillRect(0,0,512,128);zctx.strokeStyle="#d8bd82";zctx.lineWidth=7;zctx.strokeRect(8,8,496,112);
