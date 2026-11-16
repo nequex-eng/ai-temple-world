@@ -21,6 +21,7 @@ const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fal
 const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant", "tea", "toilet"]);
 const LANGS = new Set(["zh", "en", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
+const isTestPrayerMessage = value => /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(value||"").normalize("NFKC").replace(/\\s+/g,""));
 
 
 const LANGUAGE_NAMES = { zh: "Simplified Chinese", en: "English", ja: "Japanese", ko: "Korean", th: "Thai" };
@@ -225,13 +226,13 @@ async function handleApi(request, env, url) {
     const [visits, activity, prayers] = await Promise.all([
       env.DB.prepare("SELECT COUNT(*) AS total FROM visits WHERE day=date('now')").first(),
       env.DB.prepare("SELECT COUNT(*) AS total FROM activities WHERE date(created_at)=date('now')").first(),
-      env.DB.prepare("SELECT COUNT(*) AS total FROM prayers").first()
+      env.DB.prepare("SELECT COUNT(*) AS total FROM prayers WHERE lower(message) NOT LIKE '%test%' AND message NOT LIKE '%测试%'").first()
     ]);
     return reply(request, { todayVisitors: visits?.total || 0, todayActivities: activity?.total || 0, wishes: prayers?.total || 0 });
   }
   if (path === "/api/prayers" && request.method === "GET") {
     const rows = await env.DB.prepare("SELECT id,player_id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all();
-    return reply(request, { prayers: rows.results || [] });
+    return reply(request, { prayers: (rows.results || []).filter(row => !isTestPrayerMessage(row.message)) });
   }
   const prayerDeleteMatch = path.match(/^\/api\/prayers\/([a-f0-9-]{36})$/i);
   if (prayerDeleteMatch && request.method === "DELETE") {
@@ -356,7 +357,7 @@ export class TempleRoom {
       this.env.DB.prepare("SELECT id,display_name,created_at FROM offerings ORDER BY created_at DESC LIMIT 24").all().catch(() => ({ results: [] })),
       this.env.DB.prepare("SELECT id,player_id,display_name,message,language,created_at FROM prayers ORDER BY created_at DESC LIMIT 30").all().catch(() => ({ results: [] }))
     ]);
-    server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [], prayers: prayerRows.results || [] }));
+    server.send(JSON.stringify({ type: "welcome", self: player, players: peers, online: peers.length + 1, offerings: offeringRows.results || [], prayers: (prayerRows.results || []).filter(row => !isTestPrayerMessage(row.message)) }));
     this.broadcast({ type: "player:join", player, online: peers.length + 1 }, server);
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -413,7 +414,7 @@ export class TempleRoom {
       if (data.action === "incense" && !near(0, -22.4, 5.5) && !nearOpenShrine && !insideGreatHall) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(19, -32.5, 6.2)) return;
-      if (data.action === "toilet" && !near(10, -66.35, 2.8)) return;
+      if (data.action === "toilet" && !near(10.6, -64.5, 2.8)) return;
       if (data.action === "lotus") {
         if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
         player.lastLotusAt = Date.now();
