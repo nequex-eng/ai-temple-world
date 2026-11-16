@@ -1113,7 +1113,16 @@ export class TempleWorld{
   this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);this.moveWaypoints=[];this.pendingAction=null;
   return true;
  }
- applyRenderResolution(){const base=Math.min(devicePixelRatio||1,this.mobile?1.35:1.75),viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.renderer.setPixelRatio(Math.max(.65,base*(this.smoothMode?.68:1)));this.renderer.setSize(width,height,false);}
+ applyRenderResolution(){
+  const base=Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8);
+  // On older phones, keep roughly 1 rendered pixel per CSS pixel and reduce
+  // the pixel workload by about half without changing the scene's geometry.
+  const reduced=this.mobile?Math.max(.98,base*.76):Math.max(1.05,base*.82);
+  const ratio=this.smoothMode?reduced:base;
+  const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);
+  this.renderPixelRatio=ratio;this.renderer.setPixelRatio(ratio);this.renderer.setSize(width,height,false);
+  return ratio;
+ }
  setSmoothMode(enabled){this.smoothMode=!!enabled;this.applyRenderResolution();return this.smoothMode;}
  resize(){const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.applyRenderResolution();}
  setLocalProfile(p,id){
