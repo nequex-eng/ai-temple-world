@@ -427,9 +427,9 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
- if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
+ if(["incense","bell","lotus","tea","toilet","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
-  const key=action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
+  const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
  }
  if(action==="tea"){
@@ -441,6 +441,11 @@ function doAction(action){
   toast("一盏莲灯随愿入水，愿你心安自在。");
   network.logActivity(action,world.currentLocation().key);
   return;
+ }
+ if(action==="toilet"){
+  world.setLocalPose("toilet");actionUntil=performance.now()+6500;
+  const poseText=t().actionText.toilet||"如厕";text("character-state",poseText);
+  network.action(action);network.logActivity(action,"washroom");toast(poseText);return;
  }
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
