@@ -48,8 +48,11 @@ export function createTempleCollision(halls) {
   // Vegetarian restaurant 「斋」 on the forest lawn before the mountain gate.
   segments.push(
     segment(26.4,19.1,26.4,30.9,.24),
-    segment(17.6,19.1,26.4,19.1,.24),
-    segment(17.6,30.9,26.4,30.9,.24),
+    // Two side doors provide alternate routes when visitors crowd the front.
+    segment(17.6,19.1,20.0,19.1,.24),
+    segment(24.0,19.1,26.4,19.1,.24),
+    segment(17.6,30.9,20.0,30.9,.24),
+    segment(24.0,30.9,26.4,30.9,.24),
     segment(17.6,19.1,17.6,23.55,.22),
     segment(17.6,26.45,17.6,30.9,.22),
     segment(24.75,22.9,24.75,27.1,.16)
