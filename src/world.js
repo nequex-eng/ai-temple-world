@@ -975,7 +975,7 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?14:62);i++){const d=add(new THREE.SphereGeometry(.035+Math.random()*.025,6,6),new THREE.MeshBasicMaterial({color:i%4?0xe9d9ad:0xffd78a,transparent:true,opacity:.25+Math.random()*.35}),this.ambient,[(Math.random()-.5)*72,1+Math.random()*11,(Math.random()-.5)*72],[0,0,0],false);d.userData.phase=Math.random()*8;d.userData.y=d.position.y;}
  }
  setWishWallPrayers(prayers=[]){
-  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).filter(p=>! /你的test/i.test(String(p?.message||""))).slice(0,16).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
+  this.wishWallPrayers=(Array.isArray(prayers)?prayers:[]).filter(p=>!/(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(p?.message||"").normalize("NFKC").replace(/\s+/g,""))).slice(0,16).map(p=>({message:Array.from(String(p?.message||"")).slice(0,20).join("")}));
   if(!this.wishWallCanvas||!this.wishWallTexture)return;
   const ctx=this.wishWallCanvas.getContext("2d");
   ctx.clearRect(0,0,this.wishWallCanvas.width,this.wishWallCanvas.height);
@@ -1303,7 +1303,7 @@ export class TempleWorld{
   if(!this.smoothMode||time-this.lastLowDetailAnimation>=100){
    this.lastLowDetailAnimation=time;
    for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
-  for(const puff of this.incenseSmoke){
+  if(!this.smoothMode)for(const puff of this.incenseSmoke){
    const data=puff.userData.smoke,cycle=(time*.000085+data.phase)%1;
    puff.position.set(data.origin[0]+Math.sin(cycle*6.28+data.seed)*(.08+cycle*.34),data.origin[1]+cycle*2.25,data.origin[2]+Math.cos(cycle*5.2+data.seed)*(.07+cycle*.25));
    const scale=.72+cycle*1.85;puff.scale.set(scale,scale*1.12,scale);
