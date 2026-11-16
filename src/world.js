@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r9";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r12";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -453,7 +453,13 @@ export class TempleWorld{
   const distantHills=[];
   for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;distantHills.push({ring,x:Math.cos(a)*r,y:8-ring*2,z:Math.sin(a)*r,radius:17+Math.random()*13,height:38+Math.random()*30,ry:Math.random(),rz:(Math.random()-.5)*.12});}
   addInstancedHills(s,distantHills);
-  for(let i=0;i<(this.mobile?18:56);i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if((Math.abs(x)<14&&z>12&&z<43)||Math.hypot(x+52,z-12)<15)continue;pine(s,x,z,.72+Math.random()*.72,m);}
+  for(let i=0;i<(this.mobile?18:56);i++){
+   const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;
+   const inZenClearing=x>-53&&x<-27&&z>-78&&z<-43;
+   const onZenTrail=(z>-51.2&&z<-47.8&&x>-43&&x<-18)||(x>-41.8&&x<-38.2&&z>-59&&z<-48);
+   if((Math.abs(x)<14&&z>12&&z<43)||Math.hypot(x+52,z-12)<15||inZenClearing||onZenTrail)continue;
+   pine(s,x,z,.72+Math.random()*.72,m);
+  }
   addInstancedPines(s,m);
   // 林间茶庄：由北侧绕过祈愿墙可达，坐落在森林中的独立草地。
   const teaLawn=new THREE.Group();teaLawn.position.set(0,0,-62);s.add(teaLawn);this.teaHouse=teaLawn;
@@ -1039,8 +1045,11 @@ export class TempleWorld{
   add(new THREE.CircleGeometry(3.88,64),m.water,pond,[0,.27,0],[-Math.PI/2,0,0],false);
   add(new THREE.TorusGeometry(4.02,.18,10,64),m.stoneLight,pond,[0,.3,0],[Math.PI/2,0,0]);
   for(let i=0;i<27;i++){const a=Math.random()*Math.PI*2,r=.45+Math.random()*2.95,x=Math.cos(a)*r,z=Math.sin(a)*r;const pad=add(new THREE.CircleGeometry(.48+Math.random()*.25,9),mat(0x557d5a,.58),pond,[x,.31,z],[-Math.PI/2,0,0],false);this.lotusPads.push({pad,phase:Math.random()*6.28});if(i%3===0){const flower=new THREE.Group();flower.position.set(x,.34,z);pond.add(flower);for(let j=0;j<7;j++){const a=j*Math.PI*2/7,p=add(new THREE.SphereGeometry(.15,8,8),mat(j%2?0xe7d6be:0xc68b92,.62),flower,[Math.cos(a)*.2,.05,Math.sin(a)*.2]);p.scale.set(.7,1.5,.6);}add(new THREE.SphereGeometry(.11,8,8),m.gold,flower,[0,.1,0]);}}
-  // Spacious Zen rest hall on the open lawn east of the lotus pond.
-  this.zenRoom=new THREE.Group();this.zenRoom.position.set(28,0,-45);s.add(this.zenRoom);
+  // Spacious Zen rest hall deep in the southwest forest, reached by a woodland trail.
+  this.zenRoom=new THREE.Group();this.zenRoom.position.set(-40,0,-65);s.add(this.zenRoom);
+  const zenTrail=mat(0x928b76,.99);
+  add(new THREE.PlaneGeometry(42,3.4),zenTrail,s,[-21,-.058,-49],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(3.4,11),zenTrail,s,[-40,-.056,-54.5],[-Math.PI/2,0,0],false);
   this.zenRestSpots=[];this.benchRestSpots=[];
   const zen=this.zenRoom,restHallStone=mat(0xb9ae98,.94),restHallWood=mat(0x4a3426,.9),restHallTrim=mat(0xb18b55,.78,{metalness:.1}),restHallRoof=mat(0x35483d,.94),restBedWood=mat(0x5b4030,.86),restBedMat=mat(0xc9b995,.96),restBedCover=mat(0x9a8060,.94);
   add(new THREE.BoxGeometry(17.1,.24,14.5),restHallStone,zen,[0,.12,0]);
@@ -1063,21 +1072,23 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(1.95,.08,1.02),restBedCover,bed,[0,.54,.18]);
    add(new THREE.BoxGeometry(2.28,1.0,.16),restBedWood,bed,[0,.74,-.78]);
    add(new THREE.BoxGeometry(.58,.16,.38),restBedMat,bed,[0,.64,-.48]);
-   this.zenRestSpots.push({x:28+bx,z:-45+bz+(bz<0?1.65:-1.65),type:"bed",rotation:bz<0?Math.PI:0});
+   this.zenRestSpots.push({x:-40+bx,z:-65+bz+(bz<0?1.65:-1.65),type:"bed",rotation:bz<0?Math.PI:0});
   }
   const zenCanvas=document.createElement("canvas");zenCanvas.width=512;zenCanvas.height=128;const zctx=zenCanvas.getContext("2d");
   zctx.fillStyle="#493526";zctx.fillRect(0,0,512,128);zctx.strokeStyle="#d8bd82";zctx.lineWidth=7;zctx.strokeRect(8,8,496,112);
   zctx.textAlign="center";zctx.textBaseline="middle";zctx.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';zctx.fillStyle="#fff0cc";zctx.fillText("禅房",256,64);
   const zenTexture=new THREE.CanvasTexture(zenCanvas);zenTexture.colorSpace=THREE.SRGBColorSpace;
+  this.zenRoomSign={ctx:zctx,canvas:zenCanvas,map:zenTexture};
   add(new THREE.BoxGeometry(4.2,.86,.18),restHallWood,zen,[0,3.25,7.24]);
   add(new THREE.PlaneGeometry(3.9,.66),new THREE.MeshBasicMaterial({map:zenTexture,toneMapped:false}),zen,[0,3.25,7.34],[0,0,0],false);
-  const benchPositions=[[-24,-15],[-24,8],[25,10],[25,-14],[0,47],[-15,35],[14,35],[-15,-48]];
+  // Only two benches remain beside McDonalds, facing the roadside stalls.
+  const benchPositions=[[-10,25],[-10,35]];
   for(const [bx,bz] of benchPositions){
-   const bench=new THREE.Group();bench.position.set(bx,0,bz);s.add(bench);
+   const bench=new THREE.Group();bench.position.set(bx,0,bz);bench.rotation.y=Math.PI/2;s.add(bench);
    add(new THREE.BoxGeometry(2.5,.18,.68),restBedWood,bench,[0,.82,0]);
    add(new THREE.BoxGeometry(2.5,.78,.16),restBedWood,bench,[0,1.25,-.28]);
    for(const lx of [-.92,.92])add(new THREE.BoxGeometry(.16,.78,.18),restHallWood,bench,[lx,.42,0]);
-   this.benchRestSpots.push({x:bx,z:bz+1.25,type:"bench",rotation:Math.PI});
+   this.benchRestSpots.push({x:bx+1.25,z:bz,type:"bench",rotation:Math.PI/2});
   }
   // Bodhi tree
   const bodhi=new THREE.Group();bodhi.position.set(-29,0,29);s.add(bodhi);bodhi.visible=false;add(new THREE.CylinderGeometry(.7,1,7,12),m.bark,bodhi,[0,3.5,0]);
@@ -1390,6 +1401,7 @@ export class TempleWorld{
  setLanguage(lang){
   const abbotNames={zh:"住持",en:"Abbot",ja:"住職",ko:"주지 스님",th:"เจ้าอาวาส"};
   if(this.abbotAvatar){const name=abbotNames[lang]||abbotNames.zh;this.abbotAvatar.profile.name=name;this.abbotAvatar.setLabel(name);}
+  if(this.zenRoomSign){const labels={zh:"禅房",en:"ZEN HALL",ja:"禅堂",ko:"선방",th:"ศาลาเซน"};const sign=this.zenRoomSign;sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#493526";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=7;sign.ctx.strokeRect(8,8,496,112);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 54px sans-serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(labels[lang]||labels.zh,256,64,460);sign.map.needsUpdate=true;}
   if(this.shrineSign){const labels={zh:"神龛",en:"SHRINE",ja:"祠堂",ko:"신단",th:"ศาลบูชา"};const sign=this.shrineSign;sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=8;sign.ctx.strokeRect(10,10,492,124);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font="bold "+(lang==="zh"||lang==="ja"||lang==="ko"?72:54)+"px serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(labels[lang]||labels.zh,256,72,460);sign.map.needsUpdate=true;}
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#a82524":"#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#ffdf75":"#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
