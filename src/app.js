@@ -814,6 +814,7 @@ function updateTempleVisualViewport(){
   root.style.setProperty("--temple-visual-top",top+"px");
   root.style.setProperty("--temple-visual-bottom",Math.max(0,Math.round(window.innerHeight-height-top))+"px");
   world.resize();
+  if(!$("beads-modal").classList.contains("hidden"))renderBeads();
  };
  const schedule=()=>{
   if(queued)return;
