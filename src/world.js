@@ -480,7 +480,7 @@ export class TempleWorld{
    const shrub=add(new THREE.IcosahedronGeometry(.72,1),m.pine,teaLawn,[x,.5,z],[0,0,0],false);shrub.scale.set(1,.62,.85);
   }
   // A remote parking lot in a natural forest clearing, connected by a quiet gravel lane.
-  const parkingRoad=mat(0x77786f,.96),parkingAsphalt=mat(0x454a48,.98),parkingLine=mat(0xd8d1b7,.92),parkingCurb=mat(0x9b978a,.94);
+  const parkingRoad=mat(0x77786f,.96),parkingAsphalt=mat(0x454a48,.98),parkingLine=mat(0xd8d1b7,.92),parkingCurb=mat(0x9b978a,.94),parkingWood=mat(0x513a2a,.9);
   add(new THREE.PlaneGeometry(40,4.2),parkingRoad,s,[-32,-.075,22],[-Math.PI/2,0,0],false);
   add(new THREE.PlaneGeometry(4.2,12),parkingRoad,s,[-52,-.07,17],[-Math.PI/2,0,0],false);
   const parkingLot=new THREE.Group();parkingLot.position.set(-52,0,12);s.add(parkingLot);this.parkingLot=parkingLot;
@@ -514,8 +514,8 @@ export class TempleWorld{
   parkingCtx.textAlign="center";parkingCtx.textBaseline="middle";parkingCtx.font='bold 78px "Songti SC","Noto Serif CJK SC",serif';
   parkingCtx.fillStyle="#fff0cc";parkingCtx.fillText("森林停车场",384,96);
   const parkingMap=new THREE.CanvasTexture(parkingCanvas);parkingMap.colorSpace=THREE.SRGBColorSpace;
-  add(new THREE.CylinderGeometry(.13,.18,3.5,10),wood,parkingLot,[-10.4,1.75,8.0]);
-  add(new THREE.BoxGeometry(3.8,1.08,.2),wood,parkingLot,[-8.8,3.0,8.0]);
+  add(new THREE.CylinderGeometry(.13,.18,3.5,10),parkingWood,parkingLot,[-10.4,1.75,8.0]);
+  add(new THREE.BoxGeometry(3.8,1.08,.2),parkingWood,parkingLot,[-8.8,3.0,8.0]);
   add(new THREE.PlaneGeometry(3.52,.82),new THREE.MeshBasicMaterial({map:parkingMap,toneMapped:false}),parkingLot,[-8.8,3.0,8.11],[0,0,0],false);
   this.parkingSign={ctx:parkingCtx,map:parkingMap,canvas:parkingCanvas};
   // 山门外移，形成更宽阔的大殿前院。
@@ -1124,7 +1124,7 @@ export class TempleWorld{
   return true;
  }
  setLanguage(lang){
-  for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
+  for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#a82524":"#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#ffdf75":"#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
   if(this.parkingSign){
    const labels={zh:"森林停车场",en:"FOREST PARKING",ja:"森林駐車場",ko:"숲속 주차장",th:"ลานจอดรถในป่า"};
