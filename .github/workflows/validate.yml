@@ -50,6 +50,30 @@ jobs:
           head -c 900 /tmp/canonical.html
           echo
           grep -q 'id="loading"' /tmp/canonical.html
+      - name: Verify live SEO redirects and canonical responses
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_path="/seo-verification/nested/path?utm_source=github-actions&probe=1"
+          result="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "https://helixtemple.pages.dev${probe_path}")"
+          status="${result%% *}"
+          location="${result#* }"
+          test "${status}" = "301"
+          test "${location}" = "https://helixtemple.com${probe_path}"
+          root_result="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' https://helixtemple.pages.dev/)"
+          test "${root_result%% *}" = "301"
+          test "${root_result#* }" = "https://helixtemple.com/"
+          canonical_status="$(curl -sS -o /tmp/helixtemple-canonical.html -w '%{http_code}' https://helixtemple.com/)"
+          test "${canonical_status}" = "200"
+          grep -q 'rel="canonical" href="https://helixtemple.com/"' /tmp/helixtemple-canonical.html
+          grep -q 'application/ld+json' /tmp/helixtemple-canonical.html
+          for endpoint in robots.txt sitemap.xml og-image.svg; do
+            code="$(curl -sS -o "/tmp/helixtemple-${endpoint}" -w '%{http_code}' "https://helixtemple.com/${endpoint}")"
+            test "${code}" = "200"
+          done
+          grep -q 'Sitemap: https://helixtemple.com/sitemap.xml' /tmp/helixtemple-robots.txt
+          grep -q '<loc>https://helixtemple.com/</loc>' /tmp/helixtemple-sitemap.xml
+          echo "PASS: pages.dev root and nested paths 301 to the exact canonical URL; helixtemple.com and SEO assets return 200."
       - name: Test current build against production APIs in desktop and mobile browsers
         env:
           BASE_URL: http://127.0.0.1:4173
