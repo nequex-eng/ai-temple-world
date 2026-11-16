@@ -108,8 +108,9 @@ function syncPresence(players=[]){
  for(const id of [...world.remotes.keys()])if(!peers.has(id))world.removeRemote(id);
  onlinePlayers.clear();for(const p of peers.values()){world.updateRemote(p);onlinePlayers.set(p.id,p);}renderPresence();
 }
+function isTestPrayer(prayer){return /你的test/i.test(String(prayer?.message||""));}
 function syncPrayerBoard(prayers=[]){
- sharedPrayers=(Array.isArray(prayers)?prayers:[]).slice(0,30);world.setWishWallPrayers(sharedPrayers);
+ sharedPrayers=(Array.isArray(prayers)?prayers:[]).filter(p=>!isTestPrayer(p)).slice(0,30);world.setWishWallPrayers(sharedPrayers);
  renderPrayers(sharedPrayers);
 }
 function handleMessage(message){
@@ -522,6 +523,7 @@ function renderPrayerAppend(p){
  list.prepend(makePrayerCard(p));while(list.children.length>30)list.lastElementChild.remove();text("prayer-count",String(list.children.length));
 }
 function renderPrayers(prayers){
+ prayers=(Array.isArray(prayers)?prayers:[]).filter(p=>!isTestPrayer(p));
  const list=$("prayer-list");list.replaceChildren();text("prayer-count",String(prayers.length));
  if(!prayers.length){const empty=document.createElement("div");empty.className="prayer-empty";empty.textContent=t().prayerEmpty;list.append(empty);return;}
  for(const p of prayers)list.append(makePrayerCard(p));
@@ -713,12 +715,17 @@ addEventListener("beforeunload",()=>network.close());
 function updateTempleVisualViewport(){
  const viewport=window.visualViewport;
  const apply=()=>{
-  document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
+  const height=viewport?.height||window.innerHeight;
+  const width=viewport?.width||window.innerWidth;
+  document.documentElement.style.setProperty("--temple-visual-height",height+"px");
+  document.documentElement.style.setProperty("--temple-visual-width",width+"px");
+  document.documentElement.style.setProperty("--temple-visual-top",(viewport?.offsetTop||0)+"px");
   world.resize();
  };
  apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
+ addEventListener("resize",apply,{passive:true});
  addEventListener("orientationchange",()=>requestAnimationFrame(apply),{passive:true});
- // Leave native pinch and browser tab gestures to the browser.
+ // Keep the 3D viewport aligned with the actually visible area as browser chrome expands or collapses.
 }
 updateTempleVisualViewport();
 
