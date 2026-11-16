@@ -333,11 +333,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
  if(profile.style==="pilgrim"){
   add(new THREE.BoxGeometry(.42,.56,.22),dark,body,[-.57,.73,-.08],[0,0,-.18]);
  }
- const namePlate=robeNamePlate(profile.name||"行者");root.add(namePlate);
+ const namePlate=profile.style==="pilgrim"?null:robeNamePlate(profile.name||"行者");if(namePlate)root.add(namePlate);
  return {
   id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.root.add(this.tag);},
+  setLabel(name){if(this.tag){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();}this.tag=robeNamePlate(name);this.root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
