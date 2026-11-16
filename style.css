@@ -143,9 +143,9 @@
 /* Desktop abbot action: reserve enough room for the localized label. */
 @media(min-width:661px){#open-abbot{width:auto;min-width:88px;padding:0 11px;justify-content:center;gap:7px;white-space:nowrap}#open-abbot .abbot-label{display:inline;white-space:nowrap;font-size:10px;letter-spacing:.02em}}
 
-/* Keep the profile control available to the quick-profile shortcut, but remove it from the top bar. */
-#open-profile{display:none!important}
-
+/* Character name and appearance settings live beside the language selector. */
+.profile-settings{min-width:104px;justify-content:center}
+@media(max-width:660px){.top-actions .profile-settings{width:31px;min-width:31px;padding:0;justify-content:center}.top-actions .profile-settings .button-icon{display:inline-block;font-size:14px}.top-actions .profile-settings #profile-button-label{display:none}}
 /* The visitor experience is intentionally free of location and online-presence panels. */
 #location-card,#presence-card{display:none!important}
 .action-dock.glass{
