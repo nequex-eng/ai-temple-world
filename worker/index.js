@@ -133,6 +133,34 @@ async function handleApi(request, env, url) {
       return reply(request, { error: clean(error.message, 220) || "Translation failed." }, 502);
     }
   }
+  if (path === "/api/fortune" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid visitor." }, 400);
+    const question = clean(body.question, 600), birthInfo = clean(body.birth_info, 500), hexagram = clean(body.hexagram, 240);
+    if (question.length < 2 && !hexagram) return reply(request, { error: "Please enter a question or draw a lot." }, 400);
+    if (!env.MINIMAX_API_KEY && !env.AI?.run) return reply(request, { available: false, code: "AI_NOT_CONFIGURED", error: "命理问卦模型尚未配置。" }, 503);
+    const language = LANGS.has(body.language) ? body.language : "zh";
+    const history = Array.isArray(body.history) ? body.history.slice(-6).map(item => ({ role: item?.role === "assistant" ? "assistant" : "user", content: clean(item?.content, 700) })).filter(item => item.content.length > 0) : [];
+    const limitError = await reserveAiRequest(env, body.player_id, "fortune", 8, 8000);
+    if (limitError) return reply(request, { error: limitError }, 429);
+    const system = [
+      "你是云间寺算命求签摊位的传统术数研究者与解签先生，以中国古典术数文献和传统术数内部逻辑为依据进行文化体验式解读。你不是住持，也不把佛教教义和命理术数混为一谈。",
+      "知识框架必须以传统体系为准：周易与易传、阴阳五行、八卦方位与象数、六十四卦及爻辞、纳甲六爻、梅花易数；干支历法、节气、天干地支、藏干、十神、旺衰、格局、调候、刑冲合害、大运流年等子平八字；并了解铁板神数的历史传统、考刻分与数理推演门派差异。需要时可辨析紫微斗数、奇门遁甲等体系，但不可把不同门派规则随意拼接。",
+      "八字必须核对出生年月日时、历法类型、出生地及时区；时辰不明时明确说明时柱无法落实。涉及节气换月、真太阳时、农历换算、闰月或历史历法时，若无法可靠核算就明确标注假设并请用户核实，绝不可编造换算结果。",
+      "铁板神数有复杂门派传承、刻分校正和考刻规则。除非输入资料与具体算法足以支持，否则只能介绍原理或作有限的象数文化解读，绝不能假称已完成精确铁板排盘、报出伪造条文、条数、刻分或断语。不得杜撰古籍原文、卦辞、爻辞、命例或出处；不确定就说明。",
+      "如提供六爻硬币起卦结果，按自下而上的初爻至上爻识别阴阳与动爻，再核对本卦、变卦和对应爻辞；不确定卦名时先展示爻象并说明，不得猜卦。解卦结合提问主题、卦象结构和爻位，不把随机起卦说成客观预言。",
+      "回答结构优先为：采用的体系与资料完整度；关键推演依据（展示干支、五行、卦象或十神逻辑）；传统含义；对当前问题的审慎解读；可实践的建议。区分经典原义、门派观点和你的推断，不同流派有分歧时指出分歧。",
+      "语气古雅、沉稳、清楚，不故弄玄虚。不要恐吓、宿命论、制造灾祸暗示、诱导付费、索取身份证号或其他敏感资料。不得保证婚姻、财富、考试、投资、疾病、生死、诉讼等结果；不提供医疗、法律或投资决策。遇到重大现实决策，提醒术数只能作为传统文化参考。",
+      "不得声称术数有科学验证或能确定未来。把本服务明确视为传统文化与娱乐体验，不代替现实判断。",
+      "请使用" + ({zh:"简体中文",en:"English",ja:"日本語",ko:"한국어",th:"ภาษาไทย"}[language]) + "回答；外语回答时简要解释中文术语。通常回答约300至600字，资料不足时先提出最关键的补充问题。"
+    ].join("\n");
+    const userContent = [birthInfo ? "出生资料（仅本次请求使用，不保存）：" + birthInfo : "未提供出生资料；不得假设用户的生辰八字。", hexagram ? "本次随机起卦数据（从初爻到上爻）：" + hexagram : "", question ? "所问事项：" + question : "请按本次卦象作总体解读。"].filter(Boolean).join("\n");
+    try {
+      const answer = await minimaxChat(env, [{ role: "system", content: system }, ...history, { role: "user", content: userContent }], 760);
+      return reply(request, { available: true, answer });
+    } catch (error) { return reply(request, { error: clean(error.message, 220) || "Fortune reading failed." }, 502); }
+  }
+
   if (path === "/api/abbot" && request.method === "POST") {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid player." }, 400);

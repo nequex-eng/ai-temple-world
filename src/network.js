@@ -53,6 +53,9 @@ export class TempleNetwork {
       clearTimeout(timeout);
     }
   }
+  async askFortune(question, birthInfo, hexagram, history, language) {
+    return this.request("/api/fortune", { method: "POST", body: JSON.stringify({ player_id: this.playerId, question, birth_info: birthInfo, hexagram, history, language }) }, 60000);
+  }
   async askAbbot(message, history, language, location) {
     return this.request("/api/abbot", {
       method: "POST",

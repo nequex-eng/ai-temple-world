@@ -116,7 +116,7 @@ export function createTempleCollision(halls) {
   if (cursor < 11.5) segments.push(segment(eastX, cursor, eastX, 11.5, 0.34));
   // Lantern pedestals along the temple roads and grass-market approach.
   for (const [x, z] of [
-    [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41],
+    [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],
     [-5.5,35],[5.5,35],[-5.5,8],[5.5,8],[-5.5,-7],[5.5,-7],[-5.5,-22],[5.5,-22],
     [35.4,-1],[35.4,15],[35.4,31]
   ]) circles.push(circle(x,z,0.2));

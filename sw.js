@@ -1,6 +1,6 @@
-const CACHE="temple-world-shell-98";
+const CACHE="temple-world-shell-99";
 const SHELL=[
- "/","/index.html","/style.css?v=20261116-r16",
+ "/","/index.html","/style.css?v=20261116-r17",
  "/src/app.js?v=20261116-r16","/src/world.js?v=20261116-r16",
  "/src/network.js?v=20261116-r16","/src/i18n.js?v=20261116-r16",
  "/src/physics.js?v=20261116-r16","/src/vendor/three.module.js",

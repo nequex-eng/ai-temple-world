@@ -215,7 +215,7 @@ function marketStall(scene,x,z,side,kind,m){
  const signMap=new THREE.CanvasTexture(signCanvas);signMap.colorSpace=THREE.SRGBColorSpace;
  add(new THREE.BoxGeometry(2.12,.58,.12),wood,root,[0,2.12,.88]);
  add(new THREE.PlaneGeometry(1.98,.45),new THREE.MeshBasicMaterial({map:signMap,toneMapped:false}),root,[0,2.12,.948],[0,0,0],false);
- root.userData.marketItemLabel=productLabel;root.userData.marketSign={ctx,map:signMap,canvas:signCanvas,kind};
+ root.userData.marketItemLabel=productLabel;root.userData.marketSign={ctx,map:signMap,canvas:signCanvas,kind};root.userData.marketKind=kind;
  root.userData.nightLights=[];
  for(const xx of [-1.42,1.42]){
   add(new THREE.SphereGeometry(.085,9,7),new THREE.MeshBasicMaterial({color:0xffc779}),root,[xx,2.08,.6],[0,0,0],false);
@@ -1080,7 +1080,7 @@ export class TempleWorld{
   const washGlow=new THREE.PointLight(0xffd39a,.28,8);washGlow.position.set(0,2.1,-.3);washroom.add(washGlow);this.nightLights.push({light:washGlow,base:.28});
   // Roadside lanterns now run continuously from the mountain approach to the Great Hall and market.
   const lampPositions=[
-   [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],[0,41],
+   [-6,24],[6,24],[-12,-1],[12,-1],[-20,-39],[20,-39],
    [-5.5,35],[5.5,35],[-5.5,8],[5.5,8],[-5.5,-7],[5.5,-7],[-5.5,-22],[5.5,-22],
    [35.4,-1],[35.4,15],[35.4,31]
   ];
@@ -1316,6 +1316,8 @@ export class TempleWorld{
   const rect=this.renderer.domElement.getBoundingClientRect();
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.raycaster.setFromCamera(this.pointerNdc,this.camera);
+  const objects=this.raycaster.intersectObjects(this.marketStalls||[],true);
+  for(const intersection of objects){let object=intersection.object;while(object&&object!==this.scene){if(object.userData?.marketKind==="fortune"){this.onFortuneStall?.();return true;}object=object.parent;}}
   const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
   this.stopWander();
