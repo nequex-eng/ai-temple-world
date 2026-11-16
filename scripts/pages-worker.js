@@ -20,6 +20,15 @@ export default {
         }
       });
     }
+    if (incoming.pathname === "/google0231bbe40ae157c7.html") {
+      return new Response("google-site-verification: google0231bbe40ae157c7.html", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=3600"
+        }
+      });
+    }
     if (incoming.pathname === "/api" || incoming.pathname.startsWith("/api/")) {
       const upstreamUrl = new URL(incoming.pathname + incoming.search, API_ORIGIN);
       // Preserve JSON bodies and WebSocket Upgrade headers while proxying the API.
