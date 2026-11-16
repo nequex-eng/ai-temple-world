@@ -292,13 +292,14 @@ assert.ok(findWalkPath({x:0,z:0},{x:-50.5,z:-61},dualGardenCollision)?.length, "
 assert.ok(findWalkPath({x:0,z:0},{x:50.5,z:-61},dualGardenCollision)?.length, "Eastern garden must be reachable from the courtyard");
 
 const pondCollision=createTempleCollision([{x:0,z:-37,w:26,d:17}]);
-let pondWalk={x:19+6.8,z:-32.5};
+let pondWalk={x:19+7.5,z:-32.5};
 for(let i=1;i<=360;i++){
  const angle=(i/360)*Math.PI*2;
- const next={x:19+6.8*Math.cos(angle),z:-32.5+6.8*Math.sin(angle)};
+ const next={x:19+7.5*Math.cos(angle),z:-32.5+7.5*Math.sin(angle)};
  const moved=moveWithCollision(pondWalk,next.x-pondWalk.x,next.z-pondWalk.z,pondCollision);
  assert.ok(Math.hypot(moved.x-next.x,moved.z-next.z)<.08,"Walking around the pond must not snag on curved collision edges at step "+i);
  pondWalk={x:moved.x,z:moved.z};
 }
+assert.ok(!physics.includes("22.65, -28.4") && !physics.includes("libraryDeskZ"),"Hidden Sutra Library must not leave invisible collision walls around the lotus pond");
 assert.ok(style.includes("@media (pointer:coarse) and (min-width:661px) and (max-width:1440px)") && style.includes("grid-template-columns:repeat(6,minmax(0,1fr))") && style.includes(".mobile-controls{display:flex") && style.includes("--temple-visual-height"),"iPad portrait/landscape must show touch controls and fit the visual viewport");
 assert.ok(world.includes("20261116-r16") && app.includes("20261116-r16") && html.includes("20261116-r16") && read("sw.js").includes("temple-world-shell-98"),"All client assets must use the new tablet/collision build cache version");

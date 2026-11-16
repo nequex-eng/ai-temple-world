@@ -76,14 +76,7 @@ export function createTempleCollision(halls) {
   segments.push(segment(wx+.55,front-1.38,wx+.55,front-.45,.12));
   // The old Heavenly Kings Hall was removed. Its former statue positions stay clear.
   // Keep this west-side corridor open from the mountain gate to the Lotus Wish Wall.
-  // Sutra library bookcases and reading desk.
-  segments.push(segment(22.65, -28.4, 22.65, -19.6, 0.34));
-  segments.push(segment(33.35, -28.4, 33.35, -19.6, 0.34));
-  const libraryDeskZ = -22;
-  segments.push(segment(26.6, libraryDeskZ - 0.525, 29.4, libraryDeskZ - 0.525, 0.12));
-  segments.push(segment(26.6, libraryDeskZ + 0.525, 29.4, libraryDeskZ + 0.525, 0.12));
-  segments.push(segment(26.6, libraryDeskZ - 0.525, 26.6, libraryDeskZ + 0.525, 0.12));
-  segments.push(segment(29.4, libraryDeskZ - 0.525, 29.4, libraryDeskZ + 0.525, 0.12));
+  // The Sutra Library is currently hidden; do not leave invisible bookcase or desk colliders around the pond.
   // Low beds and privacy screens in the monastic quarters.
   for (const x of [25, 31]) {
     segments.push(segment(x - 1.325, 5.675, x + 1.325, 5.675, 0.13));
