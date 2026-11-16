@@ -50,9 +50,10 @@ export function createTempleCollision(halls) {
   circles.push(circle(-10,8,1.28),circle(10,19,1.28),circle(-10,30,1.28));
   // The eight parked cars are solid scene objects; keep a walking aisle around each one.
   for(const x of [-61,-55,-49,-43])for(const z of [7.7,16.3])circles.push(circle(x,z,1.78));
-  circles.push(circle(-23.98,-32.58,.48),circle(-21.02,-32.58,.48));
-  // Unlabelled washroom west of the Great Hall: closed rear/sides and an open central entrance.
-  const wx=-22.5,wz=-32,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
+  // Shrine altar and the two relocated toilet pans.
+  circles.push(circle(-22.5,-33.35,.82),circle(8.32,-62.58,.48),circle(11.28,-62.58,.48));
+  // Washroom beside the forest tea house: closed rear/sides and an open central entrance.
+  const wx=9.8,wz=-62,halfW=2.8,back=wz-2.38,front=wz+2.38,doorHalf=.94;
   segments.push(segment(wx-halfW,back,wx+halfW,back,.22));
   segments.push(segment(wx-halfW,back,wx-halfW,front,.22));
   segments.push(segment(wx+halfW,back,wx+halfW,front,.22));
