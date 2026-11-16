@@ -174,11 +174,11 @@ test("mobile: virtual joystick, double-tap jump and action dock are usable", asy
   await expect(page.locator("#abbot-input")).toHaveValue("", { timeout: 5000 });
   await expect(page.locator(".abbot-message.assistant").last()).toContainText(/慈悲|关怀|众生|同理|他人/, { timeout: 45000 });
   await page.locator('[data-close="abbot-modal"]').click();
-  const joystick = await page.locator("#joystick").boundingBox();
+  const joystickAfterAbbot = await page.locator("#joystick").boundingBox();
   const beforeMove = await page.evaluate(() => window.__templeDebug.position().z);
-  await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height / 2);
+  await page.mouse.move(joystickAfterAbbot.x + joystickAfterAbbot.width / 2, joystickAfterAbbot.y + joystickAfterAbbot.height / 2);
   await page.mouse.down();
-  await page.mouse.move(joystick.x + joystick.width / 2, joystick.y + joystick.height * 0.18, { steps: 5 });
+  await page.mouse.move(joystickAfterAbbot.x + joystickAfterAbbot.width / 2, joystickAfterAbbot.y + joystickAfterAbbot.height * 0.18, { steps: 5 });
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().joy.y)).toBeLessThan(-0.5);
   await page.waitForTimeout(700);
   await page.mouse.up();
