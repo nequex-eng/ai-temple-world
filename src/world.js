@@ -403,7 +403,7 @@ export class TempleWorld{
  constructor(container){
   this.container=container;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x9aaea4);this.scene.fog=new THREE.FogExp2(0x9aaea4,.0068);
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
-  this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;
+  this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;this.renderFrameInterval=25;this.lowNpcElapsed=0;this.lastLowDetailLights=0;this.lastLowDetailAnimation=0;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
   this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
@@ -1115,16 +1115,40 @@ export class TempleWorld{
  }
  applyRenderResolution(){
   const base=Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8);
-  // On older phones, keep roughly 1 rendered pixel per CSS pixel and reduce
-  // the pixel workload by about half without changing the scene's geometry.
-  const reduced=this.mobile?Math.max(.98,base*.76):Math.max(1.05,base*.82);
+  // Low-load mode halves the linear render resolution on mobile. This shades
+  // about one quarter as many pixels while preserving full scene geometry.
+  const reduced=this.mobile?Math.max(.62,Math.min(.70,base*.5)):Math.max(.78,Math.min(1.02,base*.56));
   const ratio=this.smoothMode?reduced:base;
   const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);
-  this.renderPixelRatio=ratio;this.renderer.setPixelRatio(ratio);this.renderer.setSize(width,height,false);
+  this.renderPixelRatio=ratio;this.renderFrameInterval=this.smoothMode?(this.mobile?1000/24:1000/30):(this.mobile?25:0);
+  this.renderer.setPixelRatio(ratio);this.renderer.setSize(width,height,false);
   return ratio;
  }
- setSmoothMode(enabled){this.smoothMode=!!enabled;this.applyRenderResolution();return this.smoothMode;}
- resize(){const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();const mobile=matchMedia("(max-width: 660px)").matches;if(mobile!==this.mobile){this.mobile=mobile;this.renderer.shadowMap.enabled=!mobile;this.sunLight.castShadow=!mobile;}this.applyRenderResolution();}
+ refreshLowDetailLights(force=false,time=performance.now()){
+  const lights=[...(this.nightLights||[]).map(entry=>entry.light),...(this.templeLanterns||[]).map(item=>item.glow)];
+  if(!this.smoothMode){for(const light of lights)light.visible=true;return;}
+  if(!force&&time-this.lastLowDetailLights<1600)return;
+  this.lastLowDetailLights=time;
+  const origin=this.local?.root.position||{x:0,z:25};
+  const ranked=lights.map(light=>{const pos=light.getWorldPosition(new THREE.Vector3());return {light,d:(pos.x-origin.x)**2+(pos.z-origin.z)**2};}).sort((a,b)=>a.d-b.d);
+  const active=new Set(ranked.slice(0,7).map(item=>item.light));
+  for(const light of lights)light.visible=active.has(light);
+ }
+ setSmoothMode(enabled){
+  this.smoothMode=!!enabled;
+  this.renderer.shadowMap.enabled=!this.mobile&&!this.smoothMode;
+  this.sunLight.castShadow=!this.mobile&&!this.smoothMode;
+  if(this.ambient)this.ambient.visible=!this.smoothMode;
+  for(const puff of this.incenseSmoke||[])puff.visible=!this.smoothMode;
+  this.refreshLowDetailLights(true);
+  this.applyRenderResolution();
+  return this.smoothMode;
+ }
+ getRenderState(){
+  const lights=[...(this.nightLights||[]).map(entry=>entry.light),...(this.templeLanterns||[]).map(item=>item.glow)];
+  return {pixelRatio:this.renderer.getPixelRatio(),frameInterval:this.renderFrameInterval,ambientVisible:this.ambient?.visible!==false,smokeVisible:(this.incenseSmoke||[]).some(p=>p.visible),shadows:this.renderer.shadowMap.enabled,remoteLimit:this.smoothMode?(this.mobile?5:10):(this.mobile?12:28),visiblePointLights:lights.filter(light=>light.visible).length};
+ }
+ resize(){const viewport=window.visualViewport,width=Math.max(1,viewport?.width||innerWidth),height=Math.max(1,viewport?.height||innerHeight);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();this.mobile=matchMedia("(max-width: 660px)").matches;this.renderer.shadowMap.enabled=!this.mobile&&!this.smoothMode;this.sunLight.castShadow=!this.mobile&&!this.smoothMode;this.refreshLowDetailLights(true);this.applyRenderResolution();}
  setLocalProfile(p,id){
   if(this.local){const oldStyle=this.local.profile?.style,pos=this.getPosition();this.local.setProfile(p);if(oldStyle!==p.style){this.local.dispose();this.local=avatar(this.scene,p,id,true);this.local.setPosition(pos.x,pos.z,pos.rotation,groundHeightAt(pos.x,pos.z,this.halls));}return;}
   this.local=avatar(this.scene,p,id,true);
@@ -1167,7 +1191,7 @@ export class TempleWorld{
   if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
-  if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.6;
+  if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.8;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1177,7 +1201,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.5],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
@@ -1254,7 +1278,7 @@ export class TempleWorld{
   const localPos=this.local.root.position;
   const visibleVisitors=new Set([...this.remotes.values()]
    .map(a=>({a,d:(a.root.position.x-localPos.x)**2+(a.root.position.z-localPos.z)**2}))
-   .sort((a,b)=>a.d-b.d).slice(0,this.mobile?12:28).map(item=>item.a.id));
+   .sort((a,b)=>a.d-b.d).slice(0,this.smoothMode?(this.mobile?5:10):(this.mobile?12:28)).map(item=>item.a.id));
   // Remote players are also resolved against the same masonry and stair geometry.
   for(const a of this.remotes.values()){
    a.root.visible=visibleVisitors.has(a.id);
@@ -1267,16 +1291,18 @@ export class TempleWorld{
    const currentYaw=a.root.rotation.y;
    let turn=((a.targetRotation-currentYaw+Math.PI*3)%(Math.PI*2))-Math.PI;
    a.root.rotation.y=currentYaw+turn*(1-Math.exp(-dt*10));
-   a.update(dt,time,remoteMoving&&a.pose==="walk");
+   if(a.root.visible)a.update(dt,time,remoteMoving&&a.pose==="walk");
   }
-  this.updateNpcs(dt,time);
+  if(!this.smoothMode){this.lowNpcElapsed=0;this.updateNpcs(dt,time);}else{this.lowNpcElapsed+=dt;if(this.lowNpcElapsed>=.1){this.updateNpcs(this.lowNpcElapsed,time);this.lowNpcElapsed=0;}}
   const cameraTargetPosition=this.local.root.position,inside=this.isInsideHall(cameraTargetPosition);
   this.indoor=inside;
   const cameraDistance=inside?clamp(this.distance*.36,2.6,3.8):this.distance;
   const cameraHeight=inside?1.72+Math.sin(this.pitch)*cameraDistance*.42:3.15+Math.sin(this.pitch)*this.distance*.75;
   const target=new THREE.Vector3(cameraTargetPosition.x+Math.sin(this.yaw)*cameraDistance,cameraTargetPosition.y+cameraHeight,cameraTargetPosition.z+Math.cos(this.yaw)*cameraDistance);
   this.camera.position.lerp(target,1-Math.pow(inside?.00025:.0007,dt));this.camera.lookAt(cameraTargetPosition.x,cameraTargetPosition.y+(inside?1.42:1.2),cameraTargetPosition.z);
-  for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
+  if(!this.smoothMode||time-this.lastLowDetailAnimation>=100){
+   this.lastLowDetailAnimation=time;
+   for(const item of this.lotusPads)item.pad.position.y=.31+Math.sin(time*.001+item.phase)*.025;
   for(const puff of this.incenseSmoke){
    const data=puff.userData.smoke,cycle=(time*.000085+data.phase)%1;
    puff.position.set(data.origin[0]+Math.sin(cycle*6.28+data.seed)*(.08+cycle*.34),data.origin[1]+cycle*2.25,data.origin[2]+Math.cos(cycle*5.2+data.seed)*(.07+cycle*.25));
@@ -1288,11 +1314,13 @@ export class TempleWorld{
    item.flame.scale.y=1.45*flicker;item.flame.scale.x=item.flame.scale.z=.72*(1+(1-flicker)*.6);
    item.glow.intensity=(.34+.12*flicker)*(1+(this.dayNightState?.night||0)*1.45);
   }
-  for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
+  if(!this.smoothMode)for(const d of this.ambient.children){d.position.y=d.userData.y+Math.sin(time*.0006+d.userData.phase)*.35;d.position.x+=Math.sin(time*.00017+d.userData.phase)*.0007;}
+  }
+  this.refreshLowDetailLights(false,time);
   this.updateEffects(dt);if(render)this.renderer.render(this.scene,this.camera);
  }
  updateDayNight(time){
-  if(time-this.lastDayNightUpdate<1000)return;
+  if(time-this.lastDayNightUpdate<(this.smoothMode?5000:1000))return;
   this.lastDayNightUpdate=time;
   // One shared epoch clock keeps all visitors in the same gradual day/dusk/night cycle.
   const phase=(Date.now()/1000%600)/600;
