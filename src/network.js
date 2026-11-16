@@ -28,6 +28,7 @@ export class TempleNetwork {
     this.heartbeatTimer = null;
     this.welcomeTimer = null;
     this.welcomed = false;
+    this.hasJoinedRoom = false;
     this.retry = 0;
     this.lastSent = 0;
     this.lastBroadcastPosition = null;
@@ -110,7 +111,9 @@ export class TempleNetwork {
       style: p.style || "monk",
       language: p.language || localStorage.getItem("temple-language") || "zh",
       x: String(pos.x || 0),
-      z: String(pos.z ?? 18)
+      z: String(pos.z ?? 18),
+      rotation: String(pos.rotation ?? 0),
+      resume: this.hasJoinedRoom ? "1" : "0"
     });
     const socket = new WebSocket(API_BASE.replace(/^http/, "ws") + "/api/live?" + query.toString());
     this.socket = socket;
@@ -136,6 +139,7 @@ export class TempleNetwork {
         const message = JSON.parse(event.data);
         if (message?.type === "welcome") {
           this.welcomed = true;
+          this.hasJoinedRoom = true;
           clearTimeout(this.welcomeTimer);
           this.welcomeTimer = null;
           this.onStatus("online");
