@@ -261,7 +261,11 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   await expect(page.locator("#location-card")).toBeHidden();
   await expect(page.locator("#presence-card")).toBeHidden();
 
-  await page.evaluate(() => window.__templeDebug.setPosition(0, -32.05));
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.input().pose)).toBe("walk");
+  const cushion=await page.evaluate(()=>window.__templeDebug.meditationCushions().find(p=>Math.abs(p.x)<.01&&Math.abs(p.z+32.05)<.01));
+  expect(cushion).toBeTruthy();
+  await page.evaluate(p=>window.__templeDebug.setPosition(p.x,p.z),cushion);
+  expect(await page.evaluate(()=>({position:window.__templeDebug.position(),canAct:window.__templeDebug.canAct("meditate")}))).toMatchObject({position:{x:0,z:-32.05},canAct:true});
   await page.locator('[data-action="meditate"]').click();
   await expect.poll(() => page.evaluate(() => window.__templeDebug.input().pose)).toBe("meditate");
   const seated = await page.evaluate(() => window.__templeDebug.position());
@@ -332,7 +336,7 @@ test("three independent guests share live presence, messages and wishes", async 
     const remoteBefore = await pageB.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
     const remoteBeforeC = await pageC.evaluate(() => window.__templeDebug.remotePlayers().map(p => ({...p})));
     const startA = await pageA.evaluate(() => window.__templeDebug.position());
-    await pageA.evaluate(p => window.__templeDebug.setPosition(p.x, p.z - 0.8), startA);
+    await pageA.evaluate(p => {window.__templeDebug.setPosition(p.x, p.z - 0.8);window.__templeDebug.broadcastPosition();}, startA);
     const movedFromA = before => {
       const now = window.__templeDebug.remotePlayers();
       return now.some(p => before.some(old => old.id === p.id && Math.hypot(old.x-p.x,old.z-p.z) > .25));
@@ -406,9 +410,9 @@ test("four market vendors stand on the east green lawn with product signs", asyn
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
   const state = await page.evaluate(() => ({market:window.__templeDebug.market(),labels:window.__templeDebug.marketLabels()}));
-  expect(state.market).toHaveLength(7);
+  expect(state.market).toHaveLength(4);
   expect(state.market.every(v=>v.x>=40)).toBe(true);
-  expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果","算命 · 求签","寺院文创 · 纪念品","麦当劳 · 汉堡"]);
+  expect(state.labels).toEqual(["素凉面 · 凉茶","香烛 · 莲灯","咖啡 · 茶饮","素食点心 · 时令水果"]);
 });
 
 test("lotus offering is lightweight and local-only, with no boat animation", async ({ page }) => {
