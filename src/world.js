@@ -476,7 +476,7 @@ export class TempleWorld{
    const glow=new THREE.PointLight(0xffca82,.42,10);glow.position.set(0,-.32,0);lanternGroup.add(glow);
    this.nightLights.push({light:glow,base:.42});
   }
-  for(const [x,z] of [[-10,-7],[10,-7],[-10,7],[10,7]]){
+  for(const [x,z] of [[-10,-7],[-10,7],[10,7]]){
    const shrub=add(new THREE.IcosahedronGeometry(.72,1),m.pine,teaLawn,[x,.5,z],[0,0,0],false);shrub.scale.set(1,.62,.85);
   }
   // A remote parking lot in a natural forest clearing, connected by a quiet gravel lane.
@@ -889,7 +889,7 @@ export class TempleWorld{
   const shrineGlow=new THREE.PointLight(0xffd39a,.28,8);shrineGlow.position.set(0,2.0,-.4);shrine.add(shrineGlow);this.nightLights.push({light:shrineGlow,base:.28});
 
   // The two-pan washroom now sits behind the Great Buddha Hall, beside the forest tea house.
-  const washroom=new THREE.Group();washroom.position.set(9.8,0,-62);s.add(washroom);this.washroom=washroom;
+  const washroom=new THREE.Group();washroom.position.set(10.6,0,-66.5);s.add(washroom);this.washroom=washroom;
   const washStone=mat(0xb8ad98,.96),washWood=mat(0x493326,.9),washRoof=mat(0x35483d,.94),washTrim=mat(0x9b7a4d,.8);
   add(new THREE.BoxGeometry(6.1,.22,5.25),washStone,washroom,[0,.11,0]);
   add(new THREE.PlaneGeometry(5.6,4.8),m.stoneLight,washroom,[0,.235,0],[-Math.PI/2,0,0],false);
