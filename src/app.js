@@ -732,7 +732,7 @@ document.addEventListener("touchmove",event=>{
  if(!touchAudioGate||mobileSwipeCollapseDone||event.touches.length!==1||mobileSwipeStartY===null)return;
  if(mobileSwipeStartY-event.touches[0].clientY>42){
   const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
-  if(maxScroll>0){window.scrollTo({top:Math.min(maxScroll,100),behavior:"instant"});mobileSwipeCollapseDone=true;}
+  if(maxScroll>0){window.scrollTo(0,Math.min(maxScroll,100));mobileSwipeCollapseDone=true;}
  }
 },{passive:true,capture:true});
 document.addEventListener("touchend",event=>{if(event.touches.length===0)mobileSwipeStartY=null;},{passive:true,capture:true});
