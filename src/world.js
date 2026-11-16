@@ -1315,9 +1315,14 @@ export class TempleWorld{
  addEffect(type,position=null){
   // Lotus offerings intentionally create no 3D object or network effect.
   if(type==="lotus")return;
-  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);
+  const p=position?new THREE.Vector3(position.x,0,position.z):(this.local?.root.position?.clone()||new THREE.Vector3()),g=new THREE.Group();g.position.copy(p);
   if(type==="bell")g.position.set(8,0,-41);
-  if(type==="incense")g.position.copy(this.incensePosition);
+  if(type==="incense"){
+   // Show the incense smoke at the offering point actually used, not always at the courtyard censer.
+   if(Math.hypot(p.x-this.incensePosition.x,p.z-this.incensePosition.z)<4.4)g.position.copy(this.incensePosition);
+   else if(Math.hypot(p.x+22.5,p.z+32)<4.6)g.position.set(-22.5,0,-32);
+   else if(this.isInsideHall(p))g.position.set(0,0,-38.5);
+  }
   this.scene.add(g);
   if(type==="incense"){for(let i=0;i<12;i++){const puff=add(new THREE.SphereGeometry(.11+Math.random()*.1,7,6),new THREE.MeshBasicMaterial({color:0xe7e1d1,transparent:true,opacity:.32}),g,[Math.random()*.4-.2,1.5+Math.random()*.2,Math.random()*.4-.2],[0,0,0],false);puff.userData.life=3;puff.userData.vy=.6;}}
   else {for(let i=0;i<12;i++){const d=add(new THREE.SphereGeometry(.045,6,6),new THREE.MeshBasicMaterial({color:0xf2d59a,transparent:true,opacity:.7}),g,[(Math.random()-.5)*1.5,1.7+Math.random()*1.4,(Math.random()-.5)*.7],[0,0,0],false);d.userData.life=1.5;d.userData.vy=.35;}}
