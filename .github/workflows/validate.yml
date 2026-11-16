@@ -67,7 +67,7 @@ jobs:
           test "${canonical_status}" = "200"
           grep -q 'rel="canonical" href="https://helixtemple.com/"' /tmp/helixtemple-canonical.html
           grep -q 'application/ld+json' /tmp/helixtemple-canonical.html
-          for endpoint in robots.txt sitemap.xml og-image.svg; do
+          for endpoint in robots.txt sitemap.xml og-image.jpg; do
             code="$(curl -sS -o "/tmp/helixtemple-${endpoint}" -w '%{http_code}' "https://helixtemple.com/${endpoint}")"
             test "${code}" = "200"
           done
