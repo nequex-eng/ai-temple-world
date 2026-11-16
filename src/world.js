@@ -1042,41 +1042,41 @@ export class TempleWorld{
   // Spacious Zen rest hall on the open lawn east of the lotus pond.
   this.zenRoom=new THREE.Group();this.zenRoom.position.set(28,0,-45);s.add(this.zenRoom);
   this.zenRestSpots=[];this.benchRestSpots=[];
-  const zen=this.zenRoom,zenStone=mat(0xb9ae98,.94),zenWood=mat(0x4a3426,.9),zenTrim=mat(0xb18b55,.78,{metalness:.1}),zenRoof=mat(0x35483d,.94),bedWood=mat(0x5b4030,.86),bedMat=mat(0xc9b995,.96),bedCover=mat(0x9a8060,.94);
-  add(new THREE.BoxGeometry(17.1,.24,14.5),zenStone,zen,[0,.12,0]);
+  const zen=this.zenRoom,restHallStone=mat(0xb9ae98,.94),restHallWood=mat(0x4a3426,.9),restHallTrim=mat(0xb18b55,.78,{metalness:.1}),restHallRoof=mat(0x35483d,.94),restBedWood=mat(0x5b4030,.86),restBedMat=mat(0xc9b995,.96),restBedCover=mat(0x9a8060,.94);
+  add(new THREE.BoxGeometry(17.1,.24,14.5),restHallStone,zen,[0,.12,0]);
   add(new THREE.PlaneGeometry(16.6,14.0),m.stoneLight,zen,[0,.245,0],[-Math.PI/2,0,0],false);
-  add(new THREE.BoxGeometry(.24,3.7,14.2),zenStone,zen,[-8.5,1.95,0]);
-  add(new THREE.BoxGeometry(.24,3.7,14.2),zenStone,zen,[8.5,1.95,0]);
-  add(new THREE.BoxGeometry(17.0,3.7,.24),zenStone,zen,[0,1.95,-7.15]);
-  add(new THREE.BoxGeometry(4.8,3.7,.24),zenStone,zen,[-6.1,1.95,7.15]);
-  add(new THREE.BoxGeometry(4.8,3.7,.24),zenStone,zen,[6.1,1.95,7.15]);
-  for(const x of [-8.35,8.35])for(const z of [-7,7])add(new THREE.BoxGeometry(.42,4.05,.42),zenWood,zen,[x,2.0,z]);
-  add(new THREE.BoxGeometry(17.3,.2,.24),zenWood,zen,[0,3.9,-7.15]);
-  add(new THREE.BoxGeometry(17.3,.2,.24),zenWood,zen,[0,3.9,7.15]);
-  const zenRoofGroup=new THREE.Group();zen.add(zenRoofGroup);
-  planeRoof(zenRoofGroup,17.2,14.2,5.25,4.05,1,zenRoof);planeRoof(zenRoofGroup,17.2,14.2,5.25,4.05,-1,zenRoof);
-  add(new THREE.BoxGeometry(17.0,.16,14.0),zenTrim,zen,[0,4.02,0]);
+  add(new THREE.BoxGeometry(.24,3.7,14.2),restHallStone,zen,[-8.5,1.95,0]);
+  add(new THREE.BoxGeometry(.24,3.7,14.2),restHallStone,zen,[8.5,1.95,0]);
+  add(new THREE.BoxGeometry(17.0,3.7,.24),restHallStone,zen,[0,1.95,-7.15]);
+  add(new THREE.BoxGeometry(4.8,3.7,.24),restHallStone,zen,[-6.1,1.95,7.15]);
+  add(new THREE.BoxGeometry(4.8,3.7,.24),restHallStone,zen,[6.1,1.95,7.15]);
+  for(const x of [-8.35,8.35])for(const z of [-7,7])add(new THREE.BoxGeometry(.42,4.05,.42),restHallWood,zen,[x,2.0,z]);
+  add(new THREE.BoxGeometry(17.3,.2,.24),restHallWood,zen,[0,3.9,-7.15]);
+  add(new THREE.BoxGeometry(17.3,.2,.24),restHallWood,zen,[0,3.9,7.15]);
+  const restHallRoofGroup=new THREE.Group();zen.add(restHallRoofGroup);
+  planeRoof(restHallRoofGroup,17.2,14.2,5.25,4.05,1,restHallRoof);planeRoof(restHallRoofGroup,17.2,14.2,5.25,4.05,-1,restHallRoof);
+  add(new THREE.BoxGeometry(17.0,.16,14.0),restHallTrim,zen,[0,4.02,0]);
   for(const bx of [-6,-3,0,3,6])for(const bz of [-3.4,2.4]){
    const bed=new THREE.Group();bed.position.set(bx,.26,bz);zen.add(bed);
-   add(new THREE.BoxGeometry(2.28,.34,1.62),bedWood,bed,[0,.16,0]);
-   add(new THREE.BoxGeometry(2.12,.18,1.48),bedMat,bed,[0,.42,0]);
-   add(new THREE.BoxGeometry(1.95,.08,1.02),bedCover,bed,[0,.54,.18]);
-   add(new THREE.BoxGeometry(2.28,1.0,.16),bedWood,bed,[0,.74,-.78]);
-   add(new THREE.BoxGeometry(.58,.16,.38),bedMat,bed,[0,.64,-.48]);
+   add(new THREE.BoxGeometry(2.28,.34,1.62),restBedWood,bed,[0,.16,0]);
+   add(new THREE.BoxGeometry(2.12,.18,1.48),restBedMat,bed,[0,.42,0]);
+   add(new THREE.BoxGeometry(1.95,.08,1.02),restBedCover,bed,[0,.54,.18]);
+   add(new THREE.BoxGeometry(2.28,1.0,.16),restBedWood,bed,[0,.74,-.78]);
+   add(new THREE.BoxGeometry(.58,.16,.38),restBedMat,bed,[0,.64,-.48]);
    this.zenRestSpots.push({x:28+bx,z:-45+bz+(bz<0?1.65:-1.65),type:"bed",rotation:bz<0?Math.PI:0});
   }
   const zenCanvas=document.createElement("canvas");zenCanvas.width=512;zenCanvas.height=128;const zctx=zenCanvas.getContext("2d");
   zctx.fillStyle="#493526";zctx.fillRect(0,0,512,128);zctx.strokeStyle="#d8bd82";zctx.lineWidth=7;zctx.strokeRect(8,8,496,112);
   zctx.textAlign="center";zctx.textBaseline="middle";zctx.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';zctx.fillStyle="#fff0cc";zctx.fillText("禅房",256,64);
   const zenTexture=new THREE.CanvasTexture(zenCanvas);zenTexture.colorSpace=THREE.SRGBColorSpace;
-  add(new THREE.BoxGeometry(4.2,.86,.18),zenWood,zen,[0,3.25,7.24]);
+  add(new THREE.BoxGeometry(4.2,.86,.18),restHallWood,zen,[0,3.25,7.24]);
   add(new THREE.PlaneGeometry(3.9,.66),new THREE.MeshBasicMaterial({map:zenTexture,toneMapped:false}),zen,[0,3.25,7.34],[0,0,0],false);
   const benchPositions=[[-24,-15],[-24,8],[25,10],[25,-14],[0,47],[-15,35],[14,35],[-15,-48]];
   for(const [bx,bz] of benchPositions){
    const bench=new THREE.Group();bench.position.set(bx,0,bz);s.add(bench);
-   add(new THREE.BoxGeometry(2.5,.18,.68),bedWood,bench,[0,.82,0]);
-   add(new THREE.BoxGeometry(2.5,.78,.16),bedWood,bench,[0,1.25,-.28]);
-   for(const lx of [-.92,.92])add(new THREE.BoxGeometry(.16,.78,.18),zenWood,bench,[lx,.42,0]);
+   add(new THREE.BoxGeometry(2.5,.18,.68),restBedWood,bench,[0,.82,0]);
+   add(new THREE.BoxGeometry(2.5,.78,.16),restBedWood,bench,[0,1.25,-.28]);
+   for(const lx of [-.92,.92])add(new THREE.BoxGeometry(.16,.78,.18),restHallWood,bench,[lx,.42,0]);
    this.benchRestSpots.push({x:bx,z:bz+1.25,type:"bench",rotation:Math.PI});
   }
   // Bodhi tree
