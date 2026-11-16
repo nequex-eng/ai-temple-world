@@ -76,7 +76,7 @@ assert.ok(world.includes("actorCollisionWorld") && world.includes("isInsideHall"
 assert.ok(world.includes("const robeProfile=") && world.includes("const hand=new THREE.Group()") && world.includes("const chin="), "Monk avatar must have shaped shoulders, hands and facial anatomy");
 assert.ok(world.includes("const total=180") && world.includes("const occupied="), "New visitors must receive non-overlapping Great Hall entrance spawn positions");
 assert.ok(world.includes("a.update(dt,time,remoteMoving&&a.pose===\"walk\")") && world.includes("a.root.rotation.y=currentYaw+turn"), "Remote visitors must turn and animate while walking");
-assert.ok(world.includes("slice(0,this.mobile?12:28)") && world.includes("a.root.visible=visibleVisitors.has(a.id)"), "Multiplayer avatars must use distance-ranked visual LOD without reducing online capacity");
+assert.ok(world.includes("slice(0,this.smoothMode?(this.mobile?5:10):(this.mobile?12:28))") && world.includes("a.root.visible=visibleVisitors.has(a.id)") && world.includes("if(a.root.visible)a.update"), "Multiplayer avatars must use stronger distance-ranked visual LOD in low-load mode without reducing online capacity");
 assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22]") && world.includes("robeGeometry.scale(1,1,.78)"), "Monk body must have a shaped, tapered and non-cylindrical human torso");
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
