@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">云上禅境 · AI Temple World</title>
+<desc id="desc">A tranquil digital temple in the mountains at sunrise.</desc>
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#172d2a"/><stop offset=".52" stop-color="#526b5c"/><stop offset="1" stop-color="#d2b88c"/></linearGradient>
+ <linearGradient id="water" x2="0" y2="1"><stop stop-color="#314d47"/><stop offset="1" stop-color="#172a28"/></linearGradient>
+ <linearGradient id="gold" x2="1" y2="1"><stop stop-color="#f4dfae"/><stop offset="1" stop-color="#b58a4f"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#fff2c8" stop-opacity=".95"/><stop offset="1" stop-color="#f3c77c" stop-opacity="0"/></radialGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="22"/></filter>
+ <pattern id="grain" width="90" height="90" patternUnits="userSpaceOnUse"><circle cx="4" cy="8" r="1" fill="#fff" opacity=".08"/><circle cx="51" cy="37" r=".8" fill="#fff" opacity=".06"/><circle cx="75" cy="78" r="1" fill="#fff" opacity=".05"/></pattern>
+</defs>
+<rect width="1200" height="630" fill="url(#sky)"/>
+<circle cx="875" cy="165" r="150" fill="url(#sun)"/>
+<path d="M0 265 110 184 190 234 300 145 410 232 525 155 625 230 740 132 840 214 960 145 1080 220 1200 158V430H0Z" fill="#203b34" opacity=".7"/>
+<path d="M0 330 135 248 225 300 350 210 460 305 590 220 700 305 830 205 940 300 1065 225 1200 300V470H0Z" fill="#2e4b3d"/>
+<path d="M0 375Q170 280 320 360T650 340T970 355T1200 315V470H0Z" fill="#6c806a" opacity=".65"/>
+<g fill="#172c27">
+ <path d="M55 430 85 300 114 430ZM85 385 47 337 85 350 126 322 99 382Z"/>
+ <path d="M190 425 223 270 256 425ZM223 375 180 326 221 341 270 310 243 380Z"/>
+ <path d="M1010 428 1042 255 1075 428ZM1042 365 1002 315 1041 334 1087 298 1060 372Z"/>
+ <path d="M1120 435 1150 292 1180 435ZM1150 378 1112 330 1149 345 1190 316 1167 386Z"/>
+</g>
+<g opacity=".28" fill="#e6d4ae" filter="url(#blur)"><ellipse cx="410" cy="360" rx="420" ry="35"/><ellipse cx="950" cy="330" rx="330" ry="26"/></g>
+<!-- temple silhouette -->
+<g transform="translate(640 220)">
+ <path d="M40 165 105 112 174 91 243 112 310 165 295 176 174 135 55 176Z" fill="#241f19"/>
+ <path d="M62 157 174 123 286 157 279 168 174 140 69 168Z" fill="#a77d49"/>
+ <path d="M93 169V310M148 145V310M201 145V310M255 169V310" stroke="#4a3323" stroke-width="15"/>
+ <path d="M77 194H272V210H77Z" fill="#c59a5e"/>
+ <path d="M88 212H260V296H88Z" fill="#493725"/>
+ <path d="M105 226H243V296H105Z" fill="#1d2d28"/>
+ <path d="M126 226V296M174 220V296M222 226V296" stroke="#bb8d52" stroke-width="7"/>
+ <path d="M40 165 105 112 174 91 243 112 310 165" fill="none" stroke="url(#gold)" stroke-width="7"/>
+ <path d="M105 112Q174 76 243 112L260 121Q174 89 88 121Z" fill="#34261d"/>
+ <path d="M174 91V56" stroke="#d7b16e" stroke-width="5"/>
+ <path d="M163 59 174 42 185 59Z" fill="#d7b16e"/>
+ <path d="M88 310H260" stroke="#c59a5e" stroke-width="9"/>
+ <path d="M70 314H278L305 338H43Z" fill="#74604a"/>
+</g>
+<!-- foreground pond -->
+<path d="M0 475Q260 440 500 478T920 470T1200 454V630H0Z" fill="url(#water)"/>
+<path d="M0 495Q220 467 440 498T850 493T1200 481" fill="none" stroke="#d8c49b" stroke-opacity=".42" stroke-width="3"/>
+<g fill="none" stroke="#d8c49b" stroke-opacity=".25"><path d="M55 535Q210 522 370 540"/><path d="M500 565Q680 548 820 564"/><path d="M875 520Q1020 508 1160 522"/></g>
+<g transform="translate(180 535)">
+ <ellipse cx="0" cy="0" rx="34" ry="9" fill="#62816a"/><path d="M0 0Q-31 -28 -19 -37Q-4 -33 0 0Q5 -33 22 -36Q35 -20 0 0Z" fill="#d9a66e"/><circle cx="0" cy="-8" r="5" fill="#f1d59c"/>
+</g>
+<g transform="translate(1060 565) scale(.8)">
+ <ellipse cx="0" cy="0" rx="34" ry="9" fill="#62816a"/><path d="M0 0Q-31 -28 -19 -37Q-4 -33 0 0Q5 -33 22 -36Q35 -20 0 0Z" fill="#d9a66e"/><circle cx="0" cy="-8" r="5" fill="#f1d59c"/>
+</g>
+<!-- left text panel -->
+<rect x="55" y="85" width="520" height="370" rx="22" fill="#10231f" opacity=".42"/>
+<path d="M92 135H172M458 135H538" stroke="#d8b77b" stroke-width="2" opacity=".85"/>
+<text x="315" y="145" text-anchor="middle" fill="#e5d2a7" font-family="serif" font-size="18" letter-spacing="8">A SHARED DIGITAL SANCTUARY</text>
+<text x="315" y="260" text-anchor="middle" fill="#f4e7c9" font-family="serif,'Noto Serif CJK SC',sans-serif" font-size="78" font-weight="600">云上禅境</text>
+<path d="M150 290H480" stroke="#d8b77b" stroke-width="1.5" opacity=".8"/>
+<text x="315" y="345" text-anchor="middle" fill="#e8d5ad" font-family="Georgia,serif" font-size="34" letter-spacing="5">AI TEMPLE WORLD</text>
+<text x="315" y="390" text-anchor="middle" fill="#e0d4bb" font-family="sans-serif" font-size="17" letter-spacing="3">WALK · PAUSE · CONNECT</text>
+<rect width="1200" height="630" fill="url(#grain)"/>
+<rect x="16" y="16" width="1168" height="598" rx="18" fill="none" stroke="#d6bd8d" stroke-opacity=".55" stroke-width="2"/>
+</svg>
