@@ -472,6 +472,7 @@ function syncWanderButton(){
 function doAction(action){
  if(action==="wander"){
   if(!profile)return;
+  world.stopGarden();
   const active=world.toggleWander();syncWanderButton();
   toast(active?(t().wanderStarted||"开始闲逛"):(t().wanderStopped||"已停止闲逛"));return;
  }

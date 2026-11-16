@@ -277,3 +277,7 @@ assert.ok(html.includes('data-action="garden"') && !html.includes('data-action="
 assert.ok(world.includes('if(a==="meditate")return true;') && !world.includes('if(action==="meditate"){\n   const cushions=MEDITATION_CUSHIONS') && world.includes('legs[0].rotation.set(.08,0,Math.PI/2)'), "Meditation must be available anywhere with a visibly cross-legged pose");
 assert.ok(world.includes('this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]]') && worker.includes('"water"'), "Garden route and shared watering action must be configured");
 assert.ok(world.includes('this.incensePosition.x,p.z-this.incensePosition.z)<6.8') && worker.includes('!near(0, -22.4, 7.0)') && worker.includes('near(-22.5, -32, 6.2)'), "Incense interaction range must be enlarged consistently on client and server");
+
+const gardenCollision=createTempleCollision([]);
+assert.ok(findWalkPath({x:0,z:-49},{x:-50.5,z:-61},gardenCollision)?.length, "Northwest garden must be reachable around the north end of the west wish wall");
+for(const [x,z] of [[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5],[-50.5,-61]])assert.ok(findWalkPath({x:-50.5,z:-61},{x,z},gardenCollision)?.length, "Garden perimeter route must remain connected at "+x+","+z);
