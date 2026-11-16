@@ -118,9 +118,15 @@ test("desktop: create a monk, connect to the shared room, chat and open the wish
 
   await page.locator('[data-action="beads"]').click();
   await expect(page.locator("#beads-modal")).not.toHaveClass(/hidden/);
-  await page.locator("#beads-advance").click();
-  await page.locator("#beads-advance").click();
-  await page.locator("#beads-advance").click();
+  await expect(page.locator("#beads-advance")).toHaveCount(0);
+  const beadBox=await page.locator("#beads-ring").boundingBox();
+  const beadRadius=Math.min(beadBox.width,beadBox.height)/2-13;
+  const beadCenter={x:beadBox.x+beadBox.width/2,y:beadBox.y+beadBox.height/2};
+  await page.mouse.move(beadCenter.x,beadCenter.y-beadRadius);
+  await page.mouse.down();
+  const beadAngle=-Math.PI/2+(3/108)*Math.PI*2;
+  await page.mouse.move(beadCenter.x+Math.cos(beadAngle)*beadRadius,beadCenter.y+Math.sin(beadAngle)*beadRadius,{steps:8});
+  await page.mouse.up();
   await expect(page.locator("#beads-count")).toHaveText("3");
   await page.locator('[data-close="beads-modal"]').click();
   await expect(page.locator("#beads-modal")).toHaveClass(/hidden/);
@@ -296,10 +302,7 @@ test("main hall meditation uses a real cushion and mobile information panels sta
   expect(await page.evaluate(() => window.__templeDebug.canAct("lotus"))).toBe(true);
   await page.locator('[data-action="lotus"]').click();
   expect(await page.evaluate(() => window.__templeDebug.cushions())).toBeGreaterThanOrEqual(24);
-  const abbotBefore=await page.evaluate(()=>window.__templeDebug.npcs()[0]);
-  await page.waitForTimeout(7500);
-  const abbotAfter=await page.evaluate(()=>window.__templeDebug.npcs()[0]);
-  expect(Math.hypot(abbotAfter.x-abbotBefore.x,abbotAfter.z-abbotBefore.z)).toBeGreaterThan(.4);
+  expect(await page.evaluate(()=>window.__templeDebug.npcs().length)).toBe(0);
   await cleanTestGuest(page);
 });
 
