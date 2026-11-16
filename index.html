@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#16251f">
-  <meta name="temple-build" content="20261116-r21">
+  <meta name="temple-build" content="20261116-r22">
   <meta name="description" content="一座向世界敞开的数字寺院。创建自己的小和尚，在山门、殿宇、莲池与菩提树下自由行走、礼敬、静坐、交流。">
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261116-r21">
+  <link rel="stylesheet" href="/style.css?v=20261116-r22">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -175,6 +175,40 @@
       <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
     </section>
   </div>
-  <script type="module" src="/src/app.js?v=20261116-r21"></script>
+  <script>
+  (() => {
+    let shown = false;
+    const showFailure = reason => {
+      const screen = document.getElementById("loading");
+      if (!screen || screen.classList.contains("hidden") || shown) return;
+      shown = true;
+      screen.classList.add("boot-error");
+      const note = document.getElementById("loading-note");
+      if (note) note.textContent = "启动中断 · " + String(reason || "3D 场景未能启动").slice(0, 110);
+      let retry = document.getElementById("loading-retry");
+      if (!retry) {
+        retry = document.createElement("button");
+        retry.id = "loading-retry";
+        retry.type = "button";
+        retry.textContent = "重新进入";
+        retry.style.cssText = "margin-top:22px;padding:10px 28px;border:1px solid #d9bd83;background:transparent;color:#f4e4c4;font:14px serif;letter-spacing:.12em";
+        retry.addEventListener("click", () => location.reload());
+        screen.appendChild(retry);
+      }
+    };
+    window.__templeShowBootFailure = showFailure;
+    window.addEventListener("error", event => showFailure(event.message || "主程序发生错误"));
+    window.addEventListener("unhandledrejection", event => showFailure(event.reason?.message || "启动过程发生错误"));
+    const module = document.createElement("script");
+    module.type = "module";
+    module.src = "/src/app.js?v=20261116-r22";
+    module.onerror = () => showFailure("主程序文件未能加载，请检查网络后重试");
+    document.body.appendChild(module);
+    setTimeout(() => {
+      const screen = document.getElementById("loading");
+      if (screen && !screen.classList.contains("hidden") && !window.__TEMPLE_BOOT_COMPLETE) showFailure("3D 寺院初始化超时");
+    }, 25000);
+  })();
+ </script>
 </body>
 </html>
