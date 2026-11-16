@@ -428,7 +428,15 @@ export class TempleWorld{
   this.container=container;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x9aaea4);this.scene.fog=new THREE.FogExp2(0x9aaea4,.0068);
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;this.renderFrameInterval=25;this.lowNpcElapsed=0;this.lastLowDetailLights=0;this.lastLowDetailAnimation=0;
-  this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
+  const rendererOptions={antialias:true,alpha:false,powerPreference:"default",failIfMajorPerformanceCaveat:false,stencil:false,depth:true};
+  try{
+   this.renderer=new THREE.WebGLRenderer(rendererOptions);
+  }catch(primaryError){
+   // Some mobile GPUs reject the preferred antialiased context under memory pressure.
+   // Retry with the browser's low-power path before failing the whole application.
+   console.warn("Primary WebGL context creation failed; retrying with a compatible context.",primaryError);
+   this.renderer=new THREE.WebGLRenderer({...rendererOptions,antialias:false,powerPreference:"low-power"});
+  }
   this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
   this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.gardenActive=false;this.gardenStarted=false;this.gardenPauseUntil=0;this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];this.gardenRoutes=[this.gardenRoute,[[50.5,-61],[50.5,-48.5],[72,-48.5],[72,-73.5],[50.5,-73.5]]];this.gardenRouteIndex=0;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
