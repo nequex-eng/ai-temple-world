@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r3";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r5";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -573,6 +573,80 @@ export class TempleWorld{
    const stall=marketStall(s,vendor.x,vendor.z,vendor.side,vendor.kind,m);
    this.marketStalls.push(stall);this.nightLights.push(...stall.userData.nightLights);
   }
+  // 山门前的森林绿地：独立的中式素斋馆「斋」，面向主路敞开。
+  add(new THREE.PlaneGeometry(30,25),m.grass,s,[22,-.085,25],[-Math.PI/2,0,0],false);
+  const restaurantPath=mat(0xa69b82,.98);
+  add(new THREE.PlaneGeometry(13.4,2.6),restaurantPath,s,[10.7,-.045,25],[-Math.PI/2,0,0],false);
+  // A few mature pines frame the clearing without crowding the approach.
+  for(const [tx,tz,scale] of [[12.5,15.8,.9],[33.2,16.2,1.05],[33.4,34.2,.92],[12.4,34.4,.82]]){
+   const tree=new THREE.Group();tree.position.set(tx,0,tz);tree.scale.setScalar(scale);s.add(tree);
+   add(new THREE.CylinderGeometry(.14,.22,2.8,8),m.bark,tree,[0,1.4,0]);
+   for(let tier=0;tier<3;tier++)add(new THREE.ConeGeometry(1.55-tier*.23,2.15,8),tier===1?m.pine2:m.pine,tree,[0,2.2+tier*.78,0]);
+  }
+  const restaurant=new THREE.Group();restaurant.position.set(22,0,25);restaurant.rotation.y=Math.PI/2;s.add(restaurant);this.restaurant=restaurant;
+  const restaurantWood=mat(0x62452e,.9),restaurantDark=mat(0x3d3025,.94),restaurantTrim=mat(0xb18b55,.68,{metalness:.12}),restaurantFloor=mat(0x9b8160,.94),restaurantWall=mat(0x806c51,.96);
+  add(new THREE.BoxGeometry(12.25,.16,9.35),restaurantFloor,restaurant,[0,-.08,0]);
+  add(new THREE.PlaneGeometry(12,9.1),restaurantFloor,restaurant,[0,.008,0],[-Math.PI/2,0,0],false);
+  // Timber posts, low side screens and a warm open kitchen at the rear.
+  for(const x of [-5.65,5.65])for(const z of [-4.1,4.1]){
+   add(new THREE.BoxGeometry(.34,4.05,.34),restaurantWood,restaurant,[x,2.02,z]);
+   add(new THREE.BoxGeometry(.54,.18,.54),restaurantTrim,restaurant,[x,.12,z]);
+   add(new THREE.BoxGeometry(.52,.16,.52),restaurantTrim,restaurant,[x,4.08,z]);
+  }
+  add(new THREE.BoxGeometry(11.15,2.65,.24),restaurantWall,restaurant,[0,1.38,-4.25]);
+  for(const x of [-5.65,5.65]){
+   add(new THREE.BoxGeometry(.22,1.25,8.05),restaurantWall,restaurant,[x,.68,0]);
+   for(const z of [-2.7,-1.35,0,1.35,2.7])add(new THREE.BoxGeometry(.12,1.15,.09),restaurantWood,restaurant,[x,.72,z]);
+   add(new THREE.BoxGeometry(.18,.13,8.1),restaurantTrim,restaurant,[x,1.35,0]);
+  }
+  add(new THREE.BoxGeometry(11.35,.24,.28),restaurantWood,restaurant,[0,3.62,4.13]);
+  add(new THREE.BoxGeometry(11.35,.24,.28),restaurantWood,restaurant,[0,3.62,-4.13]);
+  add(new THREE.BoxGeometry(.22,.22,8.25),restaurantWood,restaurant,[-5.58,3.62,0]);
+  add(new THREE.BoxGeometry(.22,.22,8.25),restaurantWood,restaurant,[5.58,3.62,0]);
+  planeRoof(restaurant,12,9.1,5.15,4.05,1,m.roof);
+  planeRoof(restaurant,12,9.1,5.15,4.05,-1,m.roof);
+  add(new THREE.CylinderGeometry(.12,.12,13.7,10),restaurantTrim,restaurant,[0,5.2,0],[0,0,Math.PI/2]);
+  for(const x of [-6.8,6.8])for(const z of [-5.05,5.05])add(new THREE.SphereGeometry(.18,9,8),restaurantTrim,restaurant,[x,4.18,z]);
+  // Service counter and simple vegetarian dishes make the use of the building immediately legible.
+  add(new THREE.BoxGeometry(7.0,.9,.82),restaurantDark,restaurant,[0,.62,-2.65]);
+  add(new THREE.BoxGeometry(7.25,.16,1.02),restaurantTrim,restaurant,[0,1.15,-2.65]);
+  for(const x of [-2.4,-.8,.8,2.4]){
+   add(new THREE.CylinderGeometry(.34,.28,.12,18),mat(0xe1d5bd,.48),restaurant,[x,1.28,-2.62]);
+   add(new THREE.SphereGeometry(.21,12,8),mat(0x6b8b58,.76),restaurant,[x,1.36,-2.62]).scale.set(1,.34,1);
+  }
+  for(const x of [-2.8,2.8]){
+   add(new THREE.CylinderGeometry(.78,.78,.14,20),restaurantWood,restaurant,[x,1.02,.75]);
+   add(new THREE.CylinderGeometry(.13,.17,.95,10),restaurantDark,restaurant,[x,.52,.75]);
+   for(const side of [-1,1]){
+    add(new THREE.BoxGeometry(.94,.16,.34),restaurantWood,restaurant,[x+side*1.03,.43,.75]);
+    add(new THREE.BoxGeometry(.16,.48,.16),restaurantDark,restaurant,[x+side*1.03,.2,.75]);
+   }
+   for(const z of [-.25,1.75]){
+    add(new THREE.BoxGeometry(.9,.16,.34),restaurantWood,restaurant,[x,.43,z]);
+    add(new THREE.BoxGeometry(.16,.48,.16),restaurantDark,restaurant,[x,.2,z]);
+   }
+  }
+  // Hanging lanterns and potted greens warm the open dining room at night.
+  for(const x of [-3.8,3.8]){
+   add(new THREE.BoxGeometry(.045,.72,.045),restaurantDark,restaurant,[x,3.42,.15]);
+   add(new THREE.CylinderGeometry(.22,.27,.52,10),m.paper,restaurant,[x,3.0,.15]);
+   add(new THREE.ConeGeometry(.34,.18,10),restaurantTrim,restaurant,[x,2.68,.15]);
+   const glow=new THREE.PointLight(0xffc987,.32,8);glow.position.set(x,2.95,.15);restaurant.add(glow);this.nightLights.push({light:glow,base:.32});
+  }
+  for(const x of [-6.8,6.8]){
+   add(new THREE.BoxGeometry(.9,.48,.9),restaurantDark,restaurant,[x,.24,0]);
+   const shrub=add(new THREE.IcosahedronGeometry(.55,1),m.pine,restaurant,[x,.75,0],[0,0,0],false);shrub.scale.set(1,.85,1);
+  }
+  const restaurantCanvas=document.createElement("canvas");restaurantCanvas.width=512;restaurantCanvas.height=256;
+  const restaurantCtx=restaurantCanvas.getContext("2d");restaurantCtx.fillStyle="#302b22";restaurantCtx.fillRect(0,0,512,256);
+  restaurantCtx.strokeStyle="#d7b878";restaurantCtx.lineWidth=12;restaurantCtx.strokeRect(13,13,486,230);
+  restaurantCtx.textAlign="center";restaurantCtx.textBaseline="middle";restaurantCtx.fillStyle="#f1dfb9";
+  restaurantCtx.font='bold 154px "Songti SC","Noto Serif CJK SC",serif';restaurantCtx.fillText("斋",256,112);
+  restaurantCtx.font='bold 25px Georgia,serif';restaurantCtx.fillText("VEGETARIAN KITCHEN",256,205);
+  const restaurantMap=new THREE.CanvasTexture(restaurantCanvas);restaurantMap.colorSpace=THREE.SRGBColorSpace;
+  add(new THREE.BoxGeometry(2.5,1.28,.16),restaurantDark,restaurant,[0,3.08,4.72]);
+  add(new THREE.PlaneGeometry(2.34,1.12),new THREE.MeshBasicMaterial({map:restaurantMap,toneMapped:false}),restaurant,[0,3.08,4.81],[0,0,0],false);
+  this.restaurantSign={ctx:restaurantCtx,map:restaurantMap,canvas:restaurantCanvas};
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
   // It runs perpendicular to the mountain gate and faces inward toward visitors.
   const wishWall=new THREE.Group();wishWall.position.set(-31,0,-13.5);wishWall.rotation.y=Math.PI/2;s.add(wishWall);
@@ -1032,6 +1106,8 @@ export class TempleWorld{
 
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
   this.npcs.push({avatar:{root:teaHost,update(){},dispose(){teaHost.parent?.remove(teaHost);}},stationary:true});
+  const restaurantHost=marketVendor(this.scene,19.1,27.2,-Math.PI/2,this.m);restaurantHost.name="vegetarian-kitchen-host";
+  this.npcs.push({avatar:{root:restaurantHost,update(dt,time){restaurantHost.userData.animateInteraction?.(time,27.2);},dispose(){restaurantHost.parent?.remove(restaurantHost);}},stationary:true});
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
@@ -1218,6 +1294,10 @@ export class TempleWorld{
   if(this.shrineSign){const labels={zh:"神龛",en:"SHRINE",ja:"祠堂",ko:"신단",th:"ศาลบูชา"};const sign=this.shrineSign;sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=8;sign.ctx.strokeRect(10,10,492,124);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font="bold "+(lang==="zh"||lang==="ja"||lang==="ko"?72:54)+"px serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(labels[lang]||labels.zh,256,72,460);sign.map.needsUpdate=true;}
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#a82524":"#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#ffdf75":"#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
+  if(this.restaurantSign){
+   const labels={zh:"素斋 · 清净饮食",en:"VEGETARIAN KITCHEN",ja:"精進料理",ko:"사찰 채식 식당",th:"อาหารเจ"};
+   const sign=this.restaurantSign,ctx=sign.ctx;ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);ctx.fillStyle="#302b22";ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);ctx.strokeStyle="#d7b878";ctx.lineWidth=12;ctx.strokeRect(13,13,486,230);ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#f1dfb9";ctx.font='bold 154px "Songti SC","Noto Serif CJK SC",serif';ctx.fillText("斋",256,112);ctx.font="bold 25px Georgia,serif";ctx.fillText(labels[lang]||labels.zh,256,205);sign.map.needsUpdate=true;
+  }
   if(this.parkingSign){
    const labels={zh:"森林停车场",en:"FOREST PARKING",ja:"森林駐車場",ko:"숲속 주차장",th:"ลานจอดรถในป่า"};
    const ctx=this.parkingSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#35453d";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 78px serif":"bold 64px sans-serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.parkingSign.map.needsUpdate=true;

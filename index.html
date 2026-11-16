@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="云上禅境">
   <meta name="theme-color" content="#16251f">
-  <meta name="temple-build" content="20261116-r4">
+  <meta name="temple-build" content="20261116-r5">
   <meta name="description" content="一座向世界敞开的数字寺院。创建自己的小和尚，在山门、殿宇、莲池与菩提树下自由行走、礼敬、静坐、交流。">
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261116-r4">
+  <link rel="stylesheet" href="/style.css?v=20261116-r5">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -30,7 +34,7 @@
         <option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="th">ไทย</option>
       </select>
       <button class="top-button profile-settings" id="open-profile" type="button" aria-label="角色设置" title="角色设置"><span class="button-icon" aria-hidden="true">✎</span><span id="profile-button-label">角色设置</span></button>
-      <button class="top-button smooth-toggle" id="smooth-toggle" type="button" aria-label="Performance mode" title="Lower render resolution for smoother rendering" aria-pressed="false">流畅模式</button>
+      <button class="top-button smooth-toggle" id="smooth-toggle" type="button" aria-label="Performance mode" title="Lower render resolution for smoother rendering" aria-pressed="false">流畅模式</button><button class="top-button icon-only mobile-fullscreen" id="mobile-fullscreen" type="button" aria-label="全屏显示 / 添加到主屏幕" title="全屏显示 / 添加到主屏幕">⛶</button>
       <button class="top-button" id="sound-toggle" type="button" aria-label="开启声音" aria-pressed="false">♫ 开启声音</button><button class="top-button icon-only" id="open-abbot" aria-label="问住持" title="问住持">☸<span class="abbot-label" id="abbot-button-label">问住持</span></button><button class="top-button icon-only" id="open-prayers" aria-label="祈愿墙" title="祈愿墙">♡</button>
     </div>
   </header>
@@ -147,6 +151,6 @@
       <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
     </section>
   </div>
-  <script type="module" src="/src/app.js?v=20261116-r4"></script>
+  <script type="module" src="/src/app.js?v=20261116-r5"></script>
 </body>
 </html>

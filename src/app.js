@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261116-r4";
+import { TempleWorld } from "./world.js?v=20261116-r5";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
-import { getText } from "./i18n.js?v=20261116-r4";
+import { getText } from "./i18n.js?v=20261116-r5";
 
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
@@ -30,10 +30,47 @@ function setConnection(status){
  $("connection-label").style.opacity=status==="online"?"1":".7";
  $("online-count").style.opacity=status==="online"?"1":".6";
 }
-function toast(message){
+function toast(message,duration=2600){
  const el=$("toast");el.textContent=message;el.classList.add("show");
- clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),2600);
+ clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),duration);
 }
+let deferredInstallPrompt=null;
+const mobileFullscreenButton=$("mobile-fullscreen");
+const isStandaloneApp=()=>Boolean(navigator.standalone)||matchMedia("(display-mode:standalone)").matches||matchMedia("(display-mode:fullscreen)").matches;
+const refreshMobileFullscreenButton=()=>{
+ if(!mobileFullscreenButton)return;
+ mobileFullscreenButton.style.display=touchAudioGate&&!isStandaloneApp()&&!document.fullscreenElement?"flex":"none";
+};
+refreshMobileFullscreenButton();
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;refreshMobileFullscreenButton();});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;refreshMobileFullscreenButton();});
+document.addEventListener("fullscreenchange",refreshMobileFullscreenButton);
+mobileFullscreenButton?.addEventListener("click",async()=>{
+ if(document.fullscreenElement){try{await document.exitFullscreen();}catch{}refreshMobileFullscreenButton();return;}
+ if(document.documentElement.requestFullscreen){
+  try{await document.documentElement.requestFullscreen({navigationUI:"hide"});refreshMobileFullscreenButton();return;}
+  catch{}
+ }
+ if(deferredInstallPrompt){
+  const promptEvent=deferredInstallPrompt;deferredInstallPrompt=null;
+  try{
+   await promptEvent.prompt();
+   const choice=await promptEvent.userChoice;
+   if(choice?.outcome==="accepted")toast("已开始安装；安装完成后请从主屏幕图标进入。",6500);
+   else toast("可在浏览器菜单中选择「安装应用」或「添加到主屏幕」。",6500);
+  }catch{toast("请在浏览器菜单中选择「安装应用」或「添加到主屏幕」。",6500);}
+  refreshMobileFullscreenButton();return;
+ }
+ const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ const help={
+  zh:ios?"在浏览器底部点「分享」→「添加到主屏幕」→「添加」，之后从桌面图标打开；这样就不会显示域名栏。":"在浏览器菜单中选「安装应用」或「添加到主屏幕」，之后从桌面图标打开即可隐藏地址栏。",
+  en:ios?"Tap Share → Add to Home Screen → Add, then launch from the new icon to remove the browser address bar.":"Choose Install App or Add to Home Screen in the browser menu, then launch from its icon to hide the address bar.",
+  ja:ios?"共有 →「ホーム画面に追加」→「追加」。次回はホーム画面のアイコンから開くとアドレスバーが表示されません。":"ブラウザーのメニューから「アプリをインストール」または「ホーム画面に追加」を選び、アイコンから起動してください。",
+  ko:ios?"공유 → ‘홈 화면에 추가’ → ‘추가’를 누른 뒤 홈 화면 아이콘으로 실행하면 주소 표시줄이 사라집니다.":"브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택한 다음 아이콘으로 실행하세요.",
+  th:ios?"แตะ แชร์ → เพิ่มไปยังหน้าจอโฮม → เพิ่ม แล้วเปิดจากไอคอนบนหน้าจอเพื่อซ่อนแถบที่อยู่":"เลือก ติดตั้งแอป หรือ เพิ่มไปยังหน้าจอโฮม ในเมนูเบราว์เซอร์ แล้วเปิดจากไอคอน"
+ };
+ toast(help[language]||help.zh,9000);
+});
 function applyLanguage(){
  const d=t();
  document.documentElement.lang=({zh:"zh-CN",en:"en",ja:"ja",ko:"ko",th:"th"})[language];
@@ -713,7 +750,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r4",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r5",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
@@ -773,7 +810,7 @@ document.addEventListener("touchmove",event=>{
  if(!touchAudioGate||mobileSwipeCollapseDone||event.touches.length!==1||mobileSwipeStartY===null)return;
  if(mobileSwipeStartY-event.touches[0].clientY>42){
   const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
-  if(maxScroll>0){window.scrollTo(0,Math.min(maxScroll,100));mobileSwipeCollapseDone=true;}
+  if(maxScroll>0){window.scrollTo(0,Math.min(maxScroll,110));document.documentElement.scrollTop=Math.min(maxScroll,110);mobileSwipeCollapseDone=true;}
  }
 },{passive:true,capture:true});
 document.addEventListener("touchend",event=>{if(event.touches.length===0)mobileSwipeStartY=null;},{passive:true,capture:true});

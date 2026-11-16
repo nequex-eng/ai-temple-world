@@ -45,6 +45,16 @@ export function createTempleCollision(halls) {
   segments.push(segment(-1.55, tableZ + 0.46, 1.55, tableZ + 0.46, 0.12));
   segments.push(segment(-1.55, tableZ - 0.46, -1.55, tableZ + 0.46, 0.12));
   segments.push(segment(1.55, tableZ - 0.46, 1.55, tableZ + 0.46, 0.12));
+  // Vegetarian restaurant 「斋」 on the forest lawn before the mountain gate.
+  segments.push(
+    segment(26.4,19.1,26.4,30.9,.24),
+    segment(17.6,19.1,26.4,19.1,.24),
+    segment(17.6,30.9,26.4,30.9,.24),
+    segment(17.6,19.1,17.6,23.55,.22),
+    segment(17.6,26.45,17.6,30.9,.22),
+    segment(24.75,22.9,24.75,27.1,.16)
+  );
+  for(const [x,z] of [[17.6,19.1],[17.6,30.9],[26.4,19.1],[26.4,30.9]])circles.push(circle(x,z,.34));
   // Market stalls along the distant lawn and the three roadside kiosks.
   for(const z of [-1,7,15,23])circles.push(circle(43,z,1.28));
   circles.push(circle(-10,8,1.28),circle(10,19,1.28),circle(-10,30,1.28));
