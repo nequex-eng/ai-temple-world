@@ -448,25 +448,48 @@ test("one resident abbot roams while the green-market vendors remain separate", 
 });
 
 
-test("mobile performance mode lowers render resolution and restores standard quality", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
-  const button=page.locator("#smooth-toggle");
-  await expect(button).toBeVisible();
-  await expect(button).toContainText("流畅模式");
-  const standard=await page.evaluate(()=>window.__templeDebug.pixelRatio());
-  await button.click();
-  await expect(button).toContainText("恢复画质");
-  const reduced=await page.evaluate(()=>window.__templeDebug.pixelRatio());
-  expect(reduced).toBeLessThan(standard);
-  expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("smooth");
-  await page.reload({waitUntil:"domcontentloaded"});
-  await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
-  await expect(page.locator("#smooth-toggle")).toContainText("恢复画质");
-  await page.locator("#smooth-toggle").click();
-  await expect(page.locator("#smooth-toggle")).toContainText("流畅模式");
-  const restored=await page.evaluate(()=>window.__templeDebug.pixelRatio());
-  expect(restored).toBeGreaterThan(reduced);
-  expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("standard");
+test("mobile performance mode lowers render resolution and restores standard quality", async ({ browser }) => {
+  const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
+  const page=await context.newPage();
+  try {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+    await page.locator("#monk-name").fill("Resolution Test");
+    await page.locator("#save-profile").click();
+    await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+    const button=page.locator("#smooth-toggle");
+    await expect(button).toBeVisible();
+    await expect(button).toContainText("流畅模式");
+    const standard=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+    expect(standard).toBeGreaterThan(1.2);
+    await button.click();
+    await expect(button).toContainText("恢复画质");
+    const reduced=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+    expect(reduced).toBeLessThan(standard*.8);
+    expect(reduced).toBeGreaterThanOrEqual(.98);
+    expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("smooth");
+    await page.reload({waitUntil:"domcontentloaded"});
+    await expect(page.locator("#loading")).toHaveClass(/hidden/, { timeout: 35000 });
+    await expect(page.locator("#smooth-toggle")).toContainText("恢复画质");
+    await page.locator("#smooth-toggle").click();
+    await expect(page.locator("#smooth-toggle")).toContainText("流畅模式");
+    const restored=await page.evaluate(()=>window.__templeDebug.pixelRatio());
+    expect(restored).toBeGreaterThan(reduced);
+    expect(await page.evaluate(()=>localStorage.getItem("temple-render-mode"))).toBe("standard");
+  } finally {
+    await context.close();
+  }
+});
+
+test("mobile scene follows the visual viewport after browser-size changes", async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  const measured=()=>page.evaluate(()=>({
+    visual:Math.round(window.visualViewport?.height||window.innerHeight),
+    css:parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--temple-visual-height"))
+  }));
+  await expect.poll(async()=>{const v=await measured();return Math.abs(v.visual-v.css);}).toBeLessThanOrEqual(1);
+  await page.setViewportSize({width:430,height:932});
+  await expect.poll(async()=>{const v=await measured();return Math.abs(v.visual-v.css);}).toBeLessThanOrEqual(1);
 });
