@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261116-r5";
+import { TempleWorld } from "./world.js?v=20261116-r6";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
-import { getText } from "./i18n.js?v=20261116-r5";
+import { getText } from "./i18n.js?v=20261116-r6";
 
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
@@ -85,7 +85,7 @@ function applyLanguage(){
   "profile-title":d.profileTitle,"profile-description":d.profileDesc,"abbot-button-label":d.abbotButton,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
-  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
+  "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
  document.title=(d.brandName||"云上禅境")+" · AI Temple World";
@@ -460,7 +460,16 @@ function renderBeads(){
  text("beads-count",String(count));
  text("beads-round","/ 108 · "+Math.floor(beadTotal/108)+" 周");
  const ring=$("beads-ring");if(!ring)return;ring.replaceChildren();
- for(let i=0;i<108;i++){const bead=document.createElement("span");bead.className="prayer-bead"+(i<count?" passed":"");bead.setAttribute("aria-hidden","true");ring.append(bead);}
+ const size=ring.clientWidth||280,radius=size*.5-13;
+ for(let i=0;i<108;i++){
+  const angle=(i/108)*Math.PI*2-Math.PI/2,bead=document.createElement("span");
+  bead.className="prayer-bead"+(i<count?" passed":"");
+  bead.setAttribute("aria-hidden","true");
+  bead.style.left=(size/2+Math.cos(angle)*radius)+"px";
+  bead.style.top=(size/2+Math.sin(angle)*radius)+"px";
+  ring.append(bead);
+ }
+ ring.setAttribute("aria-valuenow",String(count));
 }
 function openBeads(){$("beads-modal").classList.remove("hidden");renderBeads();}
 function advanceBead(){
@@ -469,7 +478,29 @@ function advanceBead(){
  if(beadTotal%108===0)toast(language==="zh"?"已完成一周108颗，愿心安住。":language==="ja"?"108粒を一周しました。心静かに。":language==="ko"?"108알 한 바퀴를 마쳤습니다.":"ครบ 108 เม็ดแล้ว ขอให้ใจสงบ");
 }
 function resetBeads(){beadTotal-=beadTotal%108;try{localStorage.setItem("temple-beads-total",String(beadTotal));}catch{}renderBeads();}
-$("beads-advance").addEventListener("click",advanceBead);
+let beadPointer=null,lastBeadIndex=null;
+function beadIndexAt(event){
+ const rect=beadRing.getBoundingClientRect();
+ const angle=Math.atan2(event.clientY-(rect.top+rect.height/2),event.clientX-(rect.left+rect.width/2))+Math.PI/2;
+ return Math.round(((angle+Math.PI*2)%(Math.PI*2))/(Math.PI*2)*108)%108;
+}
+const beadRing=$("beads-ring");
+beadRing.addEventListener("pointerdown",event=>{
+ if(event.pointerType==="mouse"&&event.button!==0)return;
+ beadPointer=event.pointerId;lastBeadIndex=beadIndexAt(event);
+ beadRing.setPointerCapture(event.pointerId);event.preventDefault();
+});
+beadRing.addEventListener("pointermove",event=>{
+ if(beadPointer!==event.pointerId||lastBeadIndex===null)return;
+ const next=beadIndexAt(event),steps=(next-lastBeadIndex+108)%108;
+ if(steps>0&&steps<=54){for(let i=0;i<steps;i++)advanceBead();lastBeadIndex=next;}
+ event.preventDefault();
+});
+const finishBeadDrag=event=>{if(beadPointer===event.pointerId){beadPointer=null;lastBeadIndex=null;}};
+beadRing.addEventListener("pointerup",finishBeadDrag);
+beadRing.addEventListener("pointercancel",finishBeadDrag);
+beadRing.addEventListener("lostpointercapture",finishBeadDrag);
+beadRing.addEventListener("keydown",event=>{if(event.key==="ArrowRight"||event.key==="ArrowDown"){event.preventDefault();advanceBead();}});
 $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
@@ -750,7 +781,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r5",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r6",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
