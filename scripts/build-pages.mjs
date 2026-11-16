@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const output = path.join(root, "dist");
-const files = ["index.html", "style.css", "manifest.webmanifest", "sw.js", "_headers"];
+const files = ["index.html", "style.css", "manifest.webmanifest", "sw.js", "_headers", "robots.txt", "sitemap.xml", "og-image.svg"];
 const folders = ["src", "icons"];
 
 await rm(output, { recursive: true, force: true });
