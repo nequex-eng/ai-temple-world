@@ -415,7 +415,7 @@ export class TempleRoom {
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(19, -32.5, 6.2)) return;
       if (data.action === "toilet" && !near(10.6, -64.5, 2.8)) return;
-      if (data.action === "eat" && !near(16.8, 25, 2.8)) return;
+      if (data.action === "eat" && !(player.x >= 17.6 && player.x <= 24.2 && player.z >= 20.7 && player.z <= 29.3)) return;
       if (data.action === "lotus") {
         if (player.lastLotusAt && Date.now() - player.lastLotusAt < 8000) return;
         player.lastLotusAt = Date.now();
