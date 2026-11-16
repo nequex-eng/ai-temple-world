@@ -44,13 +44,13 @@ assert.equal(routedOptions, undefined, "The shared room must not be region-shard
 assert.ok(network.includes("/api/session"), "Visitor session route missing");
 assert.ok(world.includes("export class TempleWorld"), "3D world class missing");
 assert.ok(world.includes("buildNpcs()") && world.includes("updateNpcs(dt,time)"), "Autonomous temple NPCs missing");
-assert.ok(world.includes("root.userData.animateInteraction") && world.includes("npc.nextGestureAt") && world.includes("shopper:true") && world.includes("for(const [index,offset] of [-1.55,0,1.55].entries())"), "Market sellers and pilgrims must visibly interact");
+assert.ok(world.includes("root.userData.animateInteraction") && world.includes("shopper:true") && world.includes("customers:0") && world.includes("customers:1") && world.includes("customers:2") && world.includes("roadWalker:true"), "Market sellers, varied customer numbers and walking pilgrims must be present");
 assert.ok(world.includes("labels={zh:{noodles:") && world.includes("en:{noodles:") && html.includes('<option value="en">English</option>'), "Market signs and the language selector must support English");
 assert.ok(world.includes("findWalkPath(this.local.root.position") && world.includes("destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8]") && i18n.includes('tea:"喝茶"') && i18n.includes('tea:"Drink tea"'), "Lotus, incense, bell and tea actions must auto-route using live collision geometry");
-assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("this.marketStalls.push(stall)"), "Four distant grass-market stalls must have readable product signs");
+assert.ok(world.includes("function marketStall") && world.includes("marketVendor") && world.includes("x:43,z:23") && world.includes("素食点心 · 时令水果") && world.includes("算命先生") && world.includes("文创摊主") && world.includes("麦当劳店员") && world.includes("kind:"fortune"") && world.includes("kind:"souvenir"") && world.includes("kind:"mcdonalds"") && world.includes("this.marketStalls.push(stall)"), "The far market and three new roadside vendors must have readable products");
 assert.ok(world.includes("const washroom=new THREE.Group()") && world.includes("this.squatToilets=[]") && world.includes("new THREE.BoxGeometry(.96,.13,1.34)"), "Washroom must contain visible squat toilet pans");
-assert.ok(read("src/physics.js").includes("market stalls and two squat pans") && read("src/physics.js").includes("circle(-23.98,-32.58,.48)") && read("src/physics.js").includes("const wx=-22.5,wz=-32"), "Washroom and grass-market collision geometry missing");
-assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes("const route=[") && world.includes("npcCollisionWorld(a)"), "The single roaming abbot NPC is missing");
+assert.ok(read("src/physics.js").includes("circle(-23.98,-32.58,.48)") && read("src/physics.js").includes("circle(-10,8,1.28)") && read("src/physics.js").includes("circle(10,19,1.28)") && read("src/physics.js").includes("circle(-10,30,1.28)") && read("src/physics.js").includes("circle(x,z,1.78)") && read("src/physics.js").includes("const wx=-22.5,wz=-32"), "Roadside shops, parked cars and washroom collision geometry missing");
+assert.ok(world.includes('name:"住持"') && world.includes('"npc-abbot"') && world.includes('x:0,z:-8') && world.includes('const route=[[0,-8],[-8,-8],[-13,-12],[-13,-18]') && world.includes("npcCollisionWorld(a)"), "The abbot must patrol the courtyard without entering the censer");
 assert.equal((world.match(/name:"住持"/g)||[]).length, 1, "There must be exactly one NPC: the abbot");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu") && app.includes("if(action===\"chant\"&&world.isNight)return;") && app.includes("updateSoundscape();"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
@@ -78,7 +78,7 @@ assert.ok(world.includes("const robeProfile=") && world.includes("[1.37,.465,.22
 assert.ok(worker.includes("current.length >= 120"), "Each live room must enforce its 120-player capacity");
 assert.ok(worker.includes('"/broadcast-prayer"') && worker.includes('type: "prayer:new"') && app.includes('message.type==="prayer:new"'), "New wishes must be broadcast to every connected visitor");
 assert.ok(worker.includes('DELETE FROM prayers WHERE id=? AND player_id=?') && worker.includes('type: "prayer:delete"') && network.includes("async deletePrayer(id)") && app.includes("p.player_id===network.playerId"), "Visitors may delete only their own wishes and deletion must sync to everyone");
-assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Mesh(new THREE.PlaneGeometry(.72,.18),material)") && world.includes("mesh.position.set(0,.96,-.235)") && world.includes("mesh.rotation.y=Math.PI") && world.includes("this.body.add(this.tag)") && !world.includes("sprite.position.set(0,2.9,0)"), "Avatar names must be printed on the back of the robe, not above the head");
+assert.ok(world.includes("function robeNamePlate(name)") && world.includes("new THREE.Sprite(") && world.includes("sprite.position.set(0,2.88,0)") && world.includes("this.root.add(this.tag)") && !world.includes("this.body.add(this.tag)") && !world.includes("hitLocalNameplate"), "Avatar names must be displayed above heads without a name-click editor");
 assert.ok(style.includes("bottom:112px") && style.includes(".prayer-delete") && !style.includes(".chat-panel{max-height:210px;bottom:10px}"), "Desktop chat panel must be raised and wishes must have delete controls");
 assert.ok(worker.includes('type: "presence", players: peers') && app.includes('message.type==="presence"'), "WebSocket heartbeats must reconcile active visitors");
 assert.ok(worker.includes('prayers: prayerRows.results || []') && app.includes("syncPrayerBoard(message.prayers||[])") && world.includes("setWishWallPrayers(prayers=[])") && world.includes("wishesSurface") && world.includes("wishWallTexture.needsUpdate"), "Physical wish wall must show saved wishes to new and current visitors");
@@ -181,10 +181,10 @@ const stairMove = moveWithCollision({ x: 0, z: 9, y: 0 }, 0, -0.4, collision);
 assert.equal(stairMove.y, 0.18, "Movement must step onto the outer stair tread");
 assert.ok(app.includes("movementCodes") && app.includes("document.addEventListener(\"keydown\""), "Physical WASD keyboard handling missing");
 assert.ok(world.includes("incenseStick.visible"), "Incense ritual prop missing");
-assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("new THREE.Vector3(0,0,-22.4)") && world.includes("this.teaHouse") && world.includes("gate.position.z=-1.2"), "Central outdoor censer, forest tea pavilion, or expanded gate missing");
-assert.ok(world.includes("hitLocalNameplate") && world.includes("intersectObject(this.local.tag") && world.includes("mesh.position.set(0,.96,-.235)"), "Robe-back name must be tappable for profile editing");
+assert.ok(world.includes("this.courtyardIncensePosition") && world.includes("new THREE.Vector3(0,0,-22.4)") && world.includes("this.teaHouse") && world.includes("this.parkingLot") && world.includes("this.parkingSign") && world.includes("gate.position.z=-1.2"), "Central outdoor censer, forest tea pavilion, forest parking or expanded gate missing");
+assert.ok(html.includes('id="open-profile"') && html.indexOf('id="language"') < html.indexOf('id="open-profile"') && app.includes('$("open-profile").addEventListener("click",openProfileEditor)') && !app.includes("temple:rename") && !html.includes('id="quick-profile"'), "Character name and appearance settings must be opened from the top bar beside language, not by clicking the name");
 assert.ok(world.includes("this.mobile?1.35:1.75") && world.includes("antialias:true") && world.includes("shadowMap.enabled=!mobile"), "Renderer must preserve clear pixel density while keeping mobile shadows disabled");
-assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && app.includes("temple:rename"), "Chat bubbles and tap-to-rename flow missing");
+assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && !app.includes("temple:rename") && !world.includes("temple:rename"), "Chat bubbles must remain while name-tap rename is removed");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
 assert.ok(!read("src/physics.js").includes("circle(5.8, -19.5, 1.55)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "The obsolete side censer collider must be removed while the moved gate collision remains");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
@@ -193,7 +193,7 @@ for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]
 }
 assert.ok(world.includes('broom.visible=this.pose==="sweep"'), "Sweeping broom prop missing");
 assert.ok(world.includes('name==="chant"') && world.includes('name==="meditate"'), "Shared chanting and meditation pose profiles missing");
-assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"'), "Chanting action must be translated in all four locales");
+assert.ok(i18n.includes('chant:"共诵"') && i18n.includes('chant:"共に読経"') && i18n.includes('chant:"함께 독경"') && i18n.includes('chant:"สวดมนต์ร่วมกัน"') && i18n.includes('profile:"角色设置"') && i18n.includes('profile:"Character"'), "Actions and top character settings must be translated across five locales");
 assert.ok(worker.includes('"chant"'), "Worker must accept the shared chanting action");
 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 5 locales, 3D world and API routes.");
@@ -207,13 +207,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-78"), "Service worker cache must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-79"), "Service worker cache must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-78"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-79"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
