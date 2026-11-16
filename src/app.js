@@ -13,7 +13,7 @@ let prayerWallPromptOpen=false;
 let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),smoothMode:()=>world.smoothMode,pixelRatio:()=>world.renderer.getPixelRatio(),step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -210,7 +210,14 @@ function mediaPlay(media,label){
   media.__templePrimeState=null;
   if(state){media.muted=state.muted;media.volume=state.volume;}
  }
- return media.play().then(()=>{updateAudioStatus();return true;}).catch(error=>{audioFailureReason=label+"播放失败："+(error?.message||error?.name||"unknown");updateAudioStatus();return false;});
+ if(media.__templePlayPending)return media.__templePlayPending;
+ let attempt;
+ try{
+  attempt=Promise.resolve(media.play()).then(()=>{updateAudioStatus();return true;})
+   .catch(error=>{audioFailureReason=label+"播放失败："+(error?.message||error?.name||"unknown");updateAudioStatus();return false;})
+   .finally(()=>{if(media.__templePlayPending===attempt)media.__templePlayPending=null;});
+ }catch(error){audioFailureReason=label+"播放失败："+(error?.message||error?.name||"unknown");updateAudioStatus();return Promise.resolve(false);}
+ media.__templePlayPending=attempt;return attempt;
 }
 function createTempleMedia(mp3Url,oggUrl,{loop=false,volume=.2,label="环境音"}={}) {
  const media=new Audio();
@@ -427,7 +434,8 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
- if(["incense","bell","lotus","tea","toilet","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
+ if(action==="toilet"&&!world.canAct(action)){world.navigateToAction("toilet");return;}
+ if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
@@ -444,8 +452,8 @@ function doAction(action){
  }
  if(action==="toilet"){
   world.setLocalPose("toilet");actionUntil=performance.now()+6500;
-  const poseText=t().actionText.toilet||"如厕";text("character-state",poseText);
-  network.action(action);network.logActivity(action,"washroom");toast(poseText);return;
+  text("character-state",t().walk);
+  network.action(action);network.logActivity(action,"washroom");return;
  }
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
  const poseText=t().actionText[action]||t().walk;text("character-state",poseText);
@@ -640,6 +648,14 @@ function initMobilePanels(){
  apply();mobile.addEventListener?.("change",apply);
 }
 initMobilePanels();
+function syncSmoothToggle(){
+ const button=$("smooth-toggle");if(!button)return;
+ button.classList.toggle("active",world.smoothMode);
+ button.setAttribute("aria-pressed",String(world.smoothMode));
+ button.title=world.smoothMode?"丝滑模式已启用，点击还原画质":"丝滑：降低分辨率以改善流畅度";
+}
+$("smooth-toggle").addEventListener("click",()=>{world.setSmoothMode(!world.smoothMode);syncSmoothToggle();});
+syncSmoothToggle();
 $("sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 $("profile-sound-toggle").addEventListener("click",()=>{void setSound(!soundEnabled);});
 function inputState(){
@@ -695,29 +711,31 @@ async function start(){
 }
 addEventListener("beforeunload",()=>network.close());
 function updateTempleVisualViewport(){
- const viewport=window.visualViewport,meta=document.querySelector('meta[name="viewport"]');
- const resetScale=()=>{
-  if(meta)meta.setAttribute("content","width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover");
-  document.documentElement.style.zoom="1";document.body.style.zoom="1";
-  window.scrollTo(0,0);document.documentElement.style.setProperty("--temple-visual-height",(window.innerHeight||viewport?.height||0)+"px");
-  world.resize();
- };
+ const viewport=window.visualViewport;
  const apply=()=>{
   document.documentElement.style.setProperty("--temple-visual-height",(viewport?.height||window.innerHeight)+"px");
   world.resize();
  };
  apply();viewport?.addEventListener("resize",apply);viewport?.addEventListener("scroll",apply);
- addEventListener("orientationchange",()=>requestAnimationFrame(()=>{resetScale();apply();}),{passive:true});
- // iOS Safari does not expose a supported API to set visualViewport.scale.
- // Prevent new multi-touch zoom globally; a reload button below restores the
- // browser's initial viewport scale if Safari has already zoomed the page.
- const blockPinch=e=>{if(e.touches?.length>1)e.preventDefault();};
- document.addEventListener("touchstart",blockPinch,{passive:false,capture:true});
- document.addEventListener("touchmove",blockPinch,{passive:false,capture:true});
- for(const type of ["gesturestart","gesturechange","gestureend"])document.addEventListener(type,e=>e.preventDefault(),{passive:false,capture:true});
-
+ addEventListener("orientationchange",()=>requestAnimationFrame(apply),{passive:true});
+ // Leave native pinch and browser tab gestures to the browser.
 }
 updateTempleVisualViewport();
+
+// Give mobile browsers a real, short scroll range on the first sustained upward swipe.
+let mobileSwipeStartY=null,mobileSwipeCollapseDone=false;
+document.addEventListener("touchstart",event=>{
+ if(!touchAudioGate||event.touches.length!==1){mobileSwipeStartY=null;return;}
+ mobileSwipeStartY=event.touches[0].clientY;
+},{passive:true,capture:true});
+document.addEventListener("touchmove",event=>{
+ if(!touchAudioGate||mobileSwipeCollapseDone||event.touches.length!==1||mobileSwipeStartY===null)return;
+ if(mobileSwipeStartY-event.touches[0].clientY>42){
+  const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  if(maxScroll>0){window.scrollTo({top:Math.min(maxScroll,100),behavior:"instant"});mobileSwipeCollapseDone=true;}
+ }
+},{passive:true,capture:true});
+document.addEventListener("touchend",event=>{if(event.touches.length===0)mobileSwipeStartY=null;},{passive:true,capture:true});
 function armDefaultSoundGesture(){
  if(!soundPreference||soundEnabled)return;
  const events=["pointerdown","touchstart","keydown"];

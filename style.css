@@ -223,3 +223,14 @@
  .chat-line{font-size:12px}
  .chat-form input{font-size:14px;padding:9px}
 }
+
+/* Performance mode and native mobile browser gestures. */
+.smooth-toggle{width:auto;min-width:45px;padding:0 7px;letter-spacing:.04em}
+.smooth-toggle.active{background:rgba(151,121,77,.82);border-color:#e1c58f;color:#fff1d3}
+@media(max-width:660px){
+ .smooth-toggle{position:fixed;z-index:4;right:9px;top:66px;height:28px;min-width:36px;padding:0 5px;font-size:8px}
+ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+ body{height:calc(100dvh + 120px);min-height:calc(100dvh + 120px);-webkit-overflow-scrolling:touch}
+ #world canvas{touch-action:pinch-zoom}
+ body::-webkit-scrollbar,html::-webkit-scrollbar{display:none}
+}
