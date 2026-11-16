@@ -214,6 +214,11 @@ assert.ok(world.includes("eat:[16.8,25]") && world.includes('if(a==="eat")') && 
 assert.ok(world.includes('fillText("斋",128,128)') && !world.includes("VEGETARIAN KITCHEN"), "Restaurant sign must show only the character 斋");
 const eatPath=findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},realTempleCollision);
 assert.ok(eatPath?.length,"The entrance of 斋 must be reachable from the front approach");
+const crowdedRestaurant={...realTempleCollision,actors:[{x:17.6,z:24.5,radius:.5},{x:17.6,z:25.5,radius:.5}]};
+assert.equal(findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},crowdedRestaurant),null,"Two visitors at the front door should block its occupied landing");
+const sideDoorPath=findWalkPath({x:0,z:25,y:0},{x:19,z:23.8},crowdedRestaurant);
+assert.ok(sideDoorPath?.length,"A third visitor must be able to route through a side door to an alternate dining spot");
+assert.ok(world.includes("const diningSpots=[[16.8,25],[19,23.8],[19,26.2]") && world.includes('if(a==="eat")return Math.hypot(p.x-16.8,p.z-25)<2.8'),"Eat action must select an unoccupied alternate landing and accept it server-side");
 const toiletPath=findWalkPath({x:4,z:-61,y:0},{x:10.6,z:-64.0},collision);
 assert.ok(Array.isArray(toiletPath)&&toiletPath.length>0,"The washroom entrance must be reachable by pathfinding");
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 5 locales, 3D world and API routes.");
