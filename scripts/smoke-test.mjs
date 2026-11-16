@@ -211,7 +211,7 @@ assert.equal(collidesAt(17.6,25,restaurantCollision),false,"The restaurant's cen
 assert.equal(collidesAt(26.4,25,restaurantCollision),true,"The restaurant rear wall must block passage");
 const restaurantPath=findWalkPath({x:0,z:25,y:0},{x:17,z:25,y:0},restaurantCollision);
 assert.ok(restaurantPath?.length,"A collision-aware route must connect the main approach to restaurant 斋");
-assert.ok(world.includes("const diningSpots=[[16.8,25]") && world.includes('if(a==="eat")') && app.includes('network.action("eat")') && html.includes('data-action="eat"') && !html.includes('data-action="greet"') && worker.includes('near(16.8, 25, 2.8)'), "Eat vegetarian must auto-route, activate and synchronize at the restaurant");
+assert.ok(world.includes("const diningSpots=[[16.8,25]") && world.includes('if(a==="eat")') && app.includes('network.action("eat")') && html.includes('data-action="eat"') && !html.includes('data-action="greet"') && worker.includes('player.x >= 17.6 && player.x <= 24.2 && player.z >= 20.7 && player.z <= 29.3'), "Eat vegetarian must auto-route, activate and synchronize at the restaurant");
 assert.ok(world.includes('fillText("斋",128,128)') && !world.includes("VEGETARIAN KITCHEN"), "Restaurant sign must show only the character 斋");
 const eatPath=findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},realTempleCollision);
 assert.ok(eatPath?.length,"The entrance of 斋 must be reachable from the front approach");
