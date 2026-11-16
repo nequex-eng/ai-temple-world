@@ -1406,6 +1406,7 @@ export class TempleWorld{
   this.gardenActive=false;this.gardenStarted=false;this.gardenRouteIndex=0;
   this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity?.set(0,0);
   if(this.local)this.local.setPose("walk",0);
+  window.dispatchEvent(new CustomEvent("temple:garden-stopped"));
   return true;
  }
  advanceGardenRoute(time=performance.now()){
@@ -1413,7 +1414,7 @@ export class TempleWorld{
   if(!this.gardenStarted){this.gardenStarted=true;window.dispatchEvent(new CustomEvent("temple:garden-started"));}
   const next=this.gardenRoute[(this.gardenRouteIndex+1)%this.gardenRoute.length];this.gardenRouteIndex=(this.gardenRouteIndex+1)%this.gardenRoute.length;
   const path=findWalkPath(this.local.root.position,{x:next[0],z:next[1]},this.actorCollisionWorld(this.local));
-  if(!path?.length){this.stopGarden();window.dispatchEvent(new CustomEvent("temple:garden-stopped"));return false;}
+  if(!path?.length){this.stopGarden();return false;}
   const targets=path.map(p=>new THREE.Vector3(p.x,0,p.z));this.moveTarget=targets.shift();this.moveWaypoints=targets;this.moveVelocity.multiplyScalar(.15);
   return true;
  }

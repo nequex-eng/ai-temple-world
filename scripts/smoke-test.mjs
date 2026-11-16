@@ -275,7 +275,7 @@ assert.ok(findWalkPath({x:14,z:-60},{x:20,z:-60},collisionAudit)?.length, "Toile
 
 assert.ok(html.includes('data-action="garden"') && !html.includes('data-action="kneel"') && i18n.includes('garden:"浇花"') && world.includes('this.gardenActive') && world.includes('advanceGardenRoute') && world.includes('wateringCan.visible=this.pose==="water"'), "Garden watering must replace prostration and loop continuously around the garden");
 assert.ok(world.includes('if(a==="meditate")return true;') && !world.includes('if(action==="meditate"){\n   const cushions=MEDITATION_CUSHIONS') && world.includes('legs[0].rotation.set(.08,0,Math.PI/2)'), "Meditation must be available anywhere with a visibly cross-legged pose");
-assert.ok(world.includes('this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]]') && worker.includes('"water"'), "Garden route and shared watering action must be configured");
+assert.ok(world.includes('this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]]') && worker.includes('"water"') && worker.includes('if (player.action !== "water") player.action = "walk";'), "Garden route and shared watering action must be configured");
 assert.ok(world.includes('this.incensePosition.x,p.z-this.incensePosition.z)<6.8') && worker.includes('!near(3.3, -22.4, 6.8)') && worker.includes('near(-22.5, -32, 6.2)'), "Incense interaction range must be enlarged consistently on client and server");
 
 const gardenCollision=createTempleCollision([]);

@@ -18,7 +18,7 @@ const reply = (request, data, status = 200) => new Response(JSON.stringify(data)
 const clean = (v, max = 40) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
 const validId = (v) => /^[a-f0-9-]{36}$/i.test(String(v || ""));
 const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fallback;
-const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "eat", "sweep", "chant", "tea", "toilet", "water"]);
+const ACTIONS = new Set(["walk", "bow", "kneel", "meditate", "incense", "bell", "lotus", "eat", "sweep", "chant", "tea", "toilet", "water"]);
 const LANGS = new Set(["zh", "en", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 const isTestPrayerMessage = value => /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(value||"").normalize("NFKC").replace(/\s+/g,""));
@@ -399,7 +399,7 @@ export class TempleRoom {
       player.z = nz;
       player.rotation = rotation;
       player.lastMoveAt = stamp;
-      player.action = "walk";
+      if (player.action !== "water") player.action = "walk";
       ws.serializeAttachment(player);
       this.broadcast({ type: "player:move", player }, ws);
       return;

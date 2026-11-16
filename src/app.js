@@ -535,7 +535,7 @@ function doAction(action){
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
 window.addEventListener("temple:arrived-action",event=>{if(event.detail?.action)doAction(event.detail.action);});
 window.addEventListener("temple:garden-started",()=>{actionUntil=0;world.setLocalPose("water");text("character-state",t().gardenWorking||"正在浇水施肥");network.action("water");network.logActivity("water","forest-garden");});
-window.addEventListener("temple:garden-stopped",()=>{text("character-state",t().walk);network.move(world.getPosition(),true);});
+window.addEventListener("temple:garden-stopped",()=>{text("character-state",t().walk);network.action("walk");});
 $("open-profile").addEventListener("click",openProfileEditor);
 $("save-profile").addEventListener("click",saveProfile);
 $("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);localStorage.removeItem("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
