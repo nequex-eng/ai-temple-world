@@ -465,9 +465,19 @@ beadRing.addEventListener("pointercancel",finishBeadDrag);
 beadRing.addEventListener("lostpointercapture",finishBeadDrag);
 beadRing.addEventListener("keydown",event=>{if(event.key==="ArrowRight"||event.key==="ArrowDown"){event.preventDefault();advanceBead();}});
 $("beads-reset").addEventListener("click",resetBeads);
+function syncWanderButton(){
+ const button=document.querySelector('[data-action="wander"]');if(!button)return;
+ button.classList.toggle("active",world.wanderActive);button.setAttribute("aria-pressed",String(world.wanderActive));
+}
 function doAction(action){
- if(action==="beads"){openBeads();return;}
+ if(action==="wander"){
+  if(!profile)return;
+  const active=world.toggleWander();syncWanderButton();
+  toast(active?(t().wanderStarted||"开始闲逛"):(t().wanderStopped||"已停止闲逛"));return;
+ }
+ if(action==="beads"){world.stopWander();syncWanderButton();openBeads();return;}
  if(!profile)return;
+ world.stopWander();syncWanderButton();
  if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");else toast(t().toiletNear||"请前往洗手间入口");return;}
  if(action==="eat"&&!world.canAct(action)){if(world.navigateToAction("eat"))toast(t().walkingToAction||"正在前往斋馆");else toast(t().restaurantNear||"斋馆入口暂时无法到达");return;}
  if(["incense","bell","lotus","tea","meditate","chant","eat"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
@@ -747,7 +757,9 @@ function frame(){
  const p=world.getPosition(),nearPrayerWall=Math.abs(p.x+31)<3.7&&p.z>-46&&p.z<19;
  if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}
  else if(!nearPrayerWall)prayerWallPromptOpen=false;
- if(now>actionUntil){text("character-state",t().walk);}
+ syncWanderButton();
+ if(world.wanderActive){if($("character-state").textContent!==t().wanderState)text("character-state",t().wanderState||"闲逛中");}
+ else if(now>actionUntil){text("character-state",t().walk);}
  requestAnimationFrame(frame);
 }
 async function start(){
@@ -756,7 +768,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r9",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r10",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.

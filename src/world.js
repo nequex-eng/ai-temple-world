@@ -407,7 +407,7 @@ export class TempleWorld{
   this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;this.renderFrameInterval=25;this.lowNpcElapsed=0;this.lastLowDetailLights=0;this.lastLowDetailAnimation=0;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -1157,6 +1157,7 @@ export class TempleWorld{
   this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
+  this.stopWander();
   this.moveTarget=new THREE.Vector3(hit.x,0,hit.z);this.moveWaypoints=[];this.pendingAction=null;
   return true;
  }
@@ -1213,10 +1214,10 @@ export class TempleWorld{
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
  requestJump(){if(!this.local)return false;if(this.jumpOffset<=.001&&this.jumpVelocity<=.01){this.jumpOffset=.14;this.jumpVelocity=4.35;this.jumpHeld=true;const p=this.local.root.position;this.local.root.position.y=groundHeightAt(p.x,p.z,this.halls)+this.jumpOffset;return true;}return false;}
- setDebugPosition(x,z){if(!this.local)return;this.local.setPosition(x,z,this.local.root.rotation.y,groundHeightAt(x,z,this.halls));this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity.set(0,0);}
+ setDebugPosition(x,z){if(!this.local)return;this.stopWander();this.local.setPosition(x,z,this.local.root.rotation.y,groundHeightAt(x,z,this.halls));this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity.set(0,0);}
  setDebugYaw(yaw){this.yaw=Number(yaw)||0;}
  setLocalPose(action){
-  if(!this.local)return;
+  if(!this.local)return;this.stopWander();
   if(action==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
    const p=this.local.root.position;
@@ -1245,6 +1246,48 @@ export class TempleWorld{
    const cushions=MEDITATION_CUSHIONS;
    return cushions.some(([x,z])=>Math.hypot(p.x-x,p.z-z)<2.35);
   }
+  return true;
+ }
+ stopWander(){
+  if(!this.wanderActive)return false;
+  this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;
+  this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity?.set(0,0);
+  if(this.local){this.local.pose="walk";this.local.until=0;}
+  return true;
+ }
+ toggleWander(){
+  if(this.wanderActive){this.stopWander();return false;}
+  if(!this.local)return false;
+  this.wanderActive=true;this.local.pose="walk";this.local.until=0;
+  this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity.set(0,0);
+  this.wanderNextAt=performance.now()+180;
+  this.planWander(this.wanderNextAt);
+  return true;
+ }
+ planWander(time=performance.now()){
+  if(!this.wanderActive||!this.local)return false;
+  const start=this.local.root.position,collision=this.actorCollisionWorld(this.local);
+  const candidates=this.wanderStops.slice().sort(()=>Math.random()-.5);
+  let best=null,bestScore=Infinity,checked=0;
+  for(const [x,z] of candidates){
+   if(Math.hypot(x-start.x,z-start.z)<7)continue;
+   if(this.wanderLastGoal&&Math.hypot(x-this.wanderLastGoal.x,z-this.wanderLastGoal.z)<5)continue;
+   const crowd=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].filter(a=>Math.hypot(a.root.position.x-x,a.root.position.z-z)<3.2).length;
+   if(crowd>1)continue;
+   const route=findWalkPath(start,{x,z},collision);
+   checked++;
+   if(!route?.length)continue;
+   let distance=0,px=start.x,pz=start.z;
+   for(const point of route){distance+=Math.hypot(point.x-px,point.z-pz);px=point.x;pz=point.z;}
+   const score=distance+crowd*8+Math.random()*.8;
+   if(score<bestScore){best={x,z,route};bestScore=score;}
+   if(checked>=7)break;
+  }
+  if(!best){this.moveTarget=null;this.moveWaypoints=[];this.wanderNextAt=time+1800;return false;}
+  const targets=best.route.map(p=>new THREE.Vector3(p.x,0,p.z));
+  this.moveTarget=targets.shift()||new THREE.Vector3(best.x,0,best.z);
+  this.moveWaypoints=targets;this.pendingAction=null;this.wanderLastGoal={x:best.x,z:best.z};
+  this.wanderBlockedAt=0;this.wanderNextAt=0;this.moveVelocity.multiplyScalar(.2);
   return true;
  }
  navigateToAction(action){
@@ -1297,7 +1340,8 @@ export class TempleWorld{
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
   const hasInput=Math.hypot(f,side)>.05;
-  if(hasInput){this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
+  if(hasInput){this.stopWander();this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
+  if(this.wanderActive&&!hasInput&&!this.moveTarget&&time>=this.wanderNextAt)this.planWander(time);
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   const canMove=["walk","greet","bow","chant"].includes(this.local.pose);
   let direction=null;
@@ -1313,6 +1357,7 @@ export class TempleWorld{
     else{
      this.moveTarget=null;
      if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}
+     else if(this.wanderActive)this.wanderNextAt=time+1900+Math.random()*2600;
     }
    }else direction=new THREE.Vector3(dx,0,dz).normalize();
   }
@@ -1327,7 +1372,13 @@ export class TempleWorld{
    const localPosition=this.local.root.position;
    // Collision is resolved before vertical motion, so a jump cannot tunnel through masonry or stair edges.
    result=moveWithCollision(localPosition,this.moveVelocity.x*dt,this.moveVelocity.y*dt,this.actorCollisionWorld(this.local));
-   if(result.blocked){this.moveVelocity.multiplyScalar(.28);if(this.moveTarget){this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}}
+   if(result.blocked){
+    this.moveVelocity.multiplyScalar(.28);
+    if(this.wanderActive&&this.moveTarget&&!result.moved){
+     this.wanderBlockedAt=this.wanderBlockedAt||time;
+     if(time-this.wanderBlockedAt>850){this.moveTarget=null;this.moveWaypoints=[];this.wanderNextAt=time+120;this.wanderBlockedAt=0;}
+    }else if(!this.wanderActive&&this.moveTarget){this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
+   }else if(this.wanderActive)this.wanderBlockedAt=0;
    if(direction)this.local.root.rotation.y=Math.atan2(direction.x,direction.z);
   }
   const localPosition=this.local.root.position;

@@ -161,6 +161,7 @@
  background:transparent!important;box-shadow:none!important;outline:0!important;
 }
 .action-dock .action-button:focus-visible span:last-child{ text-decoration:underline;text-underline-offset:4px; }
+.action-dock .action-button.active span{color:#f0d59a!important;text-shadow:0 0 10px #d5b47766}
 
 
 /* Clean HUD and reliable touch layout */
