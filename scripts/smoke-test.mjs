@@ -234,17 +234,17 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-95") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r13",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r13') && html.includes('/style.css?v=20261116-r13'), "Service worker and versioned assets must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-96") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r14",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r14') && html.includes('/style.css?v=20261116-r14'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(read("index.html").includes('data-action="wander"') && read("src/world.js").includes("planWander") && read("src/world.js").includes("wanderBlockedAt"), "Wander action must use automatic path planning and stuck recovery");
 assert.ok(read("index.html").includes('data-action="rest"') && read("src/world.js").includes("zenRestSpots") && read("src/world.js").includes("benchRestSpots") && read("src/world.js").includes('if(action==="rest")'), "Rest action must route to Zen room beds or nearby benches");
 assert.ok(!read("index.html").includes('data-action="sweep"') && !read("src/physics.js").includes("segment(16.5,-60,5,-60,.2)"), "Old sweep action and invisible road barrier must be removed");
-assert.ok(read("sw.js").includes("temple-world-shell-95") && read("index.html").includes("20261116-r13"), "Rest update must refresh cached client assets");
+assert.ok(read("sw.js").includes("temple-world-shell-96") && read("index.html").includes("20261116-r14"), "Rest update must refresh cached client assets");
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-95"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-96"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
@@ -281,3 +281,11 @@ assert.ok(world.includes('this.incensePosition.x,p.z-this.incensePosition.z)<6.8
 const gardenCollision=createTempleCollision([]);
 assert.ok(findWalkPath({x:0,z:-49},{x:-50.5,z:-61},gardenCollision)?.length, "Northwest garden must be reachable around the north end of the west wish wall");
 for(const [x,z] of [[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5],[-50.5,-61]])assert.ok(findWalkPath({x:-50.5,z:-61},{x,z},gardenCollision)?.length, "Garden perimeter route must remain connected at "+x+","+z);
+
+assert.ok(world.includes('this.abbotAvatar=abbot') && world.includes('abbot:true') && world.includes('pathWaypoints=path.map') && world.includes('const abbotNames={zh:"住持"'), "A named abbot must autonomously roam with collision-aware route paths");
+assert.ok(world.includes('this.gardenRoutes=[this.gardenRoute,[[50.5,-61]') && world.includes('choice={route,path}') && world.includes('flower.position.set(53.6,.23,z)') && physics.includes('for(const bx of [57,62,67])'), "The eastern forest vegetable and flower garden and nearest-garden selection must exist");
+assert.ok(world.includes('this.incensePosition=new THREE.Vector3(0,0,-20.8)') && world.includes('destinations={incense:[0,-20.8]') && physics.includes('circle(0, -20.8, 1.58)') && worker.includes('!near(0, -20.8, 6.8)'), "The censer must be centered before the Great Hall in client, collision and server validation");
+assert.ok(app.includes('hallDistance/34)*.30*audioVolumes.chant') && app.includes('templeChant.volume=chantVolume'), "Daytime chanting must fade in across the Great Hall approach");
+const dualGardenCollision=createTempleCollision([]);
+assert.ok(findWalkPath({x:0,z:0},{x:-50.5,z:-61},dualGardenCollision)?.length, "Western garden must remain reachable from the courtyard");
+assert.ok(findWalkPath({x:0,z:0},{x:50.5,z:-61},dualGardenCollision)?.length, "Eastern garden must be reachable from the courtyard");
