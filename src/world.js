@@ -1158,7 +1158,7 @@ export class TempleWorld{
   if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
-  if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<1.7;
+  if(a==="toilet")return Math.hypot(p.x-10.6,p.z+64.5)<2.6;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
