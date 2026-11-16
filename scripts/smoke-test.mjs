@@ -235,17 +235,17 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-97") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r15",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r15') && html.includes('/style.css?v=20261116-r15'), "Service worker and versioned assets must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-98") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r16",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r16') && html.includes('/style.css?v=20261116-r16'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(read("index.html").includes('data-action="wander"') && read("src/world.js").includes("planWander") && read("src/world.js").includes("wanderBlockedAt"), "Wander action must use automatic path planning and stuck recovery");
 assert.ok(read("index.html").includes('data-action="rest"') && read("src/world.js").includes("zenRestSpots") && read("src/world.js").includes("benchRestSpots") && read("src/world.js").includes('if(action==="rest")'), "Rest action must route to Zen room beds or nearby benches");
 assert.ok(!read("index.html").includes('data-action="sweep"') && !read("src/physics.js").includes("segment(16.5,-60,5,-60,.2)"), "Old sweep action and invisible road barrier must be removed");
-assert.ok(read("sw.js").includes("temple-world-shell-97") && read("index.html").includes("20261116-r15"), "Rest update must refresh cached client assets");
+assert.ok(read("sw.js").includes("temple-world-shell-98") && read("index.html").includes("20261116-r16"), "Rest update must refresh cached client assets");
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-97"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-98"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
@@ -290,3 +290,15 @@ assert.ok(app.includes("hallDistance/42)*.50*audioVolumes.chant") && app.include
 const dualGardenCollision=createTempleCollision([]);
 assert.ok(findWalkPath({x:0,z:0},{x:-50.5,z:-61},dualGardenCollision)?.length, "Western garden must remain reachable from the courtyard");
 assert.ok(findWalkPath({x:0,z:0},{x:50.5,z:-61},dualGardenCollision)?.length, "Eastern garden must be reachable from the courtyard");
+
+const pondCollision=createTempleCollision([{x:0,z:-37,w:26,d:17}]);
+let pondWalk={x:19+6.8,z:-32.5};
+for(let i=1;i<=360;i++){
+ const angle=(i/360)*Math.PI*2;
+ const next={x:19+6.8*Math.cos(angle),z:-32.5+6.8*Math.sin(angle)};
+ const moved=moveWithCollision(pondWalk,next.x-pondWalk.x,next.z-pondWalk.z,pondCollision);
+ assert.ok(Math.hypot(moved.x-next.x,moved.z-next.z)<.08,"Walking around the pond must not snag on curved collision edges at step "+i);
+ pondWalk={x:moved.x,z:moved.z};
+}
+assert.ok(style.includes("@media (pointer:coarse) and (min-width:661px) and (max-width:1440px)") && style.includes("grid-template-columns:repeat(6,minmax(0,1fr))") && style.includes(".mobile-controls{display:flex") && style.includes("--temple-visual-height"),"iPad portrait/landscape must show touch controls and fit the visual viewport");
+assert.ok(world.includes("20261116-r16") && app.includes("20261116-r16") && html.includes("20261116-r16") && read("sw.js").includes("temple-world-shell-98"),"All client assets must use the new tablet/collision build cache version");

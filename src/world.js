@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r15";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r16";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[

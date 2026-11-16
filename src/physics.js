@@ -167,30 +167,54 @@ export function groundHeightAt(x, z, halls) {
   return 0;
 }
 
+function obstacleNormalAt(x,z,world){
+  let best=Infinity,normal=null;
+  for(const s of world.segments){
+    const vx=s.bx-s.ax,vz=s.bz-s.az,len=vx*vx+vz*vz;
+    const t=len?Math.max(0,Math.min(1,((x-s.ax)*vx+(z-s.az)*vz)/len)):0;
+    const qx=s.ax+t*vx,qz=s.az+t*vz,nx=x-qx,nz=z-qz,d=Math.hypot(nx,nz);
+    if(d>0.0001&&d<PLAYER_RADIUS+s.radius+.34&&d<best){best=d;normal={x:nx/d,z:nz/d};}
+  }
+  for(const c of world.circles){
+    const nx=x-c.x,nz=z-c.z,d=Math.hypot(nx,nz);
+    if(d>0.0001&&d<PLAYER_RADIUS+c.radius+.34&&d<best){best=d;normal={x:nx/d,z:nz/d};}
+  }
+  return normal;
+}
+
 export function moveWithCollision(position, dx, dz, world) {
   let x = position.x, z = position.z;
   let blocked = false;
   const count = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dz)) / 0.12));
   const sx = dx / count, sz = dz / count;
   for (let i = 0; i < count; i++) {
-    const tryAxis = (nx, nz) => {
-      const nextY = groundHeightAt(nx, nz, world.halls);
-      const oldY = groundHeightAt(x, z, world.halls);
-      const actorBlocked = (world.actors || []).some(actor => {
-        const limit = PLAYER_RADIUS + actor.radius;
-        const nextDistance = (nx - actor.x) ** 2 + (nz - actor.z) ** 2;
-        const currentDistance = (x - actor.x) ** 2 + (z - actor.z) ** 2;
-        return nextDistance < limit * limit && nextDistance < currentDistance - 0.000001;
+    const oldX=x,oldZ=z,oldY=groundHeightAt(x,z,world.halls);
+    const canMove=(nx,nz)=>{
+      const nextY=groundHeightAt(nx,nz,world.halls);
+      const actorBlocked=(world.actors||[]).some(actor=>{
+        const limit=PLAYER_RADIUS+actor.radius;
+        const nextDistance=(nx-actor.x)**2+(nz-actor.z)**2;
+        const currentDistance=(x-actor.x)**2+(z-actor.z)**2;
+        return nextDistance<limit*limit&&nextDistance<currentDistance-.000001;
       });
-      if (collidesAt(nx, nz, world) || actorBlocked || Math.abs(nextY - oldY) > MAX_STEP) {
-        blocked = true;
-        return;
-      }
-      x = nx; z = nz;
+      return !collidesAt(nx,nz,world)&&!actorBlocked&&Math.abs(nextY-oldY)<=MAX_STEP;
     };
-    // Axis separation produces reliable wall sliding without tunnelling through corners.
-    if (sx) tryAxis(x + sx, z);
-    if (sz) tryAxis(x, z + sz);
+    // Test the intended vector as a whole first. This permits diagonal motion tangent
+    // to curved objects where separate X/Z tests would both falsely report a collision.
+    if(canMove(x+sx,z+sz)){x+=sx;z+=sz;continue;}
+    blocked=true;
+    const axes=Math.abs(sx)>=Math.abs(sz)?[[sx,0],[0,sz]]:[[0,sz],[sx,0]];
+    for(const [ax,az] of axes){
+      if((ax||az)&&canMove(x+ax,z+az)){x+=ax;z+=az;}
+    }
+    if(x===oldX&&z===oldZ){
+      const normal=obstacleNormalAt(x,z,world);
+      if(normal){
+        const inward=sx*normal.x+sz*normal.z;
+        const slide=inward<0?{x:sx-normal.x*inward,z:sz-normal.z*inward}:{x:sx,z:sz};
+        if(Math.hypot(slide.x,slide.z)>.0005&&canMove(x+slide.x,z+slide.z)){x+=slide.x;z+=slide.z;}
+      }
+    }
   }
   return { x, z, y: groundHeightAt(x, z, world.halls), blocked, moved: x !== position.x || z !== position.z };
 }
