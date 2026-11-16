@@ -524,15 +524,15 @@ export class TempleWorld{
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);// Mountain gate remains clean architectural timber without an applied plaque.
   // Market garden: four stalls well beyond the gate, on a dedicated green lawn east of the courtyard.
   this.vendorSpecs=[
-   {name:"凉面摊主",x:43,z:-1,kind:"noodles",facing:-Math.PI/2,customers:2,area:"market"},
-   {name:"香烛摊主",x:43,z:7,kind:"incense",facing:-Math.PI/2,customers:1,area:"market"},
+   {name:"凉面摊主",x:43,z:-1,kind:"noodles",facing:-Math.PI/2,customers:1,area:"market"},
+   {name:"香烛摊主",x:43,z:7,kind:"incense",facing:-Math.PI/2,customers:0,area:"market"},
    {name:"咖啡摊主",x:43,z:15,kind:"coffee",facing:-Math.PI/2,customers:0,area:"market"},
-   {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:2,area:"market"}
+   {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:1,area:"market"}
   ];
   this.roadsideVendorSpecs=[
-   {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:-Math.PI/2,customers:1,area:"road"},
-   {name:"文创摊主",x:10,z:19,kind:"souvenir",side:1,facing:Math.PI/2,customers:2,area:"road"},
-   {name:"麦当劳店员",x:-10,z:30,kind:"mcdonalds",side:-1,facing:-Math.PI/2,customers:1,area:"road"}
+   {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:-Math.PI/2,customers:0,area:"road"},
+   {name:"文创摊主",x:10,z:19,kind:"souvenir",side:1,facing:Math.PI/2,customers:0,area:"road"},
+   {name:"麦当劳店员",x:-10,z:30,kind:"mcdonalds",side:-1,facing:-Math.PI/2,customers:0,area:"road"}
   ];
   this.marketStalls=[];
   add(new THREE.PlaneGeometry(26,48),m.grass,s,[43,-.08,11],[-Math.PI/2,0,0],false);
@@ -968,9 +968,6 @@ export class TempleWorld{
   const roadWalkers=[
    {id:"road-pilgrim-a",x:-2.25,z:35,robe:"#8b9a86",route:[[-2.25,35],[-2.25,23],[-2.25,8],[-2.25,23]]},
    {id:"road-pilgrim-b",x:2.1,z:10,robe:"#b49a72",route:[[2.1,10],[2.1,25],[2.1,39],[2.1,25]]},
-   {id:"road-pilgrim-c",x:0,z:34,robe:"#777e8c",route:[[0,34],[0,18],[0,7],[0,18]]},
-   {id:"market-walker-a",x:38.1,z:30,robe:"#a18a70",route:[[38.1,30],[38.1,18],[38.1,6],[38.1,-7],[38.1,6],[38.1,18]]},
-   {id:"market-walker-b",x:36.5,z:-7,robe:"#7b8d91",route:[[36.5,-7],[36.5,4],[36.5,17],[36.5,30],[36.5,17],[36.5,4]]}
   ];
   for(const guest of roadWalkers){
    const route=guest.route.map(([x,z])=>new THREE.Vector3(x,0,z));
