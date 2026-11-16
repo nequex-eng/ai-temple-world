@@ -309,7 +309,3 @@ assert.ok(network.includes('"/api/fortune"') && app.includes("world.onFortuneSta
 assert.ok(html.includes('id="fortune-modal"') && html.includes('id="fortune-draw"') && style.includes(".fortune-modal"), "Fortune modal UI must be present");
 assert.ok(!world.includes("[0,41]") && !physics.includes("[0,41]"), "Road-end lantern facing the censer must be removed from visuals and collision");
 
-assert.ok(worker.includes('path === "/api/fortune"') && worker.includes("铁板神数") && worker.includes("干支八字") && worker.includes('reserveAiRequest(env, body.player_id, "fortune"'), "Fortune endpoint must enforce traditional divination knowledge and rate limits");
-assert.ok(network.includes('"/api/fortune"') && app.includes("world.onFortuneStall") && app.includes("drawHexagram"), "Fortune stall must open model-powered reading and lot flow");
-assert.ok(html.includes('id="fortune-modal"') && html.includes('id="fortune-draw"') && style.includes(".fortune-modal"), "Fortune modal UI must be present");
-assert.ok(!world.includes("[0,41]") && !physics.includes("[0,41]"), "Road-end lantern facing the censer must be removed from visuals and collision");
