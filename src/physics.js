@@ -100,6 +100,9 @@ export function createTempleCollision(halls) {
     const l=zx+bx-1.08,r=zx+bx+1.08,b=zz+bz-.72,f=zz+bz+.72;
     segments.push(segment(l,b,r,b,.1),segment(l,f,r,f,.1),segment(l,b,l,f,.1),segment(r,b,r,f,.1));
   }
+  // Raised vegetable and flower beds in the northwest forest garden.
+  for(const bx of [-67,-62,-57])segments.push(segment(bx-1.32,-68.2,bx+1.32,-68.2,.1),segment(bx-1.32,-53.8,bx+1.32,-53.8,.1));
+  segments.push(segment(-54.65,-68,-54.65,-54,.1));
   // Two roadside benches beside McDonalds, rotated to face the road.
   const benchPositions=[[-10,25],[-10,35]];
   for(const [bx,bz] of benchPositions)segments.push(segment(bx-.28,bz-1.15,bx-.28,bz+1.15,.18));

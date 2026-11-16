@@ -18,7 +18,7 @@ const reply = (request, data, status = 200) => new Response(JSON.stringify(data)
 const clean = (v, max = 40) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
 const validId = (v) => /^[a-f0-9-]{36}$/i.test(String(v || ""));
 const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fallback;
-const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "eat", "sweep", "chant", "tea", "toilet"]);
+const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "eat", "sweep", "chant", "tea", "toilet", "water"]);
 const LANGS = new Set(["zh", "en", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
 const isTestPrayerMessage = value => /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(value||"").normalize("NFKC").replace(/\s+/g,""));
@@ -410,8 +410,8 @@ export class TempleRoom {
       player.lastActionAt = actionStamp;
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       const insideGreatHall = Math.abs(player.x) < 12.2 && player.z > -45.7 && player.z < -29.05;
-      const nearOpenShrine = near(-22.5, -32, 4.6);
-      if (data.action === "incense" && !near(0, -22.4, 5.5) && !nearOpenShrine && !insideGreatHall) return;
+      const nearOpenShrine = near(-22.5, -32, 6.2);
+      if (data.action === "incense" && !near(0, -22.4, 7.0) && !nearOpenShrine && !insideGreatHall) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(19, -32.5, 6.2)) return;
       if (data.action === "toilet" && !near(10.6, -64.5, 2.8)) return;

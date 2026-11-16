@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261116-r12";
+import { TempleWorld } from "./world.js?v=20261116-r13";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
 import { getText } from "./i18n.js?v=20261116-r8";
 
@@ -475,13 +475,20 @@ function doAction(action){
   const active=world.toggleWander();syncWanderButton();
   toast(active?(t().wanderStarted||"开始闲逛"):(t().wanderStopped||"已停止闲逛"));return;
  }
- if(action==="beads"){world.stopWander();syncWanderButton();openBeads();return;}
+ if(action==="beads"){world.stopWander();world.stopGarden();syncWanderButton();openBeads();return;}
+ if(action==="garden"){
+  if(!profile)return;
+  if(world.gardenActive){world.stopGarden();text("character-state",t().walk);network.move(world.getPosition(),true);toast(t().gardenStopped||"已停止照料菜田");}
+  else if(world.startGarden())toast(t().walkingToGarden||"正在前往菜田");
+  else toast(t().gardenUnavailable||"菜田暂时无法到达");
+  return;
+ }
  if(!profile)return;
- world.stopWander();syncWanderButton();
+ world.stopWander();world.stopGarden();syncWanderButton();
  if(action==="rest"&&!world.canAct(action)){if(world.navigateToAction("rest"))toast(t().walkingToRest||"正在前往禅房歇脚");else toast(t().restUnavailable||"暂时没有空闲的休息位置");return;}
  if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");else toast(t().toiletNear||"请前往洗手间入口");return;}
  if(action==="eat"&&!world.canAct(action)){if(world.navigateToAction("eat"))toast(t().walkingToAction||"正在前往斋馆");else toast(t().restaurantNear||"斋馆入口暂时无法到达");return;}
- if(["incense","bell","lotus","tea","meditate","chant","eat"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
+ if(["incense","bell","lotus","tea","chant","eat"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
@@ -526,6 +533,8 @@ function doAction(action){
 }
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
 window.addEventListener("temple:arrived-action",event=>{if(event.detail?.action)doAction(event.detail.action);});
+window.addEventListener("temple:garden-started",()=>{actionUntil=0;world.setLocalPose("water");text("character-state",t().gardenWorking||"正在浇水施肥");network.action("water");network.logActivity("water","forest-garden");});
+window.addEventListener("temple:garden-stopped",()=>{text("character-state",t().walk);network.move(world.getPosition(),true);});
 $("open-profile").addEventListener("click",openProfileEditor);
 $("save-profile").addEventListener("click",saveProfile);
 $("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();localStorage.removeItem(LOCAL_PROFILE);localStorage.removeItem("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
@@ -765,7 +774,8 @@ function frame(){
  if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}
  else if(!nearPrayerWall)prayerWallPromptOpen=false;
  syncWanderButton();
- if(world.wanderActive){if($("character-state").textContent!==t().wanderState)text("character-state",t().wanderState||"闲逛中");}
+ if(world.gardenActive){if(world.gardenStarted&&$("character-state").textContent!==(t().gardenWorking||"正在浇水施肥"))text("character-state",t().gardenWorking||"正在浇水施肥");}
+ else if(world.wanderActive){if($("character-state").textContent!==t().wanderState)text("character-state",t().wanderState||"闲逛中");}
  else if(now>actionUntil){text("character-state",t().walk);}
  requestAnimationFrame(frame);
 }
@@ -775,7 +785,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r12",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r13",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.

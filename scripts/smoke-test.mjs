@@ -99,8 +99,8 @@ assert.ok(!world.includes('name:"住持"') && !world.includes('"npc-abbot"') && 
 assert.ok(worker.includes("Replaced by a newer session") && worker.includes("peer.id !== player.id") && worker.includes("samePlayerStillConnected"), "Reconnects must not duplicate or prematurely remove the same visitor");
 assert.ok(network.includes("event.code === 4001") && network.includes("this.closedByUser = true"), "Replaced duplicate tabs must not reconnect endlessly");
 assert.ok(world.includes("setDebugPosition(x,z)") && app.includes("setPosition:(x,z)=>world.setDebugPosition(x,z)") && app.includes("setYaw:yaw=>world.setDebugYaw(yaw)") && app.includes("step:(input,dt=.05)=>world.update(dt,input,performance.now(),false)"), "Collision regression test hooks missing");
-assert.ok(world.includes("this.incensePosition=new THREE.Vector3(3.3,0,-22.4)") && world.includes("p.x-this.incensePosition.x") && world.includes("Math.hypot(p.x+22.5,p.z+32)<4.6") && world.includes("this.isInsideHall(p)"), "Incense must be available at the forecourt censer, open shrine and inside the Great Hall");
-assert.ok(worker.includes("!near(0, -22.4, 5.5)") && worker.includes("nearOpenShrine") && worker.includes("insideGreatHall"), "Worker incense validation must match all three offering areas");
+assert.ok(world.includes("this.incensePosition=new THREE.Vector3(3.3,0,-22.4)") && world.includes("p.x-this.incensePosition.x") && world.includes("Math.hypot(p.x+22.5,p.z+32)<6.2") && world.includes("this.isInsideHall(p)"), "Incense must be available at the forecourt censer, open shrine and inside the Great Hall");
+assert.ok(worker.includes("!near(0, -22.4, 7.0)") && worker.includes("nearOpenShrine") && worker.includes("insideGreatHall"), "Worker incense validation must match all three offering areas");
 assert.ok(world.includes('if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;') && worker.includes("!near(19, -32.5, 6.2)"), "Lotus placement must use the actual pond center and 13m radius in client and server");
 assert.ok(world.includes('if(type==="lotus")return;') && !world.includes("hullShape") && app.includes("function playLotusWater()") && app.includes('if(action==="lotus"){') && app.includes('message.player.action!=="lotus"'), "Lotus offering must be lightweight, local-only, and silent on other visitors devices");
 assert.ok(world.includes("const lampPositions=[") && world.includes("entry.base*(.14+night*3.6)") && world.includes("this.nightLights.push({light:fixture.light,base:.52})"), "Exterior road and temple lights must brighten after dusk");
@@ -108,7 +108,7 @@ assert.ok(world.includes("HALL_CUSHION_OFFSETS") && world.includes("this.meditat
 assert.ok(world.includes("updateDayNight(time)") && world.includes("periodSeconds:600") && world.includes("this.starMaterial.opacity=night*.86") && world.includes("this.moonMesh.material.opacity=night*.92"), "A shared dusk and night cycle must change sky, stars, moon and lights");
 assert.ok(network.includes("!this.welcomed") && network.includes("id: queued.id") && app.includes("messageId&&box.querySelector") && worker.includes("validId(data.id)?data.id"), "Cloud letters must queue until welcome and deduplicate server echoes");
 assert.ok(app.includes('remove.textContent="撤回心愿"') && worker.includes("DELETE FROM prayers WHERE id=? AND player_id=?") && worker.includes('type: "prayer:delete"'), "Visitors may withdraw only their own wishes and synchronize deletion");
-assert.ok(world.includes("this.courtyardCenser.position.copy(this.courtyardIncensePosition)") && world.includes("this.incensePosition=new THREE.Vector3(3.3,0,-22.4)") && worker.includes("!near(0, -22.4, 5.5)"), "The Great Hall censer must be visible and reachable at the central forecourt position");
+assert.ok(world.includes("this.courtyardCenser.position.copy(this.courtyardIncensePosition)") && world.includes("this.incensePosition=new THREE.Vector3(3.3,0,-22.4)") && worker.includes("!near(0, -22.4, 7.0)"), "The Great Hall censer must be visible and reachable at the central forecourt position");
 assert.ok(network.includes("type: \"ping\"") && worker.includes("data.type === \"ping\""), "Shared-room websocket heartbeats must be enabled");
 assert.ok(worker.includes("env.AI.run") && worker.includes("@cf/zai-org/glm-4.7-flash") && worker.includes("env.AI?.run"), "AI abbot must have a Workers AI fallback when no MiniMax secret is configured");
 assert.ok(world.includes("position.z<h.z+h.d/2-.55"), "Indoor mode must begin just beyond the main threshold");
@@ -234,17 +234,17 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-94") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r12",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r12') && html.includes('/style.css?v=20261116-r12'), "Service worker and versioned assets must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-95") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r13",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r13') && html.includes('/style.css?v=20261116-r13'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(read("index.html").includes('data-action="wander"') && read("src/world.js").includes("planWander") && read("src/world.js").includes("wanderBlockedAt"), "Wander action must use automatic path planning and stuck recovery");
 assert.ok(read("index.html").includes('data-action="rest"') && read("src/world.js").includes("zenRestSpots") && read("src/world.js").includes("benchRestSpots") && read("src/world.js").includes('if(action==="rest")'), "Rest action must route to Zen room beds or nearby benches");
 assert.ok(!read("index.html").includes('data-action="sweep"') && !read("src/physics.js").includes("segment(16.5,-60,5,-60,.2)"), "Old sweep action and invisible road barrier must be removed");
-assert.ok(read("sw.js").includes("temple-world-shell-94") && read("index.html").includes("20261116-r12"), "Rest update must refresh cached client assets");
+assert.ok(read("sw.js").includes("temple-world-shell-95") && read("index.html").includes("20261116-r13"), "Rest update must refresh cached client assets");
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-94"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-95"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
@@ -254,7 +254,7 @@ assert.ok(world.includes("const teaCup=new THREE.Group()") && world.includes('el
 assert.ok(html.includes('<option value="en">English</option>') && i18n.includes("TEXT.en=") && worker.includes('en: "English"') && i18n.includes('brandName:"云上禅境"') && i18n.includes('brandName:"Cloud Temple"') && i18n.includes('brandName:"雲上の禅境"') && i18n.includes('brandName:"구름 위 선경"') && i18n.includes('brandName:"แดนเซนเหนือเมฆ"') && html.includes('id="brand-name"') && app.includes('"brand-name":d.brandName'), "The brand logo must follow all five interface languages");
 assert.ok(app.includes("const night=!!world.isNight") && app.includes("templeBirds.currentTime=0") && app.includes("templeChant.currentTime=0") && app.includes("Night is a hard mute for birds and chanting"), "Birdsong and chanting must be stopped and blocked after dark");
 assert.ok(app.includes("function isTestPrayer(prayer)") && worker.includes("isTestPrayerMessage") && world.includes("normalize(\"NFKC\").replace(/\\s+/g,\"\")"), "Wish-wall test messages must be filtered in the UI, worker payloads and physical wall");
-assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","meditate","chant","eat"]') && app.includes('action==="toilet"&&!world.canAct(action)'), "Action shortcuts must guide visitors to the relevant temple locations, with silent restroom routing");
+assert.ok(world.includes('if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;') && app.includes('["incense","bell","lotus","tea","chant","eat"]') && app.includes('action==="toilet"&&!world.canAct(action)'), "Action shortcuts must guide visitors to the relevant temple locations, with silent restroom routing");
 
 assert.ok(!html.includes('id="desktop-hint"') && html.includes('id="smooth-toggle"') && world.includes("setSmoothMode(enabled)") && app.includes('$("smooth-toggle").addEventListener("click"'), "Desktop hint must be removed and the Silk Smooth resolution toggle must restore the original pixel ratio");
 assert.ok(app.includes('action==="toilet"&&!world.canAct(action)') && app.includes('network.logActivity(action,"washroom");return;') && app.includes("media.__templePlayPending"), "Restroom auto-routing must be silent and audio playback attempts must be deduplicated");
@@ -272,3 +272,8 @@ for(const start of [{x:0,z:-49},{x:-15,z:-49},{x:-31,z:-49}]){
 }
 assert.ok(findWalkPath({x:0,z:-49},{x:-40,z:-60.95},collisionAudit)?.length, "Second bed row must also be reachable from the room entrance");
 assert.ok(findWalkPath({x:14,z:-60},{x:20,z:-60},collisionAudit)?.length, "Toilet-to-east-lawn road must remain passable");
+
+assert.ok(html.includes('data-action="garden"') && !html.includes('data-action="kneel"') && i18n.includes('garden:"浇花"') && world.includes('this.gardenActive') && world.includes('advanceGardenRoute') && world.includes('wateringCan.visible=this.pose==="water"'), "Garden watering must replace prostration and loop continuously around the garden");
+assert.ok(world.includes('if(a==="meditate")return true;') && !world.includes('if(action==="meditate"){\n   const cushions=MEDITATION_CUSHIONS') && world.includes('legs[0].rotation.set(.08,0,Math.PI/2)'), "Meditation must be available anywhere with a visibly cross-legged pose");
+assert.ok(world.includes('this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]]') && worker.includes('"water"'), "Garden route and shared watering action must be configured");
+assert.ok(world.includes('this.incensePosition.x,p.z-this.incensePosition.z)<6.8') && worker.includes('!near(0, -22.4, 7.0)') && worker.includes('near(-22.5, -32, 6.2)'), "Incense interaction range must be enlarged consistently on client and server");
