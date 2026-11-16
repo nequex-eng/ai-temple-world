@@ -304,7 +304,7 @@ assert.ok(!physics.includes("22.65, -28.4") && !physics.includes("libraryDeskZ")
 assert.ok(style.includes("@media (pointer:coarse) and (min-width:661px) and (max-width:1440px)") && style.includes("grid-template-columns:repeat(6,minmax(0,1fr))") && style.includes(".mobile-controls{display:flex") && style.includes("--temple-visual-height"),"iPad portrait/landscape must show touch controls and fit the visual viewport");
 assert.ok(world.includes("20261116-r17") && app.includes("20261116-r17") && html.includes("20261116-r17") && read("sw.js").includes("temple-world-shell-99"),"All client assets must use the new tablet/collision build cache version");
 
-assert.ok(worker.includes('path === "/api/fortune"') && worker.includes("铁板神数") && worker.includes("干支八字") && worker.includes('reserveAiRequest(env, body.player_id, "fortune"'), "Fortune endpoint must enforce traditional divination knowledge and rate limits");
+assert.ok(worker.includes('path === "/api/fortune"') && worker.includes("铁板神数") && worker.includes("子平八字") && worker.includes('reserveAiRequest(env, body.player_id, "fortune"'), "Fortune endpoint must enforce traditional divination knowledge and rate limits");
 assert.ok(network.includes('"/api/fortune"') && app.includes("world.onFortuneStall") && app.includes("drawHexagram"), "Fortune stall must open model-powered reading and lot flow");
 assert.ok(html.includes('id="fortune-modal"') && html.includes('id="fortune-draw"') && style.includes(".fortune-modal"), "Fortune modal UI must be present");
 assert.ok(!world.includes("[0,41]") && !physics.includes("[0,41]"), "Road-end lantern facing the censer must be removed from visuals and collision");
