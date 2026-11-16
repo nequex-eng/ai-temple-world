@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261116-r14";
+import { TempleWorld } from "./world.js?v=20261116-r15";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
 import { getText } from "./i18n.js?v=20261116-r8";
 
@@ -281,7 +281,7 @@ function updateSoundscape(){
  if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
  if(!templeChant||!world.local)return;
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
- const chantVolume=Math.max(0,1-hallDistance/34)*.30*audioVolumes.chant;
+ const chantVolume=Math.max(0,1-hallDistance/42)*.50*audioVolumes.chant;
  templeChant.volume=chantVolume;
  if(chantVolume>.006){if(templeChant.paused||templeChant.muted)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
@@ -535,6 +535,8 @@ function doAction(action){
 document.querySelectorAll("[data-action]").forEach(button=>button.addEventListener("click",()=>doAction(button.dataset.action)));
 window.addEventListener("temple:arrived-action",event=>{if(event.detail?.action)doAction(event.detail.action);});
 window.addEventListener("temple:garden-started",()=>{actionUntil=0;world.setLocalPose("water");text("character-state",t().gardenWorking||"正在浇水施肥");network.action("water");network.logActivity("water","forest-garden");});
+window.addEventListener("temple:garden-watering",()=>{actionUntil=0;world.setLocalPose("water");text("character-state",t().gardenWorking||"正在浇水施肥");network.action("water");});
+window.addEventListener("temple:garden-walking",()=>{actionUntil=0;world.setLocalPose("walk");text("character-state",t().walkingToGarden||t().walk);network.action("walk");});
 window.addEventListener("temple:garden-stopped",()=>{text("character-state",t().walk);network.action("walk");});
 $("open-profile").addEventListener("click",openProfileEditor);
 $("save-profile").addEventListener("click",saveProfile);
@@ -775,7 +777,7 @@ function frame(){
  if(nearPrayerWall&&!prayerWallPromptOpen){prayerWallPromptOpen=true;$("prayer-modal").classList.remove("hidden");void loadPrayers();}
  else if(!nearPrayerWall)prayerWallPromptOpen=false;
  syncWanderButton();
- if(world.gardenActive){if(world.gardenStarted&&$("character-state").textContent!==(t().gardenWorking||"正在浇水施肥"))text("character-state",t().gardenWorking||"正在浇水施肥");}
+ if(world.gardenActive){const gardenText=world.gardenPauseUntil>0?(t().gardenWorking||"正在浇水施肥"):(t().walkingToGarden||t().walk);if($("character-state").textContent!==gardenText)text("character-state",gardenText);}
  else if(world.wanderActive){if($("character-state").textContent!==t().wanderState)text("character-state",t().wanderState||"闲逛中");}
  else if(now>actionUntil){text("character-state",t().walk);}
  requestAnimationFrame(frame);
@@ -786,7 +788,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r14",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r15",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.

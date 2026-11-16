@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r14";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r15";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -429,7 +429,7 @@ export class TempleWorld{
   this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;this.renderFrameInterval=25;this.lowNpcElapsed=0;this.lastLowDetailLights=0;this.lastLowDetailAnimation=0;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.gardenActive=false;this.gardenStarted=false;this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];this.gardenRoutes=[this.gardenRoute,[[50.5,-61],[50.5,-48.5],[72,-48.5],[72,-73.5],[50.5,-73.5]]];this.gardenRouteIndex=0;this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.gardenActive=false;this.gardenStarted=false;this.gardenPauseUntil=0;this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];this.gardenRoutes=[this.gardenRoute,[[50.5,-61],[50.5,-48.5],[72,-48.5],[72,-73.5],[50.5,-73.5]]];this.gardenRouteIndex=0;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -1089,8 +1089,8 @@ export class TempleWorld{
    const fixture=lantern(s,x,z,m);this.streetLanterns.push(fixture);
    this.nightLights.push({light:fixture.light,base:.52});
   }
-  // Keep the large bronze censer beside the approach, not in the central stair path.
-  this.incensePosition=new THREE.Vector3(0,0,-18.0);
+  // The bronze censer sits on the Great Hall centreline just beyond the front steps.
+  this.incensePosition=new THREE.Vector3(0,0,-19.5);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -1193,7 +1193,7 @@ export class TempleWorld{
   this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
-  // Keep the courtyard free of autonomous walkers; online visitors are unaffected.
+  // Keep vendors in place and restore the abbot as a visible, freely roaming temple guide.
   this.npcs=[];
 
   const allVendors=[...(this.vendorSpecs||[]),...(this.roadsideVendorSpecs||[])];
@@ -1209,10 +1209,14 @@ export class TempleWorld{
   const restaurantHost=marketVendor(this.scene,23.2,25,-Math.PI/2,this.m);restaurantHost.name="vegetarian-kitchen-host";
   this.npcs.push({avatar:{root:restaurantHost,update(dt,time){restaurantHost.userData.animateInteraction?.(time,25);},dispose(){restaurantHost.parent?.remove(restaurantHost);}},stationary:true});
   const abbotNames={zh:"住持",en:"Abbot",ja:"住職",ko:"주지 스님",th:"เจ้าอาวาส"};
-  const abbot=avatar(this.scene,{name:abbotNames.zh,robe:"#9a7657",skin:"#c99f7b",style:"monk"},"abbot",false,true);
-  abbot.setPosition(-15,12,0);this.abbotAvatar=abbot;
-  const route=[[-15,12],[-15,20],[-5,22],[7,22],[16,18],[20,8],[19,-5],[14,-15],[5,-17],[-7,-17],[-17,-10],[-20,0],[-20,10]];
-  this.npcs.push({avatar:abbot,stationary:false,abbot:true,route:route.map(([x,z])=>new THREE.Vector3(x,0,z)),target:new THREE.Vector3(),targetIndex:0,routine:["walk","bow","walk","meditate","walk"],routineStep:0,nextAt:performance.now()+900,moving:false,pathWaypoints:[],stuckAt:0});
+  const abbot=avatar(this.scene,{name:abbotNames.zh,robe:"#aa7048",skin:"#c99f7b",style:"monk"},"abbot",false,true);
+  abbot.setPosition(0,14,Math.PI);abbot.root.visible=true;this.abbotAvatar=abbot;
+  const roamingPoints=[
+   [-22,18],[-15,24],[-7,27],[3,27],[13,24],[21,17],[23,7],[21,-3],[17,-13],
+   [8,-17],[-2,-17],[-12,-16],[-21,-9],[-23,2],[-21,12],[-14,14],[-8,9],
+   [0,8],[8,11],[15,5],[5,1],[-6,-3],[-17,4],[0,21],[10,19]
+  ];
+  this.npcs.push({avatar:abbot,stationary:false,abbot:true,roamingPoints,target:new THREE.Vector3(),routine:["walk","bow","walk","greet","walk","meditate"],routineStep:0,nextAt:performance.now()+700,moving:false,pathWaypoints:[],stuckAt:0,recentStops:[]});
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
@@ -1236,8 +1240,8 @@ export class TempleWorld{
      else{
       npc.pathWaypoints=[];npc.moving=false;
       const action=npc.routine[npc.routineStep++%npc.routine.length];
-      const duration=action==="meditate"?6200:action==="bow"?2400:1800;
-      a.setPose(action,duration);npc.nextAt=time+duration+900+Math.random()*900;npc.stuckAt=0;
+      const duration=action==="meditate"?5200:action==="bow"?1900:action==="greet"?1600:1200;
+      a.setPose(action,duration);npc.nextAt=time+duration+1100+Math.random()*2200;npc.stuckAt=0;
      }
     }else{
      const step=Math.min(dist,1.2*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.npcCollisionWorld(a));
@@ -1247,13 +1251,34 @@ export class TempleWorld{
      a.root.rotation.y=Math.atan2(dx,dz);
     }
    }else if(time>=npc.nextAt){
-    npc.targetIndex=(npc.targetIndex+1)%npc.route.length;
-    const target=npc.route[npc.targetIndex],path=findWalkPath(p,{x:target.x,z:target.z},this.npcCollisionWorld(a));
-    if(!path?.length)npc.nextAt=time+1000;
-    else{npc.target.copy(target);npc.pathWaypoints=path.map(q=>new THREE.Vector3(q.x,0,q.z));a.setPose("walk",60000);npc.moving=true;}
+    if(npc.abbot)this.planAbbotWander(npc,time);
+    else npc.nextAt=time+1800;
    }
    a.update(dt,time,npc.moving);
   }
+ }
+ planAbbotWander(npc,time=performance.now()){
+  const a=npc.avatar,p=a.root.position,collision=this.npcCollisionWorld(a);
+  const recent=npc.recentStops||[];
+  const choices=(npc.roamingPoints||[]).map((point,index)=>({
+   index,x:point[0]+(Math.random()-.5)*1.25,z:point[1]+(Math.random()-.5)*1.25
+  })).sort(()=>Math.random()-.5).slice(0,12);
+  let best=null,bestScore=Infinity;
+  for(const candidate of choices){
+   if(Math.hypot(candidate.x-p.x,candidate.z-p.z)<4.8)continue;
+   const path=findWalkPath(p,{x:candidate.x,z:candidate.z},collision);
+   if(!path?.length)continue;
+   let distance=0,px=p.x,pz=p.z;
+   for(const q of path){distance+=Math.hypot(q.x-px,q.z-pz);px=q.x;pz=q.z;}
+   const score=distance+(recent.includes(candidate.index)?15:0)+Math.random()*9;
+   if(score<bestScore){best={candidate,path};bestScore=score;}
+  }
+  if(!best){npc.nextAt=time+1200;return false;}
+  npc.target.set(best.candidate.x,0,best.candidate.z);
+  npc.pathWaypoints=best.path.map(q=>new THREE.Vector3(q.x,0,q.z));
+  npc.recentStops=[...recent,best.candidate.index].slice(-4);
+  a.setPose("walk",60000);npc.moving=true;npc.stuckAt=0;
+  return true;
  }
  npcCollisionWorld(exclude){
   // Visitors must not pin the abbot in place; static walls and props still block his route.
@@ -1438,31 +1463,42 @@ export class TempleWorld{
    if(cost<bestCost){choice={route,path};bestCost=cost;}
   }
   if(!choice)return false;
-  this.gardenRoute=choice.route;this.gardenActive=true;this.gardenStarted=false;this.gardenRouteIndex=0;
+  this.gardenRoute=choice.route;this.gardenActive=true;this.gardenStarted=false;this.gardenPauseUntil=0;this.gardenRouteIndex=0;
   const targets=choice.path.map(p=>new THREE.Vector3(p.x,0,p.z));this.moveTarget=targets.shift();this.moveWaypoints=targets;this.pendingAction=null;this.moveVelocity.set(0,0);
-  if(!this.moveTarget)this.advanceGardenRoute(performance.now());
+  if(!this.moveTarget)this.beginGardenPause(performance.now());
   return true;
  }
  stopGarden(){
   if(!this.gardenActive)return false;
-  this.gardenActive=false;this.gardenStarted=false;this.gardenRouteIndex=0;
+  this.gardenActive=false;this.gardenStarted=false;this.gardenPauseUntil=0;this.gardenRouteIndex=0;
   this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity?.set(0,0);
   if(this.local)this.local.setPose("walk",0);
   window.dispatchEvent(new CustomEvent("temple:garden-stopped"));
   return true;
  }
+ beginGardenPause(time=performance.now()){
+  if(!this.gardenActive||!this.local)return false;
+  this.moveTarget=null;this.moveWaypoints=[];this.moveVelocity.set(0,0);
+  if(!this.gardenStarted){this.gardenStarted=true;window.dispatchEvent(new CustomEvent("temple:garden-started"));}
+  else window.dispatchEvent(new CustomEvent("temple:garden-watering"));
+  this.local.setPose("water",0);
+  this.gardenPauseUntil=time+1900;
+  return true;
+ }
  advanceGardenRoute(time=performance.now()){
   if(!this.gardenActive||!this.local)return false;
-  if(!this.gardenStarted){this.gardenStarted=true;window.dispatchEvent(new CustomEvent("temple:garden-started"));}
+  this.gardenPauseUntil=0;
   const next=this.gardenRoute[(this.gardenRouteIndex+1)%this.gardenRoute.length];this.gardenRouteIndex=(this.gardenRouteIndex+1)%this.gardenRoute.length;
   const path=findWalkPath(this.local.root.position,{x:next[0],z:next[1]},this.actorCollisionWorld(this.local));
   if(!path?.length){this.stopGarden();return false;}
+  this.local.setPose("walk",0);
+  window.dispatchEvent(new CustomEvent("temple:garden-walking"));
   const targets=path.map(p=>new THREE.Vector3(p.x,0,p.z));this.moveTarget=targets.shift();this.moveWaypoints=targets;this.moveVelocity.multiplyScalar(.15);
   return true;
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-18.0],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
+  const destinations={incense:[0,-19.5],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
   if(action==="rest"){
    const p=this.local.root.position,actors=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].map(a=>a.root.position);
    const nearbyBenches=this.benchRestSpots.filter(s=>Math.hypot(p.x-s.x,p.z-s.z)<5.5);
@@ -1528,7 +1564,8 @@ export class TempleWorld{
   const f=(input.forward||0)-(input.backward||0)+(input.joyY||0);
   const side=(input.right||0)-(input.left||0)+(input.joyX||0);
   const hasInput=Math.hypot(f,side)>.05;
-  if(hasInput){this.stopWander();this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
+  if(hasInput){if(this.gardenActive)this.stopGarden();this.stopWander();this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;}
+  if(this.gardenActive&&this.gardenPauseUntil&&time>=this.gardenPauseUntil)this.advanceGardenRoute(time);
   if(this.wanderActive&&!hasInput&&!this.moveTarget&&time>=this.wanderNextAt)this.planWander(time);
   if(this.local.until&&time>this.local.until){this.local.pose="walk";this.local.until=0;}
   const canMove=["walk","greet","bow","chant"].includes(this.local.pose);
@@ -1546,7 +1583,7 @@ export class TempleWorld{
      this.moveTarget=null;
      if(this.pendingAction){const action=this.pendingAction;this.pendingAction=null;window.dispatchEvent(new CustomEvent("temple:arrived-action",{detail:{action}}));}
      else if(this.wanderActive)this.wanderNextAt=time+1900+Math.random()*2600;
-     else if(this.gardenActive)this.advanceGardenRoute(time);
+     else if(this.gardenActive)this.beginGardenPause(time);
     }
    }else direction=new THREE.Vector3(dx,0,dz).normalize();
   }
