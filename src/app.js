@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261116-r20";
+import { TempleWorld } from "./world.js?v=20261116-r21";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
 import { getText } from "./i18n.js?v=20261116-r8";
 
@@ -822,7 +822,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r18",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r19",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
