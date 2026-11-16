@@ -39,15 +39,36 @@ function robeNamePlate(name){
 }
 
 function pine(scene,x,z,s,m){
- const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
- add(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,g,[0,1.55,0],[0,0,0],false);
- for(let i=0;i<4;i++){
-  const angle=i*2.17+Math.random()*.24,offset=.12+Math.random()*.12;
-  const crown=add(new THREE.ConeGeometry(1.9-i*.32,2.9,9),i%2?m.pine2:m.pine,g,[Math.cos(angle)*offset,2.05+i*.78,Math.sin(angle)*offset],[Math.sin(angle)*.035,i*.31,Math.cos(angle)*.035],false);
-  crown.scale.set(.92+Math.random()*.17,.9+Math.random()*.16,.92+Math.random()*.17);
- }
- for(let i=0;i<2;i++){
-  const a=i*Math.PI+.4,branch=add(new THREE.CylinderGeometry(.045,.085,1.35,6),m.bark,g,[Math.cos(a)*.46,2.1,Math.sin(a)*.46],[Math.sin(a)*.65,0,Math.cos(a)*-.65],false);
+ const list=scene.userData.pineInstances||(scene.userData.pineInstances=[]);list.push({x,z,s});
+}
+function addInstancedPines(scene,m){
+ const specs=scene.userData.pineInstances||[];delete scene.userData.pineInstances;if(!specs.length)return;
+ const dummy=new THREE.Object3D();
+ const place=(mesh,index,x,y,z,sx,sy,sz,rx=0,ry=0,rz=0)=>{dummy.position.set(x,y,z);dummy.rotation.set(rx,ry,rz);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);};
+ const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.3,3.1,9),m.bark,specs.length);
+ const branches=new THREE.InstancedMesh(new THREE.CylinderGeometry(.045,.085,1.35,6),m.bark,specs.length*2);
+ const crownGeometry=new THREE.ConeGeometry(1.9,2.9,9);
+ const crowns=[new THREE.InstancedMesh(crownGeometry,m.pine,specs.length*2),new THREE.InstancedMesh(crownGeometry,m.pine2,specs.length*2)];
+ let branchIndex=0;const crownIndex=[0,0];
+ specs.forEach((tree,treeIndex)=>{
+  const {x,z,s}=tree;place(trunk,treeIndex,x,1.55*s,z,s,s,s);
+  for(let i=0;i<4;i++){
+   const angle=i*2.17+Math.random()*.24,offset=.12+Math.random()*.12,materialIndex=i%2;
+   const mesh=crowns[materialIndex],index=crownIndex[materialIndex]++;
+   const variationX=.92+Math.random()*.17,variationY=.9+Math.random()*.16,variationZ=.92+Math.random()*.17,radius=(1.9-i*.32)/1.9;
+   place(mesh,index,x+Math.cos(angle)*offset*s,(2.05+i*.78)*s,z+Math.sin(angle)*offset*s,s*radius*variationX,s*variationY,s*radius*variationZ,Math.sin(angle)*.035,i*.31,Math.cos(angle)*.035);
+  }
+  for(let i=0;i<2;i++){const a=i*Math.PI+.4;place(branches,branchIndex++,x+Math.cos(a)*.46*s,2.1*s,z+Math.sin(a)*.46*s,s,s,s,Math.sin(a)*.65,0,Math.cos(a)*-.65);}
+ });
+ for(const mesh of [trunk,branches,...crowns]){mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);mesh.castShadow=false;mesh.receiveShadow=false;mesh.computeBoundingSphere();scene.add(mesh);}
+}
+function addInstancedHills(scene,specs){
+ if(!specs.length)return;
+ const geometry=new THREE.ConeGeometry(1,1,7),materials=[mat(0x81958b,.98),mat(0x70887e,.98)];
+ for(let ring=0;ring<2;ring++){
+  const rows=specs.filter(item=>item.ring===ring),mesh=new THREE.InstancedMesh(geometry,materials[ring],rows.length),dummy=new THREE.Object3D();
+  rows.forEach((hill,index)=>{dummy.position.set(hill.x,hill.y,hill.z);dummy.rotation.set(0,hill.ry,hill.rz);dummy.scale.set(hill.radius,hill.height*.85,hill.radius*1.05);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);});
+  mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);mesh.castShadow=false;mesh.receiveShadow=false;mesh.computeBoundingSphere();scene.add(mesh);
  }
 }
 function planeRoof(parent,w,d,ry,ey,side,m){
@@ -350,6 +371,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
     else if(name==="chant"){v.bodyX=.08;v.headX=.13;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
     else if(name==="meditate"){v.bodyY=-.19;v.bodyX=-.025;v.headX=.035;v.legX0=-1.1;v.legX1=-1.1;v.armX0=-1.02;v.armX1=-1.02;v.armZ0=.52;v.armZ1=-.52;}
     else if(name==="tea"){v.bodyY=-.17;v.bodyX=-.035;v.headX=-.12;v.legX0=-1.05;v.legX1=-1.05;v.armX0=-.92;v.armX1=-1.28;v.armZ0=.42;v.armZ1=-.22;}
+    else if(name==="toilet"){v.bodyY=-.24;v.bodyX=.08;v.headX=.12;v.legX0=-.9;v.legX1=-.9;v.armX0=-.12;v.armX1=-.12;v.armZ0=.34;v.armZ1=-.34;}
     else if(name==="greet"){v.armX0=-.75;v.armX1=-.75;v.armZ0=-.42;v.armZ1=.42;}
     else if(name==="incense"){v.armX0=-.6;v.armX1=-.6;}
     else if(name==="sweep"){v.armX0=.15;v.armX1=-.5;v.armZ1=.5*Math.sin(time*.01);}
@@ -426,8 +448,11 @@ export class TempleWorld{
   add(new THREE.PlaneGeometry(240,240),m.grass,s,[0,-.72,0],[-Math.PI/2,0,0],false);
   add(new THREE.PlaneGeometry(64,62),m.stone,s,[0,-.14,-2],[-Math.PI/2,0,0],false);
   const path=mat(0xb1a791,.95);add(new THREE.PlaneGeometry(8,70),path,s,[0,-.1,8],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(56,7),path,s,[0,-.1,-1],[-Math.PI/2,0,0],false);add(new THREE.PlaneGeometry(5,38),path,s,[0,-.1,-34],[-Math.PI/2,0,0],false);
-  for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;const hill=add(new THREE.ConeGeometry(17+Math.random()*13,38+Math.random()*30,7),mat(ring?0x70887e:0x81958b,.98),s,[Math.cos(a)*r,8-ring*2,Math.sin(a)*r],[0,Math.random(),(Math.random()-.5)*.12],false);hill.scale.set(1,.85,1.05);}
+  const distantHills=[];
+  for(let ring=0;ring<2;ring++)for(let i=0;i<24;i++){const a=i*Math.PI/12+(ring?.12:0),r=100+ring*17;distantHills.push({ring,x:Math.cos(a)*r,y:8-ring*2,z:Math.sin(a)*r,radius:17+Math.random()*13,height:38+Math.random()*30,ry:Math.random(),rz:(Math.random()-.5)*.12});}
+  addInstancedHills(s,distantHills);
   for(let i=0;i<(this.mobile?18:56);i++){const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;if((Math.abs(x)<14&&z>12&&z<43)||Math.hypot(x+52,z-12)<15)continue;pine(s,x,z,.72+Math.random()*.72,m);}
+  addInstancedPines(s,m);
   // 林间茶庄：由北侧绕过祈愿墙可达，坐落在森林中的独立草地。
   const teaLawn=new THREE.Group();teaLawn.position.set(0,0,-62);s.add(teaLawn);this.teaHouse=teaLawn;
   add(new THREE.PlaneGeometry(27,23),m.grass,s,[0,-.085,-62],[-Math.PI/2,0,0],false);
@@ -832,43 +857,15 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
   // A quiet shrine now occupies the former west-side washroom site.
   const shrine=new THREE.Group();shrine.position.set(-22.5,0,-32);s.add(shrine);this.shrine=shrine;
-  const shrineStone=mat(0xb8ad98,.96),shrineWood=mat(0x493326,.9),shrineRoof=mat(0x35483d,.94),shrineTrim=mat(0x9b7a4d,.8);
+  const shrineStone=mat(0xb8ad98,.96),shrineWood=mat(0x493326,.9),shrineTrim=mat(0x9b7a4d,.8);
   const shrineBronze=mat(0x715b43,.5,{metalness:.42}),shrineGold=mat(0xc29a59,.4,{metalness:.48});
-  add(new THREE.BoxGeometry(6.1,.28,5.25),shrineStone,shrine,[0,.14,0]);
-  add(new THREE.PlaneGeometry(5.7,4.9),m.stoneLight,shrine,[0,.285,0],[-Math.PI/2,0,0],false);
-  add(new THREE.BoxGeometry(.24,2.65,5.0),shrineStone,shrine,[-2.8,1.65,0]);
-  add(new THREE.BoxGeometry(.24,2.65,5.0),shrineStone,shrine,[2.8,1.65,0]);
-  add(new THREE.BoxGeometry(5.6,2.65,.24),shrineStone,shrine,[0,1.65,-2.38]);
-  add(new THREE.BoxGeometry(1.75,2.65,.24),shrineStone,shrine,[-1.93,1.65,2.38]);
-  add(new THREE.BoxGeometry(1.75,2.65,.24),shrineStone,shrine,[1.93,1.65,2.38]);
-  for(const x of [-.99,.99]){
-   add(new THREE.BoxGeometry(.16,2.72,.2),shrineWood,shrine,[x,1.68,2.38]);
-   add(new THREE.BoxGeometry(.42,.18,.42),shrineTrim,shrine,[x,2.99,2.38]);
-  }
-  add(new THREE.BoxGeometry(3.85,2.12,.13),shrineWood,shrine,[0,1.72,-2.17]);
-  for(const x of [-1.72,1.72])add(new THREE.BoxGeometry(.09,2.0,.12),shrineTrim,shrine,[x,1.7,-2.075]);
-  add(new THREE.BoxGeometry(3.85,.1,.14),shrineTrim,shrine,[0,2.75,-2.075]);
-  add(new THREE.BoxGeometry(6.5,.2,5.7),shrineWood,shrine,[0,3.0,0]);
-  const shrineRoofGroup=new THREE.Group();shrine.add(shrineRoofGroup);
-  planeRoof(shrineRoofGroup,6.2,5.4,4.05,3.5,1,shrineRoof);planeRoof(shrineRoofGroup,6.2,5.4,4.05,3.5,-1,shrineRoof);
-  add(new THREE.CylinderGeometry(.08,.08,6.5,8),shrineTrim,shrine,[0,4.0,0],[0,0,Math.PI/2]);
-  for(const side of [-1,1]){
-   add(new THREE.BoxGeometry(.13,.13,5.0),shrineTrim,shrine,[side*2.84,2.91,0]);
-   add(new THREE.BoxGeometry(5.7,.13,.13),shrineTrim,shrine,[0,2.91,side*2.42]);
-  }
-  const shrineSignCanvas=document.createElement("canvas");shrineSignCanvas.width=512;shrineSignCanvas.height=144;
-  const shrineSignCtx=shrineSignCanvas.getContext("2d");shrineSignCtx.fillStyle="#3b2b20";shrineSignCtx.fillRect(0,0,512,144);
-  shrineSignCtx.strokeStyle="#d8bd82";shrineSignCtx.lineWidth=8;shrineSignCtx.strokeRect(10,10,492,124);
-  shrineSignCtx.textAlign="center";shrineSignCtx.textBaseline="middle";shrineSignCtx.font='bold 72px "Songti SC","Noto Serif CJK SC",serif';shrineSignCtx.fillStyle="#fff0cc";shrineSignCtx.fillText("神龛",256,72);
-  const shrineSignMap=new THREE.CanvasTexture(shrineSignCanvas);shrineSignMap.colorSpace=THREE.SRGBColorSpace;
-  add(new THREE.BoxGeometry(2.15,.65,.14),shrineWood,shrine,[0,2.84,2.49]);
-  add(new THREE.PlaneGeometry(2.0,.5),new THREE.MeshBasicMaterial({map:shrineSignMap,toneMapped:false}),shrine,[0,2.84,2.565],[0,0,0],false);
-  this.shrineSign={ctx:shrineSignCtx,map:shrineSignMap,canvas:shrineSignCanvas};
-  // A carved altar and a compact seated Buddha figure inside the niche.
-  add(new THREE.BoxGeometry(3.15,.2,.88),shrineWood,shrine,[0,1.03,-1.12]);
-  for(const x of [-1.32,1.32])for(const z of [-1.42,-.82])add(new THREE.BoxGeometry(.16,.78,.16),shrineWood,shrine,[x,.53,z]);
-  add(new THREE.BoxGeometry(3.3,.09,.96),shrineTrim,shrine,[0,1.17,-1.12]);
-  const idol=new THREE.Group();idol.position.set(0,1.22,-1.68);shrine.add(idol);
+  // Open-air altar: no enclosure, pillars, signboard or roof.
+  add(new THREE.BoxGeometry(4.8,.24,3.8),shrineStone,shrine,[0,.12,0]);
+  add(new THREE.PlaneGeometry(4.45,3.45),m.stoneLight,shrine,[0,.245,0],[-Math.PI/2,0,0],false);
+  add(new THREE.BoxGeometry(3.15,.2,.88),shrineWood,shrine,[0,1.03,-.72]);
+  for(const x of [-1.32,1.32])for(const z of [-1.02,-.42])add(new THREE.BoxGeometry(.16,.78,.16),shrineWood,shrine,[x,.53,z]);
+  add(new THREE.BoxGeometry(3.3,.09,.96),shrineTrim,shrine,[0,1.17,-.72]);
+  const idol=new THREE.Group();idol.position.set(0,1.22,-1.28);shrine.add(idol);
   add(new THREE.CylinderGeometry(.54,.62,.16,24),shrineGold,idol,[0,.13,0]);
   add(new THREE.SphereGeometry(1,18,14),shrineBronze,idol,[0,.43,0]).scale.set(.62,.25,.43);
   add(new THREE.SphereGeometry(1,18,14),shrineGold,idol,[0,.78,0]).scale.set(.48,.62,.36);
@@ -880,13 +877,14 @@ export class TempleWorld{
   }
   add(new THREE.TorusGeometry(.82,.045,8,40),shrineGold,idol,[0,1.28,-.2]);
   for(const x of [-1.08,1.08]){
-   add(new THREE.CylinderGeometry(.12,.2,.2,12),shrineBronze,shrine,[x,1.36,-.58]);
-   add(new THREE.SphereGeometry(.07,8,7),new THREE.MeshBasicMaterial({color:0xffc27d}),shrine,[x,1.51,-.58],[0,0,0],false);
-   const lamp=new THREE.PointLight(0xffc17a,.18,4);lamp.position.set(x,1.58,-.58);shrine.add(lamp);this.nightLights.push({light:lamp,base:.18});
+   add(new THREE.CylinderGeometry(.12,.2,.2,12),shrineBronze,shrine,[x,1.36,-.18]);
+   add(new THREE.SphereGeometry(.07,8,7),new THREE.MeshBasicMaterial({color:0xffc27d}),shrine,[x,1.51,-.18],[0,0,0],false);
+   const lamp=new THREE.PointLight(0xffc17a,.18,4);lamp.position.set(x,1.58,-.18);shrine.add(lamp);this.nightLights.push({light:lamp,base:.18});
   }
-  add(new THREE.CylinderGeometry(.18,.22,.16,16),shrineBronze,shrine,[0,1.34,-.48]);
-  add(new THREE.TorusGeometry(.19,.025,7,24),shrineGold,shrine,[0,1.43,-.48],[Math.PI/2,0,0]);
+  add(new THREE.CylinderGeometry(.18,.22,.16,16),shrineBronze,shrine,[0,1.34,.18]);
+  add(new THREE.TorusGeometry(.19,.025,7,24),shrineGold,shrine,[0,1.43,.18],[Math.PI/2,0,0]);
   const shrineGlow=new THREE.PointLight(0xffd39a,.28,8);shrineGlow.position.set(0,2.0,-.4);shrine.add(shrineGlow);this.nightLights.push({light:shrineGlow,base:.28});
+  this.shrineSign=null;
 
   // The two-pan washroom now sits behind the Great Buddha Hall, beside the forest tea house.
   const washroom=new THREE.Group();washroom.position.set(10.6,0,-66.5);s.add(washroom);this.washroom=washroom;
@@ -1143,7 +1141,7 @@ export class TempleWorld{
    const nearest=cushions.map(([x,z])=>({x,z,d:Math.hypot(p.x-x,p.z-z)})).sort((a,b)=>a.d-b.d)[0];
    if(nearest&&nearest.d<2.35)this.local.setPosition(nearest.x,nearest.z,Math.PI,.54);
   }
-  this.local.setPose(action,action==="tea"?6500:2600);
+  this.local.setPose(action,(action==="tea"||action==="toilet")?6500:2600);
  }
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){
@@ -1158,6 +1156,7 @@ export class TempleWorld{
   if(a==="chant")return Math.hypot(p.x,p.z+38.5)<12;
   if(a==="lotus")return Math.hypot(p.x-this.pondPosition.x,p.z-this.pondPosition.z)<=6.2;
   if(a==="tea")return Math.hypot(p.x-this.teaHouse.position.x,p.z-this.teaHouse.position.z)<7;
+  if(a==="toilet")return Math.hypot(p.x-10,p.z+66.35)<2.2;
   if(a==="sweep")return Math.hypot(p.x,p.z)<38;
   if(a==="meditate"){
    const cushions=MEDITATION_CUSHIONS;
@@ -1167,7 +1166,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10,-66.35],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
