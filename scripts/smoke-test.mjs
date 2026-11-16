@@ -61,7 +61,7 @@ assert.ok(network.includes("hasJoinedRoom") && network.includes('resume: this.ha
 assert.ok(world.includes("abbotAvatar=abbot") && world.includes("planAbbotWander(npc,time)") && world.includes("roamingPoints") && world.includes("findWalkPath(p,{x:candidate.x,z:candidate.z},collision)"), "The abbot must roam freely using dynamic collision-aware paths");
 assert.ok(app.includes("templeBirds") && app.includes("playFootstep") && app.includes("playMuyu") && app.includes("if(action===\"chant\"&&world.isNight)return;") && app.includes("updateSoundscape();"), "Layered temple ambience and ritual sounds missing");
 assert.ok(html.includes('id="beads-modal"') && html.includes('data-action="beads"'), "108-bead practice UI missing");
-assert.ok(app.includes("function advanceBead()") && app.includes('localStorage.setItem("temple-beads-total"'), "108-bead practice must persist locally");
+assert.ok(app.includes("function advanceBead()") && app.includes('storageSet("temple-beads-total"') && app.includes('const storageSet=(key,value)=>{try{localStorage.setItem(key,String(value));return true;}catch{return false;}}'), "108-bead practice must persist locally without making startup depend on browser storage");
 assert.ok(!html.includes('id="sound-modal"') && !html.includes('id="sound-settings"'), "Sound adjustment panel must be removed");
 assert.ok(html.includes('id="sound-toggle"'), "Simple sound toggle must remain");
 assert.ok(app.includes("function updateAudioStatus()") && app.includes("function mediaPlay(media,label)"), "Sound engine diagnostics must remain available");
