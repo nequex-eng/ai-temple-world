@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r3";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -405,7 +405,7 @@ export class TempleWorld{
   this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,440);
   this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
-  this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.mobile?1.35:1.75));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
+  this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
   this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
@@ -931,8 +931,8 @@ export class TempleWorld{
    const fixture=lantern(s,x,z,m);this.streetLanterns.push(fixture);
    this.nightLights.push({light:fixture.light,base:.52});
   }
-  // One large traditional bronze censer on the Great Hall central axis, just outside its main entrance.
-  this.incensePosition=new THREE.Vector3(0,0,-22.4);
+  // Keep the large bronze censer beside the approach, not in the central stair path.
+  this.incensePosition=new THREE.Vector3(3.3,0,-22.4);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -1142,7 +1142,7 @@ export class TempleWorld{
  updateRemote(p){if(!p?.id||p.id===this.local?.id)return;let a=this.remotes.get(p.id);if(!a){this.addRemote(p);return;}if(a.profile.style!==p.style){const pos=a.root.position.clone(),rotation=a.root.rotation.y;a.dispose();a=avatar(this.scene,p,p.id);a.setPosition(pos.x,pos.z,rotation);this.remotes.set(p.id,a);}else if(a.profile.name!==p.name||a.profile.robe!==p.robe||a.profile.skin!==p.skin)a.setProfile(p);a.setTarget(p);}
  removeRemote(id){const a=this.remotes.get(id);if(a){a.dispose();this.remotes.delete(id);}}
  requestJump(){if(!this.local)return false;if(this.jumpOffset<=.001&&this.jumpVelocity<=.01){this.jumpOffset=.14;this.jumpVelocity=4.35;this.jumpHeld=true;const p=this.local.root.position;this.local.root.position.y=groundHeightAt(p.x,p.z,this.halls)+this.jumpOffset;return true;}return false;}
- setDebugPosition(x,z){if(this.local)this.local.setPosition(x,z,this.local.root.rotation.y,groundHeightAt(x,z,this.halls));}
+ setDebugPosition(x,z){if(!this.local)return;this.local.setPosition(x,z,this.local.root.rotation.y,groundHeightAt(x,z,this.halls));this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.moveVelocity.set(0,0);}
  setDebugYaw(yaw){this.yaw=Number(yaw)||0;}
  setLocalPose(action){
   if(!this.local)return;
@@ -1177,7 +1177,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-26],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.5],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
+  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.5],meditate:[0,-32.05],chant:[0,-32.05],kneel:[0,-26]};
   const destination=destinations[action];if(!destination)return false;
   const path=findWalkPath(this.local.root.position,{x:destination[0],z:destination[1]},this.actorCollisionWorld(this.local));
   if(!path?.length)return false;
