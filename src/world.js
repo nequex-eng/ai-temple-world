@@ -226,7 +226,7 @@ function marketVendor(scene,x,z,facing,m){
  };
  return root;
 }
-function avatar(scene,profile={},id="local",isLocal=false){
+function avatar(scene,profile={},id="local",isLocal=false,showName=true){
  const root=new THREE.Group();root.name="monk-"+id;scene.add(root);
  const robe=mat(profile.robe||"#b49a72",.96,{map:robeFabric,bumpMap:robeFabric,bumpScale:.018}),trim=mat(0xd7bf91,.65),skin=mat(profile.skin||"#d7ad87"),dark=mat(0x392f27),sandal=mat(0x574b3b);
  const body=new THREE.Group();root.add(body);
@@ -333,11 +333,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
  if(profile.style==="pilgrim"){
   add(new THREE.BoxGeometry(.42,.56,.22),dark,body,[-.57,.73,-.08],[0,0,-.18]);
  }
- const namePlate=profile.style==="pilgrim"?null:robeNamePlate(profile.name||"行者");if(namePlate)root.add(namePlate);
+ const namePlate=showName?robeNamePlate(profile.name||"行者"):null;if(namePlate)root.add(namePlate);
  return {
-  id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
+  id,root,body,head,arms,legs,tag:namePlate,profile,showName,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){if(this.tag){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();}this.tag=robeNamePlate(name);this.root.add(this.tag);},
+  setLabel(name){if(!this.showName)return;if(this.tag){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();}this.tag=robeNamePlate(name);this.root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
@@ -527,7 +527,7 @@ export class TempleWorld{
    {name:"凉面摊主",x:43,z:-1,kind:"noodles",facing:-Math.PI/2,customers:1,area:"market"},
    {name:"香烛摊主",x:43,z:7,kind:"incense",facing:-Math.PI/2,customers:0,area:"market"},
    {name:"咖啡摊主",x:43,z:15,kind:"coffee",facing:-Math.PI/2,customers:0,area:"market"},
-   {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:1,area:"market"}
+   {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:0,area:"market"}
   ];
   this.roadsideVendorSpecs=[
    {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:-Math.PI/2,customers:0,area:"road"},
@@ -830,8 +830,66 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(1.05,1.28,2,24),mat(0x927444,.42,{metalness:.62}),bell,[0,2.25,0]);
   add(new THREE.TorusGeometry(1.1,.12,8,32),m.gold,bell,[0,3.15,0],[Math.PI/2,0,0]);
   add(new THREE.CylinderGeometry(.08,.08,1.8,10),m.darkWood,bell,[0,1.6,0]);add(new THREE.SphereGeometry(.2,10,8),m.gold,bell,[0,.85,0]);
-  // A discreet, unlabelled washroom on the west (left) side of the Great Hall.
-  const washroom=new THREE.Group();washroom.position.set(-22.5,0,-32);s.add(washroom);
+  // A quiet shrine now occupies the former west-side washroom site.
+  const shrine=new THREE.Group();shrine.position.set(-22.5,0,-32);s.add(shrine);this.shrine=shrine;
+  const shrineStone=mat(0xb8ad98,.96),shrineWood=mat(0x493326,.9),shrineRoof=mat(0x35483d,.94),shrineTrim=mat(0x9b7a4d,.8);
+  const shrineBronze=mat(0x715b43,.5,{metalness:.42}),shrineGold=mat(0xc29a59,.4,{metalness:.48});
+  add(new THREE.BoxGeometry(6.1,.28,5.25),shrineStone,shrine,[0,.14,0]);
+  add(new THREE.PlaneGeometry(5.7,4.9),m.stoneLight,shrine,[0,.285,0],[-Math.PI/2,0,0],false);
+  add(new THREE.BoxGeometry(.24,2.65,5.0),shrineStone,shrine,[-2.8,1.65,0]);
+  add(new THREE.BoxGeometry(.24,2.65,5.0),shrineStone,shrine,[2.8,1.65,0]);
+  add(new THREE.BoxGeometry(5.6,2.65,.24),shrineStone,shrine,[0,1.65,-2.38]);
+  add(new THREE.BoxGeometry(1.75,2.65,.24),shrineStone,shrine,[-1.93,1.65,2.38]);
+  add(new THREE.BoxGeometry(1.75,2.65,.24),shrineStone,shrine,[1.93,1.65,2.38]);
+  for(const x of [-.99,.99]){
+   add(new THREE.BoxGeometry(.16,2.72,.2),shrineWood,shrine,[x,1.68,2.38]);
+   add(new THREE.BoxGeometry(.42,.18,.42),shrineTrim,shrine,[x,2.99,2.38]);
+  }
+  add(new THREE.BoxGeometry(3.85,2.12,.13),shrineWood,shrine,[0,1.72,-2.17]);
+  for(const x of [-1.72,1.72])add(new THREE.BoxGeometry(.09,2.0,.12),shrineTrim,shrine,[x,1.7,-2.075]);
+  add(new THREE.BoxGeometry(3.85,.1,.14),shrineTrim,shrine,[0,2.75,-2.075]);
+  add(new THREE.BoxGeometry(6.5,.2,5.7),shrineWood,shrine,[0,3.0,0]);
+  const shrineRoofGroup=new THREE.Group();shrine.add(shrineRoofGroup);
+  planeRoof(shrineRoofGroup,6.2,5.4,4.05,3.5,1,shrineRoof);planeRoof(shrineRoofGroup,6.2,5.4,4.05,3.5,-1,shrineRoof);
+  add(new THREE.CylinderGeometry(.08,.08,6.5,8),shrineTrim,shrine,[0,4.0,0],[0,0,Math.PI/2]);
+  for(const side of [-1,1]){
+   add(new THREE.BoxGeometry(.13,.13,5.0),shrineTrim,shrine,[side*2.84,2.91,0]);
+   add(new THREE.BoxGeometry(5.7,.13,.13),shrineTrim,shrine,[0,2.91,side*2.42]);
+  }
+  const shrineSignCanvas=document.createElement("canvas");shrineSignCanvas.width=512;shrineSignCanvas.height=144;
+  const shrineSignCtx=shrineSignCanvas.getContext("2d");shrineSignCtx.fillStyle="#3b2b20";shrineSignCtx.fillRect(0,0,512,144);
+  shrineSignCtx.strokeStyle="#d8bd82";shrineSignCtx.lineWidth=8;shrineSignCtx.strokeRect(10,10,492,124);
+  shrineSignCtx.textAlign="center";shrineSignCtx.textBaseline="middle";shrineSignCtx.font='bold 72px "Songti SC","Noto Serif CJK SC",serif';shrineSignCtx.fillStyle="#fff0cc";shrineSignCtx.fillText("神龛",256,72);
+  const shrineSignMap=new THREE.CanvasTexture(shrineSignCanvas);shrineSignMap.colorSpace=THREE.SRGBColorSpace;
+  add(new THREE.BoxGeometry(2.15,.65,.14),shrineWood,shrine,[0,2.84,2.49]);
+  add(new THREE.PlaneGeometry(2.0,.5),new THREE.MeshBasicMaterial({map:shrineSignMap,toneMapped:false}),shrine,[0,2.84,2.565],[0,0,0],false);
+  this.shrineSign={ctx:shrineSignCtx,map:shrineSignMap,canvas:shrineSignCanvas};
+  // A carved altar and a compact seated Buddha figure inside the niche.
+  add(new THREE.BoxGeometry(3.15,.2,.88),shrineWood,shrine,[0,1.03,-1.12]);
+  for(const x of [-1.32,1.32])for(const z of [-1.42,-.82])add(new THREE.BoxGeometry(.16,.78,.16),shrineWood,shrine,[x,.53,z]);
+  add(new THREE.BoxGeometry(3.3,.09,.96),shrineTrim,shrine,[0,1.17,-1.12]);
+  const idol=new THREE.Group();idol.position.set(0,1.22,-1.68);shrine.add(idol);
+  add(new THREE.CylinderGeometry(.54,.62,.16,24),shrineGold,idol,[0,.13,0]);
+  add(new THREE.SphereGeometry(1,18,14),shrineBronze,idol,[0,.43,0]).scale.set(.62,.25,.43);
+  add(new THREE.SphereGeometry(1,18,14),shrineGold,idol,[0,.78,0]).scale.set(.48,.62,.36);
+  add(new THREE.SphereGeometry(1,18,14),shrineGold,idol,[0,1.48,0]).scale.set(.39,.47,.34);
+  add(new THREE.SphereGeometry(.14,12,10),shrineGold,idol,[0,1.91,0]);
+  for(const side of [-1,1]){
+   add(new THREE.SphereGeometry(.11,10,8),shrineGold,idol,[side*.405,1.48,.015]).scale.set(.7,1.55,.7);
+   add(new THREE.CapsuleGeometry(.12,.38,5,8),shrineGold,idol,[side*.39,.94,.1],[0,0,side*.28]);
+  }
+  add(new THREE.TorusGeometry(.82,.045,8,40),shrineGold,idol,[0,1.28,-.2]);
+  for(const x of [-1.08,1.08]){
+   add(new THREE.CylinderGeometry(.12,.2,.2,12),shrineBronze,shrine,[x,1.36,-.58]);
+   add(new THREE.SphereGeometry(.07,8,7),new THREE.MeshBasicMaterial({color:0xffc27d}),shrine,[x,1.51,-.58],[0,0,0],false);
+   const lamp=new THREE.PointLight(0xffc17a,.18,4);lamp.position.set(x,1.58,-.58);shrine.add(lamp);this.nightLights.push({light:lamp,base:.18});
+  }
+  add(new THREE.CylinderGeometry(.18,.22,.16,16),shrineBronze,shrine,[0,1.34,-.48]);
+  add(new THREE.TorusGeometry(.19,.025,7,24),shrineGold,shrine,[0,1.43,-.48],[Math.PI/2,0,0]);
+  const shrineGlow=new THREE.PointLight(0xffd39a,.28,8);shrineGlow.position.set(0,2.0,-.4);shrine.add(shrineGlow);this.nightLights.push({light:shrineGlow,base:.28});
+
+  // The two-pan washroom now sits behind the Great Buddha Hall, beside the forest tea house.
+  const washroom=new THREE.Group();washroom.position.set(9.8,0,-62);s.add(washroom);this.washroom=washroom;
   const washStone=mat(0xb8ad98,.96),washWood=mat(0x493326,.9),washRoof=mat(0x35483d,.94),washTrim=mat(0x9b7a4d,.8);
   add(new THREE.BoxGeometry(6.1,.22,5.25),washStone,washroom,[0,.11,0]);
   add(new THREE.PlaneGeometry(5.6,4.8),m.stoneLight,washroom,[0,.235,0],[-Math.PI/2,0,0],false);
@@ -848,7 +906,6 @@ export class TempleWorld{
   add(new THREE.CylinderGeometry(.08,.08,6.5,8),washTrim,washroom,[0,3.9,0],[0,0,Math.PI/2]);
   for(const side of [-1,1]){add(new THREE.BoxGeometry(.13,.13,5.0),washTrim,washroom,[side*2.84,2.83,0]);add(new THREE.BoxGeometry(5.7,.13,.13),washTrim,washroom,[0,2.83,side*2.42]);}
   add(new THREE.PlaneGeometry(2.0,3.0),m.stone,washroom,[0,-.02,3.75],[-Math.PI/2,0,0],false);
-  // Two traditional floor-level squat toilets: porcelain pans, foot ledges and visible oval openings.
   const porcelain=mat(0xe4dfd0,.42,{metalness:.04}),porcelainEdge=mat(0xb8b5a9,.62),toiletHole=mat(0x252925,.98);
   this.squatToilets=[];
   for(const x of [-1.48,1.48]){
@@ -884,12 +941,12 @@ export class TempleWorld{
   const censerBase=this.courtyardCenser;
   add(new THREE.CylinderGeometry(1.05,1.18,.18,32),m.stoneLight,censerBase,[0,.12,0]);
   add(new THREE.CylinderGeometry(.78,.92,.2,28),courtyardGold,censerBase,[0,.31,0]);
-  add(new THREE.TorusGeometry(.83,.075,10,32),courtyardBronze,censerBase,[0,.43,0]);
+  add(new THREE.TorusGeometry(.83,.075,10,32),courtyardBronze,censerBase,[0,.43,0],[Math.PI/2,0,0]);
   const bowlProfile=[[0,.56],[.54,.56],[.82,.7],[1.08,1.02],[1.28,1.42],[1.24,1.82],[1.13,1.96],[1.02,1.82],[1.08,1.48],[.9,1.02],[.64,.78],[0,.76]].map(([r,y])=>new THREE.Vector2(r,y));
   add(new THREE.LatheGeometry(bowlProfile,40),courtyardBronze,censerBase,[0,0,0]);
-  add(new THREE.TorusGeometry(1.2,.105,12,40),courtyardGold,censerBase,[0,1.91,0]);
+  add(new THREE.TorusGeometry(1.2,.105,12,40),courtyardGold,censerBase,[0,1.91,0],[Math.PI/2,0,0]);
   add(new THREE.CircleGeometry(.98,40),censerDark,censerBase,[0,1.78,0],[-Math.PI/2,0,0],false);
-  add(new THREE.TorusGeometry(.72,.025,7,28),courtyardPatina,censerBase,[0,1.8,0]);
+  add(new THREE.TorusGeometry(.72,.025,7,28),courtyardPatina,censerBase,[0,1.8,0],[Math.PI/2,0,0]);
   for(let i=0;i<3;i++){
    const a=i*Math.PI*2/3+Math.PI/6,x=Math.cos(a),z=Math.sin(a),leg=new THREE.Group();
    leg.position.set(x*.82,.53,z*.82);leg.rotation.z=-x*.16;leg.rotation.x=z*.16;censerBase.add(leg);
@@ -937,7 +994,7 @@ export class TempleWorld{
  buildNpcs(){
   // The abbot stays in the courtyard loop in front of the hall and circles well around the censer.
   const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-8};
-  const a=avatar(this.scene,spec,"npc-abbot",true);
+  const a=avatar(this.scene,spec,"npc-abbot",true);this.abbotAvatar=a;
   a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
   a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
   a.setPose("bow",1500);
@@ -958,7 +1015,7 @@ export class TempleWorld{
       ?[[customerX,spec.z-2.45+lane],[customerX+.55,spec.z-.3+lane],[customerX,spec.z+2.45+lane],[customerX-.55,spec.z+.4+lane]]
       :[[customerX,spec.z-2.35+lane],[customerX-.62,spec.z-.15+lane],[customerX,spec.z+2.35+lane],[customerX+.62,spec.z+.45+lane]];
     const route=routePoints.map(([x,z])=>new THREE.Vector3(x,0,z));
-    const shopper=avatar(this.scene,{name:"香客",robe:index%2?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true);
+    const shopper=avatar(this.scene,{name:"香客",robe:index%2?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true,false);
     shopper.setPosition(route[0].x,route[0].z,Math.PI/2,0);shopper.setPose("walk",900);
     this.npcs.push({avatar:shopper,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+900+index*950+Math.random()*550,routine:["greet","bow"],routineStep:0,stuckAt:0,shopper:true});
    }
@@ -966,12 +1023,11 @@ export class TempleWorld{
 
   // Walking pilgrims stay on the public approach road and turn around before the gate.
   const roadWalkers=[
-   {id:"road-pilgrim-a",x:-2.25,z:35,robe:"#8b9a86",route:[[-2.25,35],[-2.25,23],[-2.25,8],[-2.25,23]]},
-   {id:"road-pilgrim-b",x:2.1,z:10,robe:"#b49a72",route:[[2.1,10],[2.1,25],[2.1,39],[2.1,25]]},
+   {id:"road-pilgrim-a",x:-2.25,z:35,robe:"#8b9a86",route:[[-2.25,35],[-2.25,23],[-2.25,8],[-2.25,23]]}
   ];
   for(const guest of roadWalkers){
    const route=guest.route.map(([x,z])=>new THREE.Vector3(x,0,z));
-   const walker=avatar(this.scene,{name:"香客",robe:guest.robe,skin:"#c99170",style:"pilgrim"},guest.id,true);
+   const walker=avatar(this.scene,{name:"香客",robe:guest.robe,skin:"#c99170",style:"pilgrim"},guest.id,true,false);
    walker.setPosition(route[0].x,route[0].z,Math.PI,0);walker.setPose("walk",900);
    this.npcs.push({avatar:walker,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+600+Math.random()*1800,routine:["greet","bow"],routineStep:0,stuckAt:0,roadWalker:true});
   }
@@ -1123,6 +1179,9 @@ export class TempleWorld{
   return true;
  }
  setLanguage(lang){
+  const abbotNames={zh:"住持",en:"Abbot",ja:"住職",ko:"주지 스님",th:"เจ้าอาวาส"};
+  if(this.abbotAvatar){const name=abbotNames[lang]||abbotNames.zh;this.abbotAvatar.profile.name=name;this.abbotAvatar.setLabel(name);}
+  if(this.shrineSign){const labels={zh:"神龛",en:"SHRINE",ja:"祠堂",ko:"신단",th:"ศาลบูชา"};const sign=this.shrineSign;sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=8;sign.ctx.strokeRect(10,10,492,124);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font="bold "+(lang==="zh"||lang==="ja"||lang==="ko"?72:54)+"px serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(labels[lang]||labels.zh,256,72,460);sign.map.needsUpdate=true;}
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#a82524":"#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle=sign.kind==="mcdonalds"?"#ffdf75":"#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
   if(this.parkingSign){
