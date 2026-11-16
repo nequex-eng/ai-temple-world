@@ -12,8 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Build static site
-        run: npm run build:pages
+      - name: Run validation, smoke tests and build
+        run: npm test
       - name: Check Cloudflare deploy credential
         id: credential
         shell: bash
