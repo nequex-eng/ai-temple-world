@@ -375,11 +375,11 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
   update(dt,time,moving=false){
    if(this.until&&time>this.until){this.previousPose=this.pose;this.pose="walk";this.poseStartedAt=time;this.until=0;}
    const pose=(name)=>{
-    const v={bodyX:0,bodyY:0,headX:0,armX0:0,armX1:0,armZ0:-.12,armZ1:.12,legX0:0,legX1:0};
+    const v={bodyX:0,bodyY:0,bodyScale:1,headX:0,armX0:0,armX1:0,armZ0:-.12,armZ1:.12,legX0:0,legX1:0};
     if(name==="bow"){v.bodyX=.17;v.headX=.26;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
     else if(name==="kneel"){v.bodyY=-.25;v.bodyX=.08;v.headX=.18;v.legX0=-.7;v.legX1=-.7;v.armZ0=.45;v.armZ1=-.45;}
     else if(name==="chant"){v.bodyX=.08;v.headX=.13;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
-    else if(name==="meditate"){v.bodyY=-.24;v.bodyX=-.025;v.headX=.035;v.legX0=0;v.legX1=0;v.armX0=-.42;v.armX1=-.42;v.armZ0=.68;v.armZ1=-.68;}
+    else if(name==="meditate"){v.bodyY=0;v.bodyScale=.84;v.bodyX=-.025;v.headX=.035;v.legX0=0;v.legX1=0;v.armX0=-.42;v.armX1=-.42;v.armZ0=.68;v.armZ1=-.68;}
     else if(name==="water"){v.bodyY=-.035;v.bodyX=.04;v.headX=-.12;v.armX0=-.65;v.armX1=-.42;v.armZ0=-.42;v.armZ1=.48;}
     else if(name==="tea"){v.bodyY=-.17;v.bodyX=-.035;v.headX=-.12;v.legX0=-1.05;v.legX1=-1.05;v.armX0=-.92;v.armX1=-1.28;v.armZ0=.42;v.armZ1=-.22;}
     else if(name==="eat"){v.bodyY=-.17;v.bodyX=-.025;v.headX=-.08;v.legX0=-1.05;v.legX1=-1.05;v.armX0=-.75;v.armX1=-1.34;v.armZ0=.38;v.armZ1=-.28;}
@@ -394,6 +394,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
    const raw=clamp((time-(this.poseStartedAt||time))/460,0,1),blend=raw*raw*(3-2*raw);
    const mix=(key)=>from[key]+(to[key]-from[key])*blend;
    body.rotation.x=mix("bodyX");
+   body.scale.y=mix("bodyScale");
    body.rotation.z=(moving&&this.pose==="walk"?Math.sin(time*.0075)*.018:0);
    body.position.y=mix("bodyY")+Math.sin(time*(this.pose==="meditate"?.00125:.0018))*(this.pose==="meditate"?.012:.006);
    head.rotation.x=mix("headX")+Math.sin(time*.0011)*.004;
@@ -401,9 +402,9 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
    arms[1].rotation.set(mix("armX1"),0,mix("armZ1"));
    legs[0].rotation.x=mix("legX0");legs[1].rotation.x=mix("legX1");
    if(this.pose==="meditate"){
-    legs[0].position.set(-.31,.11,.24);legs[1].position.set(.31,.11,.24);
+    legs[0].position.set(-.31,.2,.24);legs[1].position.set(.31,.2,.24);
     legs[0].rotation.set(.08,0,Math.PI/2);legs[1].rotation.set(-.08,0,-Math.PI/2);
-    feet[0].position.set(-.43,.045,.43);feet[1].position.set(.43,.045,.43);feet[0].rotation.y=-.32;feet[1].rotation.y=.32;
+    feet[0].position.set(-.43,.08,.43);feet[1].position.set(.43,.08,.43);feet[0].rotation.y=-.32;feet[1].rotation.y=.32;
    }else{
     legs[0].position.set(-.2,.19,0);legs[1].position.set(.2,.19,0);legs[0].rotation.z=0;legs[1].rotation.z=0;
     feet[0].position.set(-.2,.045,.08);feet[1].position.set(.2,.045,.08);feet[0].rotation.set(0,0,0);feet[1].rotation.set(0,0,0);
