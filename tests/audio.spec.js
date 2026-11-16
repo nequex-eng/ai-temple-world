@@ -19,8 +19,14 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
   await expect(page.locator("#profile-sound-toggle")).toHaveAttribute("aria-pressed","true");
   await expect(page.locator("#sound-toggle")).toHaveAttribute("aria-pressed","true");
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.state())).toBe("running");
-  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(false);
-  await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
+  const night=await page.evaluate(()=>window.__templeDebug.dayNight().night>.55);
+  if(night){
+    // Birds and chanting are intentionally hard-muted at night.
+    await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(true);
+  }else{
+    await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.paused)).toBe(false);
+    await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
+  }
   await page.locator('[data-close="profile-modal"]').click();
   await page.evaluate(()=>window.__templeDebug.setPosition(0,-37));
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.paused)).toBe(false);
