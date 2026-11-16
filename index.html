@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="云上禅境">
   <meta name="theme-color" content="#16251f">
-  <meta name="temple-build" content="20261116-r5">
+  <meta name="temple-build" content="20261116-r6">
   <meta name="description" content="一座向世界敞开的数字寺院。创建自己的小和尚，在山门、殿宇、莲池与菩提树下自由行走、礼敬、静坐、交流。">
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261116-r5">
+  <link rel="stylesheet" href="/style.css?v=20261116-r6">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -145,12 +145,14 @@
       <h2 id="beads-title">108颗念珠</h2>
       <p id="beads-description">一颗一念，缓缓拨动。完成108颗为一周，不设排名，只记录自己的静心时刻。</p>
       <div class="beads-count"><strong id="beads-count">0</strong><span id="beads-round">/ 108</span></div>
-      <div class="beads-ring" id="beads-ring" aria-label="108 prayer beads"></div>
-      <button class="primary-button" id="beads-advance" type="button">拨动一颗</button>
+      <div class="beads-bracelet-wrap">
+        <div class="beads-ring" id="beads-ring" role="slider" aria-label="108颗念珠，滑动拨动" aria-valuemin="0" aria-valuemax="108" aria-valuenow="0" tabindex="0"></div>
+        <div class="beads-drag-hint" id="beads-drag-hint">沿着手串方向滑动拨珠 · Drag along the bracelet</div>
+      </div>
       <button class="danger-button" id="beads-reset" type="button">重置本周</button>
       <div class="modal-foot" id="beads-foot">记录仅保存在本设备，不上传云端。</div>
     </section>
   </div>
-  <script type="module" src="/src/app.js?v=20261116-r5"></script>
+  <script type="module" src="/src/app.js?v=20261116-r6"></script>
 </body>
 </html>
