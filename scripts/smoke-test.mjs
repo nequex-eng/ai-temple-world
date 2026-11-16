@@ -309,3 +309,11 @@ assert.ok(network.includes('"/api/fortune"') && app.includes("world.onFortuneSta
 assert.ok(html.includes('id="fortune-modal"') && html.includes('id="fortune-draw"') && style.includes(".fortune-modal"), "Fortune modal UI must be present");
 assert.ok(!world.includes("[0,41]") && !physics.includes("[0,41]"), "Road-end lantern facing the censer must be removed from visuals and collision");
 
+
+const fortuneTestEnv = {
+ DB: { prepare(sql) { return { bind() { return { first: async () => sql.includes("SELECT created_at") ? null : { total: 0 }, run: async () => ({ success: true }) }; } }; } },
+ AI: { run: async () => ({ response: "传统术数文化体验测试回复" }) }
+};
+const fortuneTestResponse = await templeWorker.fetch(new Request("https://api.example/api/fortune", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ player_id: "00000000-0000-4000-8000-000000000001", birth_info: "公历1981年1月1日，时辰不详，男，出生地成都", language: "zh" }) }), fortuneTestEnv);
+assert.equal(fortuneTestResponse.status, 200, "Birth-details-only Bazi request must be accepted");
+assert.match((await fortuneTestResponse.json()).answer, /传统术数文化体验测试回复/, "Fortune endpoint must return the model answer");

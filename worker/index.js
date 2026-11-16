@@ -137,7 +137,7 @@ async function handleApi(request, env, url) {
     const body = await request.json().catch(() => null);
     if (!body || !validId(body.player_id)) return reply(request, { error: "Invalid visitor." }, 400);
     const question = clean(body.question, 600), birthInfo = clean(body.birth_info, 500), hexagram = clean(body.hexagram, 240);
-    if (question.length < 2 && !hexagram) return reply(request, { error: "Please enter a question or draw a lot." }, 400);
+    if (question.length < 2 && !hexagram && !birthInfo) return reply(request, { error: "Please enter birth details, a question or draw a lot." }, 400);
     if (!env.MINIMAX_API_KEY && !env.AI?.run) return reply(request, { available: false, code: "AI_NOT_CONFIGURED", error: "命理问卦模型尚未配置。" }, 503);
     const language = LANGS.has(body.language) ? body.language : "zh";
     const history = Array.isArray(body.history) ? body.history.slice(-6).map(item => ({ role: item?.role === "assistant" ? "assistant" : "user", content: clean(item?.content, 700) })).filter(item => item.content.length > 0) : [];
@@ -154,7 +154,7 @@ async function handleApi(request, env, url) {
       "不得声称术数有科学验证或能确定未来。把本服务明确视为传统文化与娱乐体验，不代替现实判断。",
       "请使用" + ({zh:"简体中文",en:"English",ja:"日本語",ko:"한국어",th:"ภาษาไทย"}[language]) + "回答；外语回答时简要解释中文术语。通常回答约300至600字，资料不足时先提出最关键的补充问题。"
     ].join("\n");
-    const userContent = [birthInfo ? "出生资料（仅本次请求使用，不保存）：" + birthInfo : "未提供出生资料；不得假设用户的生辰八字。", hexagram ? "本次随机起卦数据（从初爻到上爻）：" + hexagram : "", question ? "所问事项：" + question : "请按本次卦象作总体解读。"].filter(Boolean).join("\n");
+    const userContent = [birthInfo ? "出生资料（仅本次请求使用，不保存）：" + birthInfo : "未提供出生资料；不得假设用户的生辰八字。", hexagram ? "本次随机起卦数据（从初爻到上爻）：" + hexagram : "", question ? "所问事项：" + question : birthInfo ? "请分析此人的生辰八字及整体命局。" : "请按本次卦象作总体解读。"].filter(Boolean).join("\n");
     try {
       const answer = await minimaxChat(env, [{ role: "system", content: system }, ...history, { role: "user", content: userContent }], 760);
       return reply(request, { available: true, answer });
