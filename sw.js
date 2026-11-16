@@ -1,9 +1,9 @@
-const CACHE="temple-world-shell-99";
+const CACHE="temple-world-shell-100";
 const SHELL=[
- "/","/index.html","/style.css?v=20261116-r17",
- "/src/app.js?v=20261116-r17","/src/world.js?v=20261116-r17",
+ "/","/index.html","/style.css?v=20261116-r18",
+ "/src/app.js?v=20261116-r18","/src/world.js?v=20261116-r18",
  "/src/network.js?v=20261116-r3","/src/i18n.js?v=20261116-r8",
- "/src/physics.js?v=20261116-r17","/src/vendor/three.module.js",
+ "/src/physics.js?v=20261116-r18","/src/vendor/three.module.js",
  "/manifest.webmanifest","/icons/lotus.svg"
 ];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));

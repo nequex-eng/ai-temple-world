@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261116-r17";
+import { TempleWorld } from "./world.js?v=20261116-r18";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
 import { getText } from "./i18n.js?v=20261116-r8";
 
@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
 let language=localStorage.getItem("temple-language")||"zh";
 if(!["zh","en","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],fortuneHistory=[],onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
+let profile=null,abbotHistory=[],fortuneHistory=[],fortuneStallNearby=false,onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{localStorage.setItem("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false;
@@ -37,6 +37,8 @@ function toast(message,duration=2600){
 function applyLanguage(){
  const d=t();
  const fortuneCopy={zh:{title:"命理问卦 · 抽签解签",description:"依据易经卦象、阴阳五行、干支八字等传统术数进行文化解读。出生资料仅用于本次推演，不保存。",birth:"出生资料（选填）",birthHint:"出生年月日、出生时辰、性别、出生地；注明公历或农历，不详可留空",question:"想问的事情",questionHint:"例如：近期事业发展如何？",ask:"问命理",draw:"摇签起卦",foot:"易经 · 八卦 · 生辰八字 · 铁板神数 · 六爻",welcome:"请写下所问之事，也可摇签起卦。传统术数仅供文化体验与参考。"},en:{title:"Fortune Reading · Draw a Lot",description:"A cultural reading based on the I Ching, yin-yang and five elements, and Four Pillars. Birth details are used for this reading only and are not stored.",birth:"Birth details (optional)",birthHint:"Date, time, gender, birthplace; specify Gregorian or lunar calendar. Leave unknown details blank.",question:"Your question",questionHint:"For example: How might my career develop?",ask:"Read my fortune",draw:"Draw a lot",foot:"I Ching · Bagua · Four Pillars · Tie Ban Shen Shu · Six Lines",welcome:"Write your question or draw a lot. Traditional divination is offered for cultural experience and reflection."},ja:{title:"運勢占い・易占",description:"易経、陰陽五行、四柱推命など伝統的な術数文化に基づく解釈です。出生情報は今回のみ使用し、保存しません。",birth:"出生情報（任意）",birthHint:"生年月日・出生時刻・性別・出生地。新暦か旧暦かを明記。不明な項目は空欄で構いません。",question:"相談したいこと",questionHint:"例：最近の仕事運について",ask:"占う",draw:"おみくじ・卦を立てる",foot:"易経・八卦・四柱推命・鉄板神数・六爻",welcome:"質問を書くか、卦を立ててください。伝統文化としての参考体験です。"},ko:{title:"운세 풀이 · 주역 점괘",description:"주역, 음양오행, 사주명리 등 전통 술수 문화에 따른 해석입니다. 출생 정보는 이번 풀이에만 사용하며 저장하지 않습니다.",birth:"출생 정보(선택)",birthHint:"생년월일, 출생 시각, 성별, 출생지와 양력/음력을 적어 주세요. 모르면 비워 두세요.",question:"궁금한 점",questionHint:"예: 앞으로의 직업운은 어떨까요?",ask:"운세 보기",draw:"제비 뽑아 괘 세우기",foot:"주역 · 팔괘 · 사주 · 철판신수 · 육효",welcome:"질문을 적거나 괘를 뽑아 보세요. 전통문화 체험 및 참고용입니다."},th:{title:"ทำนายดวง · เสี่ยงเซียมซี",description:"การตีความตามวัฒนธรรมศาสตร์ดั้งเดิม เช่น อี้จิง หยินหยาง ธาตุทั้งห้า และดวงจีน ข้อมูลวันเกิดใช้เฉพาะครั้งนี้และไม่บันทึก",birth:"ข้อมูลวันเกิด (ไม่บังคับ)",birthHint:"วันเดือนปี เวลาเกิด เพศ และสถานที่เกิด ระบุปฏิทินสากลหรือจันทรคติ หากไม่ทราบเว้นว่างได้",question:"คำถามของคุณ",questionHint:"เช่น แนวโน้มการงานในช่วงนี้เป็นอย่างไร",ask:"ทำนาย",draw:"เสี่ยงเซียมซีตั้ง卦",foot:"อี้จิง · ปากว้า · ดวงจีน · เถี่ยป่านเสินซู่ · ลิ่วเหยา",welcome:"เขียนคำถามหรือเสี่ยงเซียมซีได้ เป็นประสบการณ์วัฒนธรรมเพื่อประกอบการพิจารณาเท่านั้น。"}}[language];
+ const fortunePromptLabels={zh:"算命求签 · 点击问命",en:"FORTUNE READING · TAP TO ASK",ja:"占い・おみくじ · タップして占う",ko:"운세 · 점괘 보기",th:"ดูดวง · แตะเพื่อทำนาย"};
+ text("fortune-proximity-label",fortunePromptLabels[language]||fortunePromptLabels.zh);
  for(const [id,value] of Object.entries({"fortune-title":fortuneCopy.title,"fortune-description":fortuneCopy.description,"fortune-birth-label":fortuneCopy.birth,"fortune-question-label":fortuneCopy.question,"fortune-ask":fortuneCopy.ask,"fortune-draw":fortuneCopy.draw,"fortune-foot":fortuneCopy.foot}))text(id,value);
  $("fortune-birth").placeholder=fortuneCopy.birthHint;$("fortune-question").placeholder=fortuneCopy.questionHint;
  if(!$("fortune-messages").dataset.started)$("fortune-messages").firstElementChild.textContent=fortuneCopy.welcome;
@@ -607,7 +609,15 @@ function renderPrayers(prayers){
  if(!prayers.length){const empty=document.createElement("div");empty.className="prayer-empty";empty.textContent=t().prayerEmpty;list.append(empty);return;}
  for(const p of prayers)list.append(makePrayerCard(p));
 }
-world.onFortuneStall=()=>{$("fortune-modal").classList.remove("hidden");if(!touchAudioGate)$("fortune-question").focus();};
+function openFortuneModal(){$("fortune-modal").classList.remove("hidden");$("fortune-proximity").classList.add("hidden");if(!touchAudioGate)$("fortune-question").focus();}
+world.onFortuneStall=openFortuneModal;
+$("fortune-proximity").addEventListener("click",openFortuneModal);
+function updateFortuneProximity(){
+ const p=world.getPosition(),near=Math.hypot(p.x+10,p.z-8)<=7.2;
+ const prompt=$("fortune-proximity");
+ if(near)prompt.classList.remove("hidden");else prompt.classList.add("hidden");
+ fortuneStallNearby=near;
+}
 function appendFortuneMessage(role,content){const box=$("fortune-messages");if(!box.dataset.started){box.replaceChildren();box.dataset.started="1";}const line=document.createElement("div");line.className="fortune-message "+(role==="user"?"user":"assistant");line.textContent=String(content||"").slice(0,2400);box.append(line);box.scrollTop=box.scrollHeight;while(box.children.length>12)box.firstElementChild?.remove();}
 function drawHexagram(){const lines=[];for(let i=0;i<6;i++){const toss=[0,0,0].map(()=>Math.random()<.5?2:3);const sum=toss.reduce((a,b)=>a+b,0);lines.push({position:["初爻","二爻","三爻","四爻","五爻","上爻"][i],value:sum,kind:sum===6?"老阴（动爻）":sum===7?"少阳":sum===8?"少阴":"老阳（动爻）",symbol:sum===6?"⚋→⚊":sum===7?"⚊":sum===8?"⚋":"⚊→⚋"});}return "三枚铜钱法，六次投掷，自下而上：\n"+lines.map(line=>line.position+"："+line.kind+" "+line.symbol).join("\n")+"\n请据此核定本卦、动爻与变卦。";}
 let fortuneSending=false;
@@ -775,7 +785,7 @@ function frame(){
  const dt=Math.min(world.clock.getDelta(),.18),now=performance.now();
  const renderFrame=!world.mobile||now-lastMobileRender>=(world.smoothMode?1000/30:25);
  if(renderFrame)lastMobileRender=now;
- world.update(dt,inputState(),now,renderFrame);updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
+ world.update(dt,inputState(),now,renderFrame);updateFortuneProximity();updateLocation();updateSoundscape();if(soundEnabled&&world.lastMovement?.moving&&!world.lastMovement?.blocked&&now-lastFootstep>480){playFootstep();lastFootstep=now;}
  if(profile){
   const p=world.getPosition(),previous=lastSentNetworkPosition;
   const angleDelta=previous?Math.atan2(Math.sin(p.rotation-previous.rotation),Math.cos(p.rotation-previous.rotation)):Math.PI;
@@ -799,7 +809,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r17",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r18",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
