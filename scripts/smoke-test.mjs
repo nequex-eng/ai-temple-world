@@ -212,7 +212,7 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-84"), "Service worker cache must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-85") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r3",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r3') && html.includes('/style.css?v=20261116-r3'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
