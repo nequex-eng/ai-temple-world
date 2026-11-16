@@ -86,6 +86,7 @@ function planeRoof(parent,w,d,ry,ey,side,m){
  }
  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));g.setIndex(indices);g.computeVertexNormals();return add(g,m,parent);
 }
+function doorwayPillarOffset(w){return w*.27;}
 function hall(scene,cfg,m){
  const {x,z,w,d,h}=cfg,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
  // One continuous platform: the worn tile texture is the +Y face of this same box.
@@ -115,12 +116,12 @@ function hall(scene,cfg,m){
   add(new THREE.BoxGeometry(.32,h,d),m.pillar,g,[sx*(w/2-.35),.54+h/2,0]);
   add(new THREE.CylinderGeometry(.18,.22,h,10),m.pillar,g,[sx*(w/2-.35),.54+h/2,d/2-.4]);
  }
- const n=Math.max(4,Math.round(w/3));
- for(let i=0;i<n;i++){
-  const px=-w/2+(i+.5)*w/n;
-  if(Math.abs(px)<w*.36)continue;
-  add(new THREE.CylinderGeometry(.16,.2,h,10),m.pillar,g,[px,.54+h/2,d/2-.35]);
-  add(new THREE.BoxGeometry(.48,.16,.54),m.gold,g,[px,.54+h-.08,d/2-.35]);
+ // Keep only the two substantial entrance pillars; remove the decorative lattice-like repeated bays at both ends.
+ const entrancePillarX=doorwayPillarOffset(w);
+ for(const side of [-1,1]){
+  const px=side*entrancePillarX;
+  add(new THREE.CylinderGeometry(.2,.25,h,12),m.pillar,g,[px,.54+h/2,d/2-.35]);
+  add(new THREE.BoxGeometry(.58,.18,.62),m.gold,g,[px,.54+h-.08,d/2-.35]);
  }
  const doorW=w*.34;
  // Leave both heavy timber leaves fully folded toward the jambs; the central
@@ -640,9 +641,9 @@ export class TempleWorld{
    {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:0,area:"market"}
   ];
   this.roadsideVendorSpecs=[
-   {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:-Math.PI/2,customers:0,area:"road"},
-   {name:"文创摊主",x:10,z:19,kind:"souvenir",side:1,facing:Math.PI/2,customers:0,area:"road"},
-   {name:"麦当劳店员",x:-10,z:30,kind:"mcdonalds",side:-1,facing:-Math.PI/2,customers:0,area:"road"}
+   {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:Math.PI/2,customers:0,area:"road"},
+   {name:"文创摊主",x:10,z:19,kind:"souvenir",side:1,facing:-Math.PI/2,customers:0,area:"road"},
+   {name:"麦当劳店员",x:-10,z:30,kind:"mcdonalds",side:-1,facing:Math.PI/2,customers:0,area:"road"}
   ];
   this.marketStalls=[];
   add(new THREE.PlaneGeometry(26,48),m.grass,s,[43,-.08,11],[-Math.PI/2,0,0],false);
@@ -1198,7 +1199,7 @@ export class TempleWorld{
 
   const allVendors=[...(this.vendorSpecs||[]),...(this.roadsideVendorSpecs||[])];
   for(const spec of allVendors){
-   const sellerX=spec.area==="road"?spec.x+(spec.side===-1?1.72:-1.72):spec.x+1.72;
+   const sellerX=spec.area==="road"?spec.x+(spec.side===-1?-1.72:1.72):spec.x+1.72;
    const seller=marketVendor(this.scene,sellerX,spec.z,spec.facing,this.m);seller.name="vendor-"+spec.kind;
    this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z,kind:spec.kind});
 
