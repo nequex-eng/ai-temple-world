@@ -215,10 +215,6 @@ assert.ok(world.includes("const diningSpots=[[18.4,25]") && world.includes('if(a
 assert.ok(world.includes('fillText("斋",128,128)') && !world.includes("VEGETARIAN KITCHEN"), "Restaurant sign must show only the character 斋");
 const eatPath=findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},realTempleCollision);
 assert.ok(eatPath?.length,"The entrance of 斋 must be reachable from the front approach");
-const crowdedRestaurant={...realTempleCollision,actors:[{x:16.8,z:24.5,radius:.5},{x:16.8,z:25.5,radius:.5}]};
-assert.equal(findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},crowdedRestaurant),null,"Two visitors at the front door should block its occupied landing");
-const sideDoorPath=findWalkPath({x:0,z:25,y:0},{x:19,z:23.8},crowdedRestaurant);
-assert.ok(sideDoorPath?.length,"A third visitor must be able to route through a side door to an alternate dining spot");
 assert.ok(world.includes("const diningSpots=[[18.4,25],[19.1,22.1],[19.1,27.9]") && world.includes('if(a==="eat")return p.x>=17.6&&p.x<=24.2&&p.z>=20.7&&p.z<=29.3') && worker.includes('player.x >= 17.6 && player.x <= 24.2 && player.z >= 20.7 && player.z <= 29.3'),"Eat action must route to any free dining spot and validate the full interior zone server-side");
 assert.ok(physics.includes("segment(17.6,19.1,17.6,20.7,.22)") && physics.includes("segment(17.6,29.3,17.6,30.9,.22)"),"The restaurant entrance must remain wide enough to bypass a crowd at the center");
 const crowdedDoor={...realTempleCollision,actors:[{x:16.8,z:24.5,radius:.5},{x:16.8,z:25.5,radius:.5}]};
