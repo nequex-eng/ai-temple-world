@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r13";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r14";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -429,7 +429,7 @@ export class TempleWorld{
   this.mobile=matchMedia("(max-width: 660px)").matches;this.smoothMode=false;this.renderFrameInterval=25;this.lowNpcElapsed=0;this.lastLowDetailLights=0;this.lastLowDetailAnimation=0;
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1),this.mobile?1.4:1.8));this.renderer.setSize(innerWidth,innerHeight);this.renderPixelRatio=this.renderer.getPixelRatio();this.renderer.shadowMap.enabled=!this.mobile;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;container.appendChild(this.renderer.domElement);
-  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.gardenActive=false;this.gardenStarted=false;this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];this.gardenRouteIndex=0;this.clock=new THREE.Clock();
+  this.yaw=0;this.pitch=.18;this.distance=10.5;this.indoor=false;this.drag=false;this.last={x:0,y:0};this.pointerStart={x:0,y:0};this.pointerMoved=false;this.moveTarget=null;this.moveWaypoints=[];this.pendingAction=null;this.wanderActive=false;this.wanderNextAt=0;this.wanderBlockedAt=0;this.wanderLastGoal=null;this.wanderStops=[[0,38],[0,25],[-14,16],[-18,-3],[-14,-20],[0,-27],[8,-43],[14,-50],[4,-56],[14,-58],[14,25],[35,17],[35,0],[-25,12]];this.raycaster=new THREE.Raycaster();this.pointerNdc=new THREE.Vector2();this.moveVelocity=new THREE.Vector2();this.jumpVelocity=0;this.jumpOffset=0;this.jumpHeld=false;this.local=null;this.remotes=new Map();this.effects=[];this.lotusPads=[];this.templeLanterns=[];this.incenseSmoke=[];this.nightLights=[];this.lastDayNightUpdate=-Infinity;this.dayNightState=null;this.meditationCushions=MEDITATION_CUSHIONS;this.gardenActive=false;this.gardenStarted=false;this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];this.gardenRoutes=[this.gardenRoute,[[50.5,-61],[50.5,-48.5],[72,-48.5],[72,-73.5],[50.5,-73.5]]];this.gardenRouteIndex=0;this.clock=new THREE.Clock();
   this.m=this.materials();this.build();this.collision=createTempleCollision(this.halls);this.buildNpcs();this.bindCamera();this.camera.position.set(0,5,35);this.camera.lookAt(0,1,25);
   this.resizeFn=()=>this.resize();addEventListener("resize",this.resizeFn);
  }
@@ -477,8 +477,8 @@ export class TempleWorld{
   for(let i=0;i<(this.mobile?18:56);i++){
    const a=Math.random()*Math.PI*2,r=52+Math.random()*32,x=Math.cos(a)*r,z=Math.sin(a)*r;
    const inZenClearing=x>-53&&x<-27&&z>-78&&z<-43;
-   const inGardenClearing=x>-78&&x<-47&&z>-78&&z<-44;
-   const onZenTrail=(z>-51.2&&z<-47.8&&x>-43&&x<-18)||(x>-41.8&&x<-38.2&&z>-59&&z<-48);
+   const inGardenClearing=(x>-78&&x<-47&&z>-78&&z<-44)||(x>47&&x<78&&z>-78&&z<-44);
+   const onZenTrail=(z>-51.2&&z<-47.8&&x>-43&&x<-18)||(x>-41.8&&x<-38.2&&z>-59&&z<-48)||(z>-51.2&&z<-47.8&&x>30&&x<53)||(x>48.8&&x<52.2&&z>-61&&z<-48);
    if((Math.abs(x)<14&&z>12&&z<43)||Math.hypot(x+52,z-12)<15||inZenClearing||inGardenClearing||onZenTrail)continue;
    pine(s,x,z,.72+Math.random()*.72,m);
   }
@@ -512,6 +512,32 @@ export class TempleWorld{
    add(new THREE.SphereGeometry(.07,8,7),mat(0xd5a94f,.65),flower,[0,.5,0]);
   }
   this.gardenRoute=[[-50.5,-61],[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5]];
+  this.gardenRoutes=[this.gardenRoute,[[50.5,-61],[50.5,-48.5],[72,-48.5],[72,-73.5],[50.5,-73.5]]];
+  // A second vegetable and flower garden mirrors the western plot on the eastern forest edge.
+  add(new THREE.PlaneGeometry(30,30),gardenGrass,s,[61,-.09,-61],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(20,3.2),gardenTrail,s,[41,-.055,-49],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(3.2,12),gardenTrail,s,[50.5,-.052,-55],[-Math.PI/2,0,0],false);
+  for(const bx of [57,62,67]){
+   add(new THREE.BoxGeometry(2.65,.2,14.4),gardenSoilEdge,s,[bx,.04,-61]);
+   add(new THREE.BoxGeometry(2.42,.1,14.15),gardenSoil,s,[bx,.17,-61]);
+   for(let row=0;row<7;row++){
+    const z=-67+row*2;
+    for(const side of [-.55,.55]){
+     const crop=new THREE.Group();crop.position.set(bx+side,.23,z);s.add(crop);
+     add(new THREE.CylinderGeometry(.035,.055,.42,7),leafMats[0],crop,[0,.2,0]);
+     for(let k=0;k<5;k++){const angle=k*Math.PI*2/5,leaf=add(new THREE.SphereGeometry(.14,8,7),leafMats[(row+k)%leafMats.length],crop,[Math.cos(angle)*.16,.23+Math.sin(k)*.025,Math.sin(angle)*.16]);leaf.scale.set(.65,.42,1.55);leaf.rotation.y=angle;}
+     add(new THREE.SphereGeometry(.105,8,7),leafMats[2],crop,[0,.43,0]);
+    }
+   }
+  }
+  add(new THREE.BoxGeometry(2.1,.18,13.8),gardenSoilEdge,s,[53.6,.04,-61]);
+  add(new THREE.BoxGeometry(1.9,.1,13.5),gardenSoil,s,[53.6,.17,-61]);
+  for(let row=0;row<13;row++){
+   const z=-67+row*1.05,flower=new THREE.Group();flower.position.set(53.6,.23,z);s.add(flower);
+   add(new THREE.CylinderGeometry(.025,.035,.48,6),leafMats[0],flower,[0,.24,0]);
+   for(let petal=0;petal<6;petal++){const angle=petal*Math.PI/3,p=add(new THREE.SphereGeometry(.105,8,7),flowerMats[row%flowerMats.length],flower,[Math.cos(angle)*.13,.5,Math.sin(angle)*.13]);p.scale.set(.72,1.2,.65);}
+   add(new THREE.SphereGeometry(.07,8,7),mat(0xd5a94f,.65),flower,[0,.5,0]);
+  }
   // 林间茶庄：由北侧绕过祈愿墙可达，坐落在森林中的独立草地。
   const teaLawn=new THREE.Group();teaLawn.position.set(0,0,-62);s.add(teaLawn);this.teaHouse=teaLawn;
   add(new THREE.PlaneGeometry(27,23),m.grass,s,[0,-.085,-62],[-Math.PI/2,0,0],false);
@@ -1064,7 +1090,7 @@ export class TempleWorld{
    this.nightLights.push({light:fixture.light,base:.52});
   }
   // Keep the large bronze censer beside the approach, not in the central stair path.
-  this.incensePosition=new THREE.Vector3(3.3,0,-22.4);
+  this.incensePosition=new THREE.Vector3(0,0,-20.8);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -1182,6 +1208,11 @@ export class TempleWorld{
   this.npcs.push({avatar:{root:teaHost,update(){},dispose(){teaHost.parent?.remove(teaHost);}},stationary:true});
   const restaurantHost=marketVendor(this.scene,23.2,25,-Math.PI/2,this.m);restaurantHost.name="vegetarian-kitchen-host";
   this.npcs.push({avatar:{root:restaurantHost,update(dt,time){restaurantHost.userData.animateInteraction?.(time,25);},dispose(){restaurantHost.parent?.remove(restaurantHost);}},stationary:true});
+  const abbotNames={zh:"住持",en:"Abbot",ja:"住職",ko:"주지 스님",th:"เจ้าอาวาส"};
+  const abbot=avatar(this.scene,{name:abbotNames.zh,robe:"#9a7657",skin:"#c99f7b",style:"monk"},"abbot",false,true);
+  abbot.setPosition(-15,12,0);this.abbotAvatar=abbot;
+  const route=[[-15,12],[-15,20],[-5,22],[7,22],[16,18],[20,8],[19,-5],[14,-15],[5,-17],[-7,-17],[-17,-10],[-20,0],[-20,10]];
+  this.npcs.push({avatar:abbot,stationary:false,abbot:true,route:route.map(([x,z])=>new THREE.Vector3(x,0,z)),target:new THREE.Vector3(),targetIndex:0,routine:["walk","bow","walk","meditate","walk"],routineStep:0,nextAt:performance.now()+900,moving:false,pathWaypoints:[],stuckAt:0});
  }
  updateNpcs(dt,time){
   for(const npc of this.npcs||[]){
@@ -1198,26 +1229,28 @@ export class TempleWorld{
     a.update(dt,time,false);continue;
    }
    if(npc.moving){
-    const dx=npc.target.x-p.x,dz=npc.target.z-p.z,dist=Math.hypot(dx,dz);
-    if(dist<.48){
-     npc.moving=false;
-     const action=npc.routine[npc.routineStep++%npc.routine.length];
-     const duration=npc.shopper||npc.roadWalker?1150:action==="meditate"?6200:action==="sweep"?4800:3400;
-     a.setPose(action,duration);
-     npc.nextAt=time+duration+(npc.shopper||npc.roadWalker?900:1800)+Math.random()*1200;
-     npc.stuckAt=0;
-    }
-    else{
-     const step=Math.min(dist,1.25*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.npcCollisionWorld(a));
+    const waypoint=npc.pathWaypoints?.[0]||npc.target;
+    const dx=waypoint.x-p.x,dz=waypoint.z-p.z,dist=Math.hypot(dx,dz);
+    if(dist<.38){
+     if(npc.pathWaypoints?.length>1)npc.pathWaypoints.shift();
+     else{
+      npc.pathWaypoints=[];npc.moving=false;
+      const action=npc.routine[npc.routineStep++%npc.routine.length];
+      const duration=action==="meditate"?6200:action==="bow"?2400:1800;
+      a.setPose(action,duration);npc.nextAt=time+duration+900+Math.random()*900;npc.stuckAt=0;
+     }
+    }else{
+     const step=Math.min(dist,1.2*dt),r=moveWithCollision(p,dx/dist*step,dz/dist*step,this.npcCollisionWorld(a));
      p.set(r.x,r.y,r.z);
-     if(r.blocked){npc.stuckAt=npc.stuckAt||time;if(time-npc.stuckAt>4500){npc.moving=false;npc.nextAt=time+800;npc.stuckAt=0;}}
+     if(r.blocked){npc.stuckAt=npc.stuckAt||time;if(time-npc.stuckAt>2200){npc.moving=false;npc.pathWaypoints=[];npc.nextAt=time+300;npc.stuckAt=0;}}
      else npc.stuckAt=0;
      a.root.rotation.y=Math.atan2(dx,dz);
     }
    }else if(time>=npc.nextAt){
     npc.targetIndex=(npc.targetIndex+1)%npc.route.length;
-    const target=npc.route[npc.targetIndex];npc.target.copy(target);
-    a.setPose("walk",60000);npc.moving=true;
+    const target=npc.route[npc.targetIndex],path=findWalkPath(p,{x:target.x,z:target.z},this.npcCollisionWorld(a));
+    if(!path?.length)npc.nextAt=time+1000;
+    else{npc.target.copy(target);npc.pathWaypoints=path.map(q=>new THREE.Vector3(q.x,0,q.z));a.setPose("walk",60000);npc.moving=true;}
    }
    a.update(dt,time,npc.moving);
   }
@@ -1395,10 +1428,18 @@ export class TempleWorld{
   if(!this.local)return false;
   this.stopWander();
   if(this.gardenActive){this.stopGarden();return false;}
-  const start=this.gardenRoute[0],path=findWalkPath(this.local.root.position,{x:start[0],z:start[1]},this.actorCollisionWorld(this.local));
-  if(!path?.length)return false;
-  this.gardenActive=true;this.gardenStarted=false;this.gardenRouteIndex=0;
-  const targets=path.map(p=>new THREE.Vector3(p.x,0,p.z));this.moveTarget=targets.shift();this.moveWaypoints=targets;this.pendingAction=null;this.moveVelocity.set(0,0);
+  const collision=this.actorCollisionWorld(this.local),position=this.local.root.position;
+  let choice=null,bestCost=Infinity;
+  for(const route of this.gardenRoutes||[this.gardenRoute]){
+   const path=findWalkPath(position,{x:route[0][0],z:route[0][1]},collision);
+   if(!path?.length)continue;
+   let cost=0,px=position.x,pz=position.z;
+   for(const point of path){cost+=Math.hypot(point.x-px,point.z-pz);px=point.x;pz=point.z;}
+   if(cost<bestCost){choice={route,path};bestCost=cost;}
+  }
+  if(!choice)return false;
+  this.gardenRoute=choice.route;this.gardenActive=true;this.gardenStarted=false;this.gardenRouteIndex=0;
+  const targets=choice.path.map(p=>new THREE.Vector3(p.x,0,p.z));this.moveTarget=targets.shift();this.moveWaypoints=targets;this.pendingAction=null;this.moveVelocity.set(0,0);
   if(!this.moveTarget)this.advanceGardenRoute(performance.now());
   return true;
  }
@@ -1421,7 +1462,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[.8,-22.4],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
+  const destinations={incense:[0,-20.8],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
   if(action==="rest"){
    const p=this.local.root.position,actors=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].map(a=>a.root.position);
    const nearbyBenches=this.benchRestSpots.filter(s=>Math.hypot(p.x-s.x,p.z-s.z)<5.5);

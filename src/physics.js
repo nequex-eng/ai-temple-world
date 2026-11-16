@@ -9,7 +9,7 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     // Only retain colliders that correspond to visible solid scene objects.
-    circle(0, -39.5, 2.2), circle(3.3, -22.4, 1.58), circle(19, -32.5, 4.05),
+    circle(0, -39.5, 2.2), circle(0, -20.8, 1.58), circle(19, -32.5, 4.05),
     circle(-4.8, -1.2, .55), circle(4.8, -1.2, .55), 
     circle(-56.85, 8.45, .28), circle(-47.15, 8.45, .28),
     circle(-56.85, 15.55, .28), circle(-47.15, 15.55, .28), circle(-52, 11.65, .78),
@@ -103,6 +103,8 @@ export function createTempleCollision(halls) {
   // Raised vegetable and flower beds in the northwest forest garden.
   for(const bx of [-67,-62,-57])segments.push(segment(bx-1.32,-68.2,bx+1.32,-68.2,.1),segment(bx-1.32,-53.8,bx+1.32,-53.8,.1));
   segments.push(segment(-54.65,-68,-54.65,-54,.1));
+  for(const bx of [57,62,67])segments.push(segment(bx-1.32,-68.2,bx+1.32,-68.2,.1),segment(bx-1.32,-53.8,bx+1.32,-53.8,.1));
+  segments.push(segment(54.65,-68,54.65,-54,.1));
   // Two roadside benches beside McDonalds, rotated to face the road.
   const benchPositions=[[-10,25],[-10,35]];
   for(const [bx,bz] of benchPositions)segments.push(segment(bx-.28,bz-1.15,bx-.28,bz+1.15,.18));

@@ -28,7 +28,7 @@ test("new visitors can start temple ambience before creating a monk", async ({ p
     await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().birds.time)).toBeGreaterThan(0.2);
   }
   await page.locator('[data-close="profile-modal"]').click();
-  await page.evaluate(()=>window.__templeDebug.setPosition(0,-37));
+  await page.evaluate(()=>window.__templeDebug.setPosition(0,-28));
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.paused)).toBe(false);
   await expect.poll(()=>page.evaluate(()=>window.__templeAudioDebug.media().chant.time)).toBeGreaterThan(0.2);
   // The compact global toggle must mute playback and stay synchronized with first-visit controls.

@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261116-r13";
+import { TempleWorld } from "./world.js?v=20261116-r14";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
 import { getText } from "./i18n.js?v=20261116-r8";
 
@@ -281,7 +281,7 @@ function updateSoundscape(){
  if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
  if(!templeChant||!world.local)return;
  const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37),bellDistance=Math.hypot(p.x-8,p.z+41);
- const chantVolume=Math.max(0,1-hallDistance/24)*.23*audioVolumes.chant;
+ const chantVolume=Math.max(0,1-hallDistance/34)*.30*audioVolumes.chant;
  templeChant.volume=chantVolume;
  if(chantVolume>.006){if(templeChant.paused||templeChant.muted)void mediaPlay(templeChant,"殿内诵经");}
  else if(!templeChant.paused)templeChant.pause();
