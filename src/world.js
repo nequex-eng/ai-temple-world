@@ -1090,7 +1090,7 @@ export class TempleWorld{
    this.nightLights.push({light:fixture.light,base:.52});
   }
   // Keep the large bronze censer beside the approach, not in the central stair path.
-  this.incensePosition=new THREE.Vector3(0,0,-20.8);
+  this.incensePosition=new THREE.Vector3(0,0,-18.0);
   this.courtyardIncensePosition=this.incensePosition;
   this.courtyardCenser=new THREE.Group();this.courtyardCenser.position.copy(this.courtyardIncensePosition);s.add(this.courtyardCenser);
   const courtyardBronze=mat(0x665b48,.42,{metalness:.62}),courtyardPatina=mat(0x344b3e,.58,{metalness:.42}),courtyardGold=mat(0xb68b4d,.4,{metalness:.58}),censerDark=mat(0x292c25,.96);
@@ -1462,7 +1462,7 @@ export class TempleWorld{
  }
  navigateToAction(action){
   if(!this.local)return false;
-  const destinations={incense:[0,-20.8],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
+  const destinations={incense:[0,-18.0],bell:[8,-38],lotus:[19,-26.7],tea:[2,-55.8],toilet:[10.6,-64.0],chant:[0,-32.05]};
   if(action==="rest"){
    const p=this.local.root.position,actors=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].map(a=>a.root.position);
    const nearbyBenches=this.benchRestSpots.filter(s=>Math.hypot(p.x-s.x,p.z-s.z)<5.5);

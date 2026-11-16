@@ -411,7 +411,7 @@ export class TempleRoom {
       const near = (x, z, radius) => Math.hypot(player.x - x, player.z - z) <= radius;
       const insideGreatHall = Math.abs(player.x) < 12.2 && player.z > -45.7 && player.z < -29.05;
       const nearOpenShrine = near(-22.5, -32, 6.2);
-      if (data.action === "incense" && !near(0, -20.8, 6.8) && !nearOpenShrine && !insideGreatHall) return;
+      if (data.action === "incense" && !near(0, -18.0, 6.8) && !nearOpenShrine && !insideGreatHall) return;
       if (data.action === "bell" && !near(8, -41, 5.5)) return;
       if (data.action === "lotus" && !near(19, -32.5, 6.2)) return;
       if (data.action === "toilet" && !near(10.6, -64.5, 2.8)) return;
