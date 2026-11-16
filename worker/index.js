@@ -21,7 +21,7 @@ const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : fal
 const ACTIONS = new Set(["bow", "kneel", "meditate", "incense", "bell", "lotus", "greet", "sweep", "chant", "tea", "toilet"]);
 const LANGS = new Set(["zh", "en", "ja", "ko", "th"]);
 const now = () => new Date().toISOString();
-const isTestPrayerMessage = value => /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(value||"").normalize("NFKC").replace(/\\s+/g,""));
+const isTestPrayerMessage = value => /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/i.test(String(value||"").normalize("NFKC").replace(/\s+/g,""));
 
 
 const LANGUAGE_NAMES = { zh: "Simplified Chinese", en: "English", ja: "Japanese", ko: "Korean", th: "Thai" };
