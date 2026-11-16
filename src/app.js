@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261116-r3";
+import { TempleWorld } from "./world.js?v=20261116-r4";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
-import { getText } from "./i18n.js?v=20261116-r3";
+import { getText } from "./i18n.js?v=20261116-r4";
 
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
@@ -14,7 +14,7 @@ let audioVolumes={ambience:.8,chant:.65,effects:.8};
 try{const saved=JSON.parse(localStorage.getItem("temple-audio-volumes")||"null");if(saved)for(const key of Object.keys(audioVolumes))audioVolumes[key]=Math.max(0,Math.min(1,Number(saved[key]??audioVolumes[key])));}catch{}
 const world=new TempleWorld($("world"));
 let savedSmoothMode=false;try{savedSmoothMode=localStorage.getItem("temple-render-mode")==="smooth";}catch{}
-Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),smoothMode:()=>world.smoothMode,pixelRatio:()=>world.renderer.getPixelRatio(),renderMode:()=>world.smoothMode,step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),meditationCushions:()=>world.meditationCushions.map(([x,z])=>({x,z})),broadcastPosition:()=>network.move(world.getPosition(),true),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
+Object.defineProperty(window,"__templeDebug",{value:Object.freeze({position:()=>({...world.getPosition(),y:world.local?.root.position.y??0}),setPosition:(x,z)=>world.setDebugPosition(x,z),setYaw:yaw=>world.setDebugYaw(yaw),smoothMode:()=>world.smoothMode,pixelRatio:()=>world.renderer.getPixelRatio(),renderMode:()=>world.smoothMode,step:(input,dt=.05)=>world.update(dt,input,performance.now(),false),remotePlayers:()=>[...world.remotes.values()].map(a=>({id:a.id,visible:a.root.visible,x:a.root.position.x,z:a.root.position.z})),jumpState:()=>({offset:world.jumpOffset,velocity:world.jumpVelocity,held:world.jumpHeld,pose:world.local?.pose,movement:world.lastMovement}),inside:()=>world.indoor,canAct:action=>world.canAct(action),meditationCushions:()=>world.meditationCushions.map(([x,z])=>({x,z})),broadcastPosition:()=>network.move(world.getPosition(),true),npcs:()=>world.npcs.filter(n=>!n.stationary).map(n=>({name:n.avatar.profile?.name||n.avatar.id,x:n.avatar.root.position.x,z:n.avatar.root.position.z,moving:!!n.moving})),vendors:()=>world.npcs.filter(n=>n.stationary).length,market:()=>world.vendorSpecs.map(v=>({...v})),marketLabels:()=>world.marketStalls.map(s=>s.userData.marketItemLabel),nightLights:()=>world.nightLights.length,squatToilets:()=>world.squatToilets.length,releaseLotus:()=>world.addEffect("lotus"),lotusBoats:()=>[],censer:()=>({x:world.courtyardIncensePosition.x,z:world.courtyardIncensePosition.z}),cushions:()=>world.meditationCushions.length,dayNight:()=>({...world.dayNightState}),renderState:()=>world.getRenderState(),navigateToAction:action=>world.navigateToAction(action),wishes:()=>[...sharedPrayers],input:()=>({keys:{...keys},joy:{...joy},run:false,pose:world.local?.pose,position:world.getPosition(),movement:world.lastMovement})}),configurable:false});
 Object.defineProperty(window,"__templeAudioDebug",{value:Object.freeze({state:()=>audio?.state||"uninitialized",enabled:()=>soundEnabled,media:()=>({birds:{paused:templeBirds?.paused??true,time:templeBirds?.currentTime??0,ready:templeBirds?.readyState??0,error:templeBirds?.error?.code||0},chant:{paused:templeChant?.paused??true,time:templeChant?.currentTime??0,ready:templeChant?.readyState??0,error:templeChant?.error?.code||0},bell:{paused:templeBell?.paused??true,time:templeBell?.currentTime??0,ready:templeBell?.readyState??0,error:templeBell?.error?.code||0}}),bellHits:()=>bellHits}),configurable:false});
 const network=new TempleNetwork({
  onStatus:status=>setConnection(status),
@@ -39,7 +39,7 @@ function applyLanguage(){
  document.documentElement.lang=({zh:"zh-CN",en:"en",ja:"ja",ko:"ko",th:"th"})[language];
  world.setLanguage(language);
  const labels={
-  "connection-label":d.statusConnecting,"profile-button-label":d.profile,"sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"profile-sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"location-eyebrow":d.locationEyebrow,
+  "connection-label":d.statusConnecting,"brand-name":d.brandName||"云上禅境","loading-title":d.brandName||"云上禅境","profile-button-label":d.profile,"sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"profile-sound-toggle":"♫ "+(soundEnabled?d.soundOn:d.soundOff),"location-eyebrow":d.locationEyebrow,
   "location-hint":d.locationHint,"presence-title":d.presence,"presence-sub":d.presenceSub,
   "today-visitors":$("today-visitors").textContent,"today-activities":$("today-activities").textContent,
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
@@ -51,6 +51,7 @@ function applyLanguage(){
   "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-advance":d.beadsPush,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
  };
  for(const [id,value] of Object.entries(labels))text(id,value);
+ document.title=(d.brandName||"云上禅境")+" · AI Temple World";
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);$("open-profile").title=d.profile;$("open-profile").setAttribute("aria-label",d.profile);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
@@ -109,7 +110,7 @@ function syncPresence(players=[]){
  for(const id of [...world.remotes.keys()])if(!peers.has(id))world.removeRemote(id);
  onlinePlayers.clear();for(const p of peers.values()){world.updateRemote(p);onlinePlayers.set(p.id,p);}renderPresence();
 }
-function isTestPrayer(prayer){return /你的test/i.test(String(prayer?.message||""));}
+function isTestPrayer(prayer){const message=String(prayer?.message||"").normalize("NFKC").replace(/\s+/g,"").toLowerCase();return /(?:你的|your)?(?:test|测试)(?:文字|祈愿|wish|prayer)?/.test(message);}
 function syncPrayerBoard(prayers=[]){
  sharedPrayers=(Array.isArray(prayers)?prayers:[]).filter(p=>!isTestPrayer(p)).slice(0,30);world.setWishWallPrayers(sharedPrayers);
  renderPrayers(sharedPrayers);
@@ -135,7 +136,7 @@ function handleMessage(message){
  }
  if(message.type==="player:leave"){world.removeRemote(message.id);onlinePlayers.delete(message.id);renderPresence();return;}
  if(message.type==="chat"){appendChat(message.player,message.message,message.player?.language,message.id);return;}
- if(message.type==="prayer:new"&&message.prayer?.id&&!sharedPrayers.some(p=>p.id===message.prayer.id)){
+ if(message.type==="prayer:new"&&message.prayer?.id&&!isTestPrayer(message.prayer)&&!sharedPrayers.some(p=>p.id===message.prayer.id)){
   syncPrayerBoard([message.prayer,...sharedPrayers].slice(0,30));renderPrayerAppend(message.prayer);void updateStats();return;
  }
  if(message.type==="prayer:delete"&&message.id){syncPrayerBoard(sharedPrayers.filter(p=>p.id!==message.id));void updateStats();return;}
@@ -436,7 +437,7 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
- if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");return;}
+ if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");else toast(t().toiletNear||"请前往洗手间入口");return;}
  if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
@@ -454,7 +455,7 @@ function doAction(action){
  }
  if(action==="toilet"){
   world.setLocalPose("toilet");actionUntil=performance.now()+6500;
-  text("character-state",t().walk);
+  text("character-state",t().actionText?.toilet||t().walk);
   network.action(action);network.logActivity(action,"washroom");return;
  }
  world.setLocalPose(action);world.addEffect(action);playRitualSound(action);actionUntil=performance.now()+((action==="meditate"||action==="kneel"||action==="chant")?6500:2600);
@@ -711,7 +712,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r3",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r4",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
