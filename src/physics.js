@@ -53,8 +53,9 @@ export function createTempleCollision(halls) {
     segment(24.0,19.1,26.4,19.1,.24),
     segment(17.6,30.9,20.0,30.9,.24),
     segment(24.0,30.9,26.4,30.9,.24),
-    segment(17.6,19.1,17.6,23.55,.22),
-    segment(17.6,26.45,17.6,30.9,.22),
+    // A broad 8.2m entrance lets visitors pass even when others gather at the threshold.
+    segment(17.6,19.1,17.6,20.7,.22),
+    segment(17.6,29.3,17.6,30.9,.22),
     segment(24.75,22.9,24.75,27.1,.16)
   );
   for(const [x,z] of [[17.6,19.1],[17.6,30.9],[26.4,19.1],[26.4,30.9]])circles.push(circle(x,z,.34));
