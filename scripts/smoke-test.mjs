@@ -292,10 +292,10 @@ assert.ok(findWalkPath({x:0,z:0},{x:-50.5,z:-61},dualGardenCollision)?.length, "
 assert.ok(findWalkPath({x:0,z:0},{x:50.5,z:-61},dualGardenCollision)?.length, "Eastern garden must be reachable from the courtyard");
 
 const pondCollision=createTempleCollision([{x:0,z:-37,w:26,d:17}]);
-let pondWalk={x:19+7.5,z:-32.5};
+let pondWalk={x:19+5.2,z:-32.5};
 for(let i=1;i<=360;i++){
  const angle=(i/360)*Math.PI*2;
- const next={x:19+7.5*Math.cos(angle),z:-32.5+7.5*Math.sin(angle)};
+ const next={x:19+5.2*Math.cos(angle),z:-32.5+5.2*Math.sin(angle)};
  const moved=moveWithCollision(pondWalk,next.x-pondWalk.x,next.z-pondWalk.z,pondCollision);
  assert.ok(Math.hypot(moved.x-next.x,moved.z-next.z)<.08,"Walking around the pond must not snag on curved collision edges at step "+i);
  pondWalk={x:moved.x,z:moved.z};
