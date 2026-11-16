@@ -653,7 +653,7 @@ function initMobilePanels(){
 }
 initMobilePanels();
 const renderModeLabels={
- zh:{normal:"流畅模式",restore:"恢复画质",normalTitle:"点击降低渲染分辨率并将手机渲染帧率稳定在约30FPS",restoreTitle:"点击恢复标准渲染分辨率",enabled:"已开启流畅模式",restored:"已恢复标准画质"},
+ zh:{normal:"流畅模式",restore:"恢复画质",normalTitle:"点击降低渲染分辨率并将手机渲染帧率稳定在约24FPS",restoreTitle:"点击恢复标准渲染分辨率",enabled:"已开启流畅模式",restored:"已恢复标准画质"},
  en:{normal:"Performance",restore:"Restore",normalTitle:"Lower render resolution and target 30 FPS on phones",restoreTitle:"Restore standard render resolution",enabled:"Performance mode enabled",restored:"Standard quality restored"},
  ja:{normal:"軽量モード",restore:"画質復元",normalTitle:"描画解像度を下げ、スマートフォンを約30FPSに調整",restoreTitle:"標準の描画解像度に戻す",enabled:"軽量モードを有効にしました",restored:"標準画質に戻しました"},
  ko:{normal:"저부하 모드",restore:"화질 복원",normalTitle:"렌더링 해상도를 낮추고 모바일을 약 30FPS로 제한",restoreTitle:"표준 렌더링 해상도로 복원",enabled:"저부하 모드가 켜졌습니다",restored:"표준 화질로 복원했습니다"},
