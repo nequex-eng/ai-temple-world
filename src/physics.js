@@ -96,7 +96,7 @@ export function createTempleCollision(halls) {
   const zx=-40,zz=-65,zhw=8.5,zhd=7.25,zback=zz-zhd,zfront=zz+zhd;
   segments.push(segment(zx-zhw,zback,zx+zhw,zback,.22),segment(zx-zhw,zback,zx-zhw,zfront,.22),segment(zx+zhw,zback,zx+zhw,zfront,.22));
   segments.push(segment(zx-zhw,zfront,zx-3.5,zfront,.2),segment(zx+3.5,zfront,zx+zhw,zfront,.2));
-  for(const bx of [-6,-3,0,3,6])for(const bz of [-3.4,2.4]){
+  for(const bx of [-5,-2.5,0,2.5,5])for(const bz of [-3.4,2.4]){
     const l=zx+bx-1.08,r=zx+bx+1.08,b=zz+bz-.72,f=zz+bz+.72;
     segments.push(segment(l,b,r,b,.1),segment(l,f,r,f,.1),segment(l,b,l,f,.1),segment(r,b,r,f,.1));
   }

@@ -263,7 +263,7 @@ assert.ok(app.includes('action==="toilet"&&!world.canAct(action)') && app.includ
 assert.ok(world.includes('this.zenRoom.position.set(-40,0,-65)') && world.includes('this.zenRoomSign={ctx:zctx,canvas:zenCanvas,map:zenTexture}') && world.includes('en:"ZEN HALL"') && world.includes('ja:"禅堂"') && world.includes('ko:"선방"') && world.includes('th:"ศาลาเซน"'), "Forest Zen room and localized sign must be present");
 assert.ok(world.includes('const benchPositions=[[-10,25],[-10,35]]') && world.includes('bench.rotation.y=Math.PI/2') && physics.includes('const benchPositions=[[-10,25],[-10,35]]'), "Only two road-facing benches may remain beside McDonalds");
 const collisionAudit=createTempleCollision([]);
-console.log("ZEN_ROUTE_DIAG",JSON.stringify({start:collidesAt(0,-49,collisionAudit),door:collidesAt(-40,-57.5,collisionAudit),inside:collidesAt(-40,-60,collisionAudit),bedA:collidesAt(-40,-66.75,collisionAudit),bedB:collidesAt(-40,-60.95,collisionAudit),routes:[-57.5,-59,-60,-60.95,-64,-66.75].map(z=>[z,!!findWalkPath({x:0,z:-49},{x:-40,z},collisionAudit)])}));
+
 for(const start of [{x:0,z:-49},{x:-15,z:-49},{x:-31,z:-49}]){
  const route=findWalkPath(start,{x:-40,z:-66.75},collisionAudit);
  assert.ok(route?.length, "Forest Zen room route missing from "+JSON.stringify(start));

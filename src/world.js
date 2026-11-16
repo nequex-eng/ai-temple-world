@@ -1065,7 +1065,7 @@ export class TempleWorld{
   const restHallRoofGroup=new THREE.Group();zen.add(restHallRoofGroup);
   planeRoof(restHallRoofGroup,17.2,14.2,5.25,4.05,1,restHallRoof);planeRoof(restHallRoofGroup,17.2,14.2,5.25,4.05,-1,restHallRoof);
   add(new THREE.BoxGeometry(17.0,.16,14.0),restHallTrim,zen,[0,4.02,0]);
-  for(const bx of [-6,-3,0,3,6])for(const bz of [-3.4,2.4]){
+  for(const bx of [-5,-2.5,0,2.5,5])for(const bz of [-3.4,2.4]){
    const bed=new THREE.Group();bed.position.set(bx,.26,bz);zen.add(bed);
    add(new THREE.BoxGeometry(2.28,.34,1.62),restBedWood,bed,[0,.16,0]);
    add(new THREE.BoxGeometry(2.12,.18,1.48),restBedMat,bed,[0,.42,0]);
