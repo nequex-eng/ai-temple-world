@@ -229,8 +229,8 @@
 .smooth-toggle.active{background:rgba(151,121,77,.82);border-color:#e1c58f;color:#fff1d3}
 @media(max-width:660px){
  .smooth-toggle{position:fixed;z-index:4;right:9px;top:66px;height:28px;min-width:36px;padding:0 5px;font-size:8px}
- html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
- body{height:calc(100dvh + 120px);min-height:calc(100dvh + 120px);-webkit-overflow-scrolling:touch}
+ html,body{width:100%;height:var(--temple-visual-height,100dvh);min-height:var(--temple-visual-height,100dvh);overflow:hidden;overscroll-behavior:none}
+ #world{top:var(--temple-visual-top,0px);left:0;right:auto;bottom:auto;width:var(--temple-visual-width,100vw);height:var(--temple-visual-height,100dvh)}
  #world canvas{touch-action:pinch-zoom}
  body::-webkit-scrollbar,html::-webkit-scrollbar{display:none}
 }
