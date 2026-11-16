@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r5";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r6";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -1064,14 +1064,8 @@ export class TempleWorld{
   this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
-  // The abbot stays in the courtyard loop in front of the hall and circles well around the censer.
-  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-8};
-  const a=avatar(this.scene,spec,"npc-abbot",true);this.abbotAvatar=a;
-  a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
-  a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
-  a.setPose("bow",1500);
-  const route=[[0,-8],[-8,-8],[-13,-12],[-13,-18],[-8,-20],[-3,-18],[3,-18],[8,-20],[13,-18],[13,-12],[8,-8],[0,-8]].map(([x,z])=>new THREE.Vector3(x,0,z));
-  this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate"],routineStep:0,stuckAt:0}];
+  // Keep the courtyard free of autonomous walkers; online visitors are unaffected.
+  this.npcs=[];
 
   const allVendors=[...(this.vendorSpecs||[]),...(this.roadsideVendorSpecs||[])];
   for(const spec of allVendors){
@@ -1079,29 +1073,6 @@ export class TempleWorld{
    const seller=marketVendor(this.scene,sellerX,spec.z,spec.facing,this.m);seller.name="vendor-"+spec.kind;
    this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z,kind:spec.kind});
 
-   const count=Math.max(0,Math.min(2,Number(spec.customers)||0));
-   for(let index=0;index<count;index++){
-    const lane=(index-(count-1)/2)*.82;
-    const customerX=spec.area==="road"?(spec.x+(spec.side===-1?3.2:-3.2)):(40.25+lane);
-    const routePoints=spec.area==="road"
-      ?[[customerX,spec.z-2.45+lane],[customerX+.55,spec.z-.3+lane],[customerX,spec.z+2.45+lane],[customerX-.55,spec.z+.4+lane]]
-      :[[customerX,spec.z-2.35+lane],[customerX-.62,spec.z-.15+lane],[customerX,spec.z+2.35+lane],[customerX+.62,spec.z+.45+lane]];
-    const route=routePoints.map(([x,z])=>new THREE.Vector3(x,0,z));
-    const shopper=avatar(this.scene,{name:"香客",robe:index%2?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true,false);
-    shopper.setPosition(route[0].x,route[0].z,Math.PI/2,0);shopper.setPose("walk",900);
-    this.npcs.push({avatar:shopper,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+900+index*950+Math.random()*550,routine:["greet","bow"],routineStep:0,stuckAt:0,shopper:true});
-   }
-  }
-
-  // Walking pilgrims stay on the public approach road and turn around before the gate.
-  const roadWalkers=[
-   {id:"road-pilgrim-a",x:-2.25,z:35,robe:"#8b9a86",route:[[-2.25,35],[-2.25,23],[-2.25,8],[-2.25,23]]}
-  ];
-  for(const guest of roadWalkers){
-   const route=guest.route.map(([x,z])=>new THREE.Vector3(x,0,z));
-   const walker=avatar(this.scene,{name:"香客",robe:guest.robe,skin:"#c99170",style:"pilgrim"},guest.id,true,false);
-   walker.setPosition(route[0].x,route[0].z,Math.PI,0);walker.setPose("walk",900);
-   this.npcs.push({avatar:walker,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+600+Math.random()*1800,routine:["greet","bow"],routineStep:0,stuckAt:0,roadWalker:true});
   }
 
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
