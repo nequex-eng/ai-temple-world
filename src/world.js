@@ -347,12 +347,16 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
  add(new THREE.CylinderGeometry(.026,.035,1.12,7),mat(0x765233),broom,[0,-.2,0]);
  add(new THREE.CylinderGeometry(.19,.23,.3,9),mat(0xb59a6d),broom,[0,-.83,0]);
  broom.position.set(.12,1.05,.52);
- const wateringCan=new THREE.Group();body.add(wateringCan);wateringCan.visible=false;
+ const wateringCan=new THREE.Group();arms[1].add(wateringCan);wateringCan.visible=false;
  add(new THREE.CylinderGeometry(.13,.16,.28,12),mat(0x8a9b83,.62,{metalness:.08}),wateringCan,[0,0,0]);
  add(new THREE.TorusGeometry(.13,.018,7,18),mat(0xc3b58d,.55),wateringCan,[0,.14,0]);
  add(new THREE.TorusGeometry(.11,.018,7,18,Math.PI*1.5),mat(0x8a9b83,.62),wateringCan,[.18,.02,0],[0,0,Math.PI/2]);
  add(new THREE.ConeGeometry(.045,.24,8),mat(0x9eaa91,.55),wateringCan,[.19,.02,0],[0,0,-Math.PI/2]);
- wateringCan.position.set(.28,.53,.48);
+ wateringCan.position.set(.035,-.86,.14);
+ const fertilizerBag=new THREE.Group();arms[0].add(fertilizerBag);fertilizerBag.visible=false;
+ add(new THREE.SphereGeometry(.15,10,8),mat(0x9b865e,.96),fertilizerBag,[0,0,0]).scale.set(1,.9,.78);
+ add(new THREE.CylinderGeometry(.045,.07,.1,8),mat(0x6f5b3e,.96),fertilizerBag,[0,.13,0]);
+ fertilizerBag.position.set(-.035,-.86,.13);
  const malaCord=new THREE.CatmullRomCurve3([new THREE.Vector3(-.34,1.25,.3),new THREE.Vector3(-.24,1.06,.4),new THREE.Vector3(0,1.0,.43),new THREE.Vector3(.24,1.06,.4),new THREE.Vector3(.34,1.25,.3)]);
  body.add(new THREE.Mesh(new THREE.TubeGeometry(malaCord,28,.012,6,false),dark));
  const beads=new THREE.Group();body.add(beads);
@@ -411,7 +415,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
     arms[0].rotation.x=-v*.5;arms[1].rotation.x=v*.5;
     body.position.y+=Math.abs(Math.sin(time*.018))*.035;
    }
-   incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";wateringCan.visible=this.pose==="water";teaCup.visible=this.pose==="tea";if(this.pose==="tea")teaCup.position.y=-.79+Math.sin(time*.0028)*.018;
+   incenseStick.visible=this.pose==="incense";broom.visible=this.pose==="sweep";wateringCan.visible=this.pose==="water";fertilizerBag.visible=this.pose==="water";teaCup.visible=this.pose==="tea";if(this.pose==="tea")teaCup.position.y=-.79+Math.sin(time*.0028)*.018;
   },
   dispose(){scene.remove(root);root.traverse(o=>{o.geometry?.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];for(const material of materials){material.map?.dispose();material.dispose();}}});}
  };
