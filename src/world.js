@@ -1318,7 +1318,7 @@ export class TempleWorld{
   this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
   this.raycaster.setFromCamera(this.pointerNdc,this.camera);
   const objects=this.raycaster.intersectObjects(this.marketStalls||[],true);
-  for(const intersection of objects){let object=intersection.object;while(object&&object!==this.scene){if(object.userData?.marketKind==="fortune"){this.onFortuneStall?.();return true;}object=object.parent;}}
+  for(const intersection of objects){let object=intersection.object;while(object&&object!==this.scene){if(object.userData?.marketKind==="fortune"){this.onFortuneStall?.();return true;}if(object.userData?.marketKind==="mcdonalds"){this.onMcDonaldsStall?.();return true;}object=object.parent;}}
   const hit=this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>70||Math.abs(hit.z)>70||collidesAt(hit.x,hit.z,this.collision))return false;
   this.stopWander();
