@@ -24,18 +24,18 @@ function add(g,m,p,pos=[0,0,0],rot=[0,0,0],cast=true){
 }
 function texture(draw,rx=1,ry=1){const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");draw(x,512);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;return t;}
 function robeNamePlate(name){
- const c=document.createElement("canvas");c.width=512;c.height=128;const x=c.getContext("2d");
- x.clearRect(0,0,c.width,c.height);x.textAlign="center";x.textBaseline="middle";x.lineJoin="round";
+ const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=208;
+ const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.textAlign="center";ctx.textBaseline="middle";ctx.lineJoin="round";
  const label=String(name||"行者").trim().slice(0,12);
- x.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';
- x.shadowColor="rgba(0,0,0,.85)";x.shadowBlur=7;x.lineWidth=8;x.strokeStyle="rgba(27,20,14,.95)";x.strokeText(label,256,64,490);
- x.fillStyle="#f6e5bd";x.fillText(label,256,64,490);
- const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
- const material=new THREE.MeshBasicMaterial({map,transparent:true,depthTest:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
- const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.72,.18),material);
- // The name is printed directly on the rear of the robe, facing outward.
- mesh.position.set(0,.96,-.235);mesh.rotation.y=Math.PI;mesh.renderOrder=3;
- return mesh;
+ ctx.font='bold 112px "Songti SC","Noto Serif CJK SC",serif';
+ ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=12;ctx.lineWidth=24;
+ ctx.strokeStyle="rgba(22,20,16,.96)";ctx.strokeText(label,512,104,980);
+ ctx.shadowBlur=0;ctx.fillStyle="#fff0c9";ctx.fillText(label,512,104,980);
+ const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:false,depthWrite:false,toneMapped:false}));
+ sprite.position.set(0,2.88,0);sprite.scale.set(1.95,.4,1);sprite.renderOrder=8;
+ return sprite;
 }
 
 function pine(scene,x,z,s,m){
@@ -136,12 +136,20 @@ function lantern(scene,x,z,m){
  return {group:g,light:l,flame:inner};
 }
 function marketLabel(kind,lang="zh"){
- const labels={zh:{noodles:"素凉面 · 凉茶",incense:"香烛 · 莲灯",coffee:"咖啡 · 茶饮",fruit:"素食点心 · 时令水果"},en:{noodles:"Noodles · Herbal Tea",incense:"Incense · Lotus Lamps",coffee:"Coffee · Tea",fruit:"Vegetarian Snacks · Fruit"},ja:{noodles:"精進麺 · お茶",incense:"お香 · 蓮灯",coffee:"コーヒー · お茶",fruit:"精進菓子 · 果物"},ko:{noodles:"채식 국수 · 차",incense:"향 · 연등",coffee:"커피 · 차",fruit:"채식 간식 · 과일"},th:{noodles:"บะหมี่เจ · ชาสมุนไพร",incense:"ธูป · โคมบัว",coffee:"กาแฟ · ชา",fruit:"ของว่างเจ · ผลไม้"}};
+ const labels={
+  zh:{noodles:"素凉面 · 凉茶",incense:"香烛 · 莲灯",coffee:"咖啡 · 茶饮",fruit:"素食点心 · 时令水果",fortune:"算命 · 求签",souvenir:"寺院文创 · 纪念品",mcdonalds:"麦当劳 · 汉堡"},
+  en:{noodles:"Noodles · Herbal Tea",incense:"Incense · Lotus Lamps",coffee:"Coffee · Tea",fruit:"Vegetarian Snacks · Fruit",fortune:"Fortune Reading",souvenir:"Temple Gifts · Souvenirs",mcdonalds:"McDonald's · Burgers"},
+  ja:{noodles:"精進麺 · お茶",incense:"お香 · 蓮灯",coffee:"コーヒー · お茶",fruit:"精進菓子 · 果物",fortune:"占い · おみくじ",souvenir:"寺院グッズ · お土産",mcdonalds:"マクドナルド · バーガー"},
+  ko:{noodles:"채식 국수 · 차",incense:"향 · 연등",coffee:"커피 · 차",fruit:"채식 간식 · 과일",fortune:"운세 · 점괘",souvenir:"사찰 기념품",mcdonalds:"맥도날드 · 버거"},
+  th:{noodles:"บะหมี่เจ · ชาสมุนไพร",incense:"ธูป · โคมบัว",coffee:"กาแฟ · ชา",fruit:"ของว่างเจ · ผลไม้",fortune:"ดูดวง · เสี่ยงเซียมซี",souvenir:"ของที่ระลึกวัด",mcdonalds:"แมคโดนัลด์ · เบอร์เกอร์"}
+ };
  return (labels[lang]||labels.zh)[kind]||"Temple Goods";
 }
 function marketStall(scene,x,z,side,kind,m){
  const root=new THREE.Group();root.position.set(x,0,z);root.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(root);
- const wood=mat(0x563b2a,.9),edge=mat(0x9a7047,.78),cloth=mat(kind==='noodles'?0xb66a43:kind==='incense'?0x8b493c:kind==='coffee'?0x66503d:0x71816a,.95);
+ const wood=mat(0x563b2a,.9),edge=mat(0x9a7047,.78);
+ const canopyColors={noodles:0xb66a43,incense:0x8b493c,coffee:0x66503d,fruit:0x71816a,fortune:0x6d5848,souvenir:0x53766c,mcdonalds:0xb82e28};
+ const cloth=mat(canopyColors[kind]||0x71816a,.95);
  add(new THREE.BoxGeometry(3.15,.18,1.18),wood,root,[0,.92,0]);add(new THREE.BoxGeometry(3.28,.09,1.28),edge,root,[0,1.055,0]);
  for(const xx of [-1.42,1.42])for(const zz of [-.48,.48])add(new THREE.CylinderGeometry(.055,.07,2.55,8),wood,root,[xx,1.82,zz]);
  add(new THREE.BoxGeometry(3.55,.13,1.65),cloth,root,[0,2.62,0]);add(new THREE.BoxGeometry(3.55,.11,.12),edge,root,[0,2.52,.77]);
@@ -155,14 +163,34 @@ function marketStall(scene,x,z,side,kind,m){
   add(new THREE.CylinderGeometry(.22,.28,.42,16),mat(0x38302a,.55,{metalness:.25}),root,[-.85,1.34,0]);add(new THREE.CylinderGeometry(.17,.2,.16,16),edge,root,[-.85,1.64,0]);
   for(const xx of [-.35,.35,1.05]){add(new THREE.CylinderGeometry(.12,.1,.22,12),mat(0xe6d7bd,.38),root,[xx,1.23,.05]);add(new THREE.TorusGeometry(.095,.025,6,14),edge,root,[xx,1.35,.05],[Math.PI/2,0,0]);}
   for(let i=0;i<12;i++)add(new THREE.SphereGeometry(.035,7,6),mat(0x493326,.9),root,[(Math.random()-.5)*.38,1.18,-.42+(Math.random()-.5)*.25]);
- }else{for(let i=0;i<6;i++)add(new THREE.SphereGeometry(.18,10,8),mat([0xb84d38,0xc99b43,0x6d8c50][i%3],.72),root,[-1+(i%3)*.75,1.28,Math.floor(i/3)*.32-.12]);}
+ }else if(kind==="fortune"){
+  add(new THREE.BoxGeometry(.72,.08,.42),edge,root,[-.65,1.18,.05]);
+  add(new THREE.SphereGeometry(.19,16,12),mat(0x36595b,.2,{metalness:.25}),root,[-.65,1.42,.05]);
+  for(let i=0;i<7;i++)add(new THREE.CylinderGeometry(.018,.025,.56,5),mat(i%2?0x9a6a3d:0x6e4a32,.8),root,[.25+(i%4)*.17,1.35+(i%3)*.025,-.18+Math.floor(i/4)*.26]);
+  add(new THREE.BoxGeometry(.38,.045,.5),mat(0xd6c49e,.94),root,[.95,1.16,-.28],[0,-.12,0]);
+ }else if(kind==="souvenir"){
+  for(let i=0;i<6;i++){
+   const x=-1.12+(i%3)*.68,z=-.28+Math.floor(i/3)*.52;
+   add(new THREE.BoxGeometry(.46,.34,.42),mat([0x9a543e,0x55776c,0xb58b4b][i%3],.82),root,[x,1.34,z]);
+   add(new THREE.CylinderGeometry(.09,.1,.24,10),mat(i%2?0xd5c29d:0x6d8977,.72),root,[x,1.62,z]);
+  }
+ }else if(kind==="mcdonalds"){
+  add(new THREE.BoxGeometry(.92,.12,.66),mat(0xe9d7b4,.62),root,[0,1.16,.02]);
+  add(new THREE.CylinderGeometry(.13,.17,.26,14),mat(0xb82e28,.48),root,[-.95,1.33,-.04]);
+  add(new THREE.CylinderGeometry(.145,.145,.035,14),mat(0xf0d56c,.45),root,[-.95,1.48,-.04]);
+  add(new THREE.SphereGeometry(.22,12,9),mat(0xb88743,.9),root,[.15,1.37,.02]).scale.set(1,.55,1);
+  add(new THREE.CylinderGeometry(.22,.22,.075,14),mat(0x4d3928,.9),root,[.15,1.29,.02]);
+  add(new THREE.SphereGeometry(.18,12,9),mat(0x9a3c2f,.9),root,[.15,1.47,.02]).scale.set(1,.32,1);
+ }else{
+  for(let i=0;i<6;i++)add(new THREE.SphereGeometry(.18,10,8),mat([0xb84d38,0xc99b43,0x6d8c50][i%3],.72),root,[-1+(i%3)*.75,1.28,Math.floor(i/3)*.32-.12]);
+ }
  for(const xx of [-1.35,1.35]){add(new THREE.BoxGeometry(.12,.48,.12),wood,root,[xx,2.22,.78]);add(new THREE.BoxGeometry(.3,.34,.3),m.paper,root,[xx,1.9,.78]);add(new THREE.ConeGeometry(.22,.16,4),m.darkWood,root,[xx,2.15,.78],[0,Math.PI/4,0]);}
  const productLabel=marketLabel(kind,"zh");
  const signCanvas=document.createElement("canvas");signCanvas.width=768;signCanvas.height=176;
- const ctx=signCanvas.getContext("2d");ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,176);
+ const ctx=signCanvas.getContext("2d");ctx.fillStyle=kind==="mcdonalds"?"#a82524":"#3b2b20";ctx.fillRect(0,0,768,176);
  ctx.strokeStyle="#d8bd82";ctx.lineWidth=9;ctx.strokeRect(12,12,744,152);
  ctx.textAlign="center";ctx.textBaseline="middle";ctx.font='bold 66px "Songti SC","Noto Serif CJK SC",serif';
- ctx.fillStyle="#fff0cc";ctx.shadowColor="rgba(255,211,129,.55)";ctx.shadowBlur=8;ctx.fillText(productLabel,384,88,700);
+ ctx.fillStyle=kind==="mcdonalds"?"#ffdf75":"#fff0cc";ctx.shadowColor="rgba(255,211,129,.55)";ctx.shadowBlur=8;ctx.fillText(productLabel,384,88,700);
  const signMap=new THREE.CanvasTexture(signCanvas);signMap.colorSpace=THREE.SRGBColorSpace;
  add(new THREE.BoxGeometry(2.12,.58,.12),wood,root,[0,2.12,.88]);
  add(new THREE.PlaneGeometry(1.98,.45),new THREE.MeshBasicMaterial({map:signMap,toneMapped:false}),root,[0,2.12,.948],[0,0,0],false);
@@ -305,11 +333,11 @@ function avatar(scene,profile={},id="local",isLocal=false){
  if(profile.style==="pilgrim"){
   add(new THREE.BoxGeometry(.42,.56,.22),dark,body,[-.57,.73,-.08],[0,0,-.18]);
  }
- const namePlate=robeNamePlate(profile.name||"行者");body.add(namePlate);
+ const namePlate=robeNamePlate(profile.name||"行者");root.add(namePlate);
  return {
   id,root,body,head,arms,legs,tag:namePlate,profile,target:new THREE.Vector3(),targetRotation:0,pose:"walk",previousPose:"walk",poseStartedAt:performance.now(),until:0,
   setProfile(p){this.profile=p;robe.color.set(p.robe||"#b49a72");skin.color.set(p.skin||"#d7ad87");this.setLabel(p.name);},
-  setLabel(name){this.body.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag.geometry?.dispose();this.tag=robeNamePlate(name);this.body.add(this.tag);},
+  setLabel(name){this.root.remove(this.tag);this.tag.material?.map?.dispose();this.tag.material?.dispose();this.tag=robeNamePlate(name);this.root.add(this.tag);},
   setPosition(x,z,r=0,y=0){root.position.set(x,y,z);root.rotation.y=r;this.target.set(x,y,z);this.targetRotation=r;},
   setTarget(p){this.target.set(p.x,0,p.z);this.targetRotation=Number(p.rotation)||0;if(p.action&&p.action!=="walk")this.setPose(p.action,2100);},
   setPose(a,ms=2600){this.previousPose=this.pose;this.pose=a;this.poseStartedAt=performance.now();this.until=performance.now()+ms;},
@@ -451,16 +479,60 @@ export class TempleWorld{
   for(const [x,z] of [[-10,-7],[10,-7],[-10,7],[10,7]]){
    const shrub=add(new THREE.IcosahedronGeometry(.72,1),m.pine,teaLawn,[x,.5,z],[0,0,0],false);shrub.scale.set(1,.62,.85);
   }
+  // A remote parking lot in a natural forest clearing, connected by a quiet gravel lane.
+  const parkingRoad=mat(0x77786f,.96),parkingAsphalt=mat(0x454a48,.98),parkingLine=mat(0xd8d1b7,.92),parkingCurb=mat(0x9b978a,.94);
+  add(new THREE.PlaneGeometry(40,4.2),parkingRoad,s,[-32,-.075,22],[-Math.PI/2,0,0],false);
+  add(new THREE.PlaneGeometry(4.2,12),parkingRoad,s,[-52,-.07,17],[-Math.PI/2,0,0],false);
+  const parkingLot=new THREE.Group();parkingLot.position.set(-52,0,12);s.add(parkingLot);this.parkingLot=parkingLot;
+  add(new THREE.PlaneGeometry(26,18),parkingAsphalt,parkingLot,[0,-.055,0],[-Math.PI/2,0,0],false);
+  for(const x of [-13,13])add(new THREE.BoxGeometry(.28,.18,18),parkingCurb,parkingLot,[x,.01,0]);
+  for(const z of [-9,9])add(new THREE.BoxGeometry(26,.18,.28),parkingCurb,parkingLot,[0,.01,z]);
+  for(const x of [-12,-6,0,6,12])add(new THREE.BoxGeometry(.055,.018,7.4),parkingLine,parkingLot,[x,.012,0]);
+  add(new THREE.BoxGeometry(25,.018,.07),parkingLine,parkingLot,[0,.012,-.02]);
+  const tireMat=mat(0x202322,.98),glassMat=mat(0x34474a,.34,{metalness:.12}),chromeMat=mat(0xb9b6a8,.38,{metalness:.42});
+  const carColors=[0x8b493e,0x465d72,0xc3b89e,0x59644f,0x777b78,0x9a783e,0x526b68,0x6e4e5b];
+  const carSpots=[];
+  for(let row=0;row<2;row++)for(let col=0;col<4;col++){
+   const x=-9+col*6,z=row===0?-4.3:4.3,car=new THREE.Group();parkingLot.add(car);
+   const paint=mat(carColors[row*4+col],.36,{metalness:.16});
+   add(new THREE.BoxGeometry(3.55,.62,1.72),paint,car,[0,.68,0]);
+   add(new THREE.BoxGeometry(2.05,.76,1.38),glassMat,car,[-.12,1.22,0]);
+   add(new THREE.BoxGeometry(3.3,.12,1.78),chromeMat,car,[0,.38,0]);
+   for(const side of [-1,1])for(const end of [-1,1]){
+    add(new THREE.CylinderGeometry(.33,.33,.22,12),tireMat,car,[end*1.08,.36,side*.82],[Math.PI/2,0,0]);
+    add(new THREE.CylinderGeometry(.13,.13,.23,12),chromeMat,car,[end*1.08,.36,side*.82],[Math.PI/2,0,0]);
+   }
+   for(const side of [-1,1]){
+    add(new THREE.BoxGeometry(.12,.16,.27),mat(0xf2d69a,.45,{emissive:0x4a3118,emissiveIntensity:.22}),car,[1.79,.68,side*.48]);
+    add(new THREE.BoxGeometry(.12,.16,.27),mat(0xa63b32,.5),car,[-1.79,.68,side*.48]);
+   }
+   car.position.set(x,0,z);carSpots.push({x:-52+x,z:12+z});
+  }
+  const parkingCanvas=document.createElement("canvas");parkingCanvas.width=768;parkingCanvas.height=192;
+  const parkingCtx=parkingCanvas.getContext("2d");parkingCtx.fillStyle="#35453d";parkingCtx.fillRect(0,0,768,192);
+  parkingCtx.strokeStyle="#d8bd82";parkingCtx.lineWidth=10;parkingCtx.strokeRect(12,12,744,168);
+  parkingCtx.textAlign="center";parkingCtx.textBaseline="middle";parkingCtx.font='bold 78px "Songti SC","Noto Serif CJK SC",serif';
+  parkingCtx.fillStyle="#fff0cc";parkingCtx.fillText("森林停车场",384,96);
+  const parkingMap=new THREE.CanvasTexture(parkingCanvas);parkingMap.colorSpace=THREE.SRGBColorSpace;
+  add(new THREE.CylinderGeometry(.13,.18,3.5,10),wood,parkingLot,[-10.4,1.75,8.0]);
+  add(new THREE.BoxGeometry(3.8,1.08,.2),wood,parkingLot,[-8.8,3.0,8.0]);
+  add(new THREE.PlaneGeometry(3.52,.82),new THREE.MeshBasicMaterial({map:parkingMap,toneMapped:false}),parkingLot,[-8.8,3.0,8.11],[0,0,0],false);
+  this.parkingSign={ctx:parkingCtx,map:parkingMap,canvas:parkingCanvas};
   // 山门外移，形成更宽阔的大殿前院。
   const gate=new THREE.Group();gate.position.z=-1.2;s.add(gate);
   for(const x of [-4.8,4.8]){add(new THREE.BoxGeometry(.65,6.8,.72),m.pillar,gate,[x,3.4,0]);add(new THREE.BoxGeometry(1.1,.34,1.1),m.gold,gate,[x,6.9,0]);}
   add(new THREE.BoxGeometry(12,.68,1),m.darkWood,gate,[0,6.6,0]);add(new THREE.BoxGeometry(10,.2,1.1),m.pillar,gate,[0,7,0]);planeRoof(gate,10,3,9.15,8.15,1,m.roof);planeRoof(gate,10,3,9.15,8.15,-1,m.roof);// Mountain gate remains clean architectural timber without an applied plaque.
   // Market garden: four stalls well beyond the gate, on a dedicated green lawn east of the courtyard.
   this.vendorSpecs=[
-   {name:'凉面摊主',x:43,z:-1,kind:'noodles',facing:-Math.PI/2},
-   {name:'香烛摊主',x:43,z:7,kind:'incense',facing:-Math.PI/2},
-   {name:'咖啡摊主',x:43,z:15,kind:'coffee',facing:-Math.PI/2},
-   {name:'小食摊主',x:43,z:23,kind:'fruit',facing:-Math.PI/2}
+   {name:"凉面摊主",x:43,z:-1,kind:"noodles",facing:-Math.PI/2,customers:2,area:"market"},
+   {name:"香烛摊主",x:43,z:7,kind:"incense",facing:-Math.PI/2,customers:1,area:"market"},
+   {name:"咖啡摊主",x:43,z:15,kind:"coffee",facing:-Math.PI/2,customers:0,area:"market"},
+   {name:"小食摊主",x:43,z:23,kind:"fruit",facing:-Math.PI/2,customers:2,area:"market"}
+  ];
+  this.roadsideVendorSpecs=[
+   {name:"算命先生",x:-10,z:8,kind:"fortune",side:-1,facing:Math.PI/2,customers:1,area:"road"},
+   {name:"文创摊主",x:10,z:19,kind:"souvenir",side:1,facing:-Math.PI/2,customers:2,area:"road"},
+   {name:"麦当劳店员",x:-10,z:30,kind:"mcdonalds",side:-1,facing:Math.PI/2,customers:1,area:"road"}
   ];
   this.marketStalls=[];
   add(new THREE.PlaneGeometry(26,48),m.grass,s,[43,-.08,11],[-Math.PI/2,0,0],false);
@@ -469,6 +541,11 @@ export class TempleWorld{
   add(new THREE.PlaneGeometry(18,4.2),marketPath,s,[40,-.035,15],[-Math.PI/2,0,0],false);
   for(const vendor of this.vendorSpecs){
    const stall=marketStall(s,vendor.x,vendor.z,1,vendor.kind,m);
+   this.marketStalls.push(stall);this.nightLights.push(...stall.userData.nightLights);
+  }
+  for(const vendor of this.roadsideVendorSpecs){
+   add(new THREE.PlaneGeometry(7.6,6.4),m.gravel,s,[vendor.x,-.07,vendor.z],[-Math.PI/2,0,0],false);
+   const stall=marketStall(s,vendor.x,vendor.z,vendor.side,vendor.kind,m);
    this.marketStalls.push(stall);this.nightLights.push(...stall.userData.nightLights);
   }
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
@@ -820,11 +897,6 @@ export class TempleWorld{
    add(new THREE.SphereGeometry(.2,12,9),courtyardGold,leg,[0,.27,0]).scale.set(.82,1.15,.82);
    add(new THREE.CylinderGeometry(.23,.28,.13,12),courtyardBronze,leg,[0,-.39,0]);
   }
-  for(const side of [-1,1]){
-   const handle=new THREE.Group();handle.position.set(side*1.23,1.62,0);censerBase.add(handle);
-   add(new THREE.TorusGeometry(.31,.075,10,24),courtyardGold,handle,[side*.12,.05,0],[0,Math.PI/2,0]);
-   add(new THREE.SphereGeometry(.17,12,10),courtyardBronze,censerBase,[side*1.15,1.62,0]);
-  }
   for(let i=0;i<3;i++){
    const a=i*Math.PI*2/3;
    add(new THREE.CylinderGeometry(.018,.024,.62,7),mat(0x9a6840,.8),censerBase,[Math.cos(a)*(.16+i*.06),2.05,Math.sin(a)*(.16+i*.06)]);
@@ -863,22 +935,48 @@ export class TempleWorld{
   this.wishWallTexture.needsUpdate=true;
  }
  buildNpcs(){
-  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-22};
+  // The abbot stays in the courtyard loop in front of the hall and circles well around the censer.
+  const spec={name:"住持",robe:"#b49a72",skin:"#c99170",style:"monk",x:0,z:-8};
   const a=avatar(this.scene,spec,"npc-abbot",true);
   a.root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
   a.setPosition(spec.x,spec.z,Math.PI,groundHeightAt(spec.x,spec.z,this.halls));
   a.setPose("bow",1500);
-  const route=[[4,-21],[-8,-22],[-15,-15],[-16,-5],[-13,7],[-8,14],[0,16],[8,14],[13,7],[16,-5],[15,-15],[8,-22],[4,-21]].map(([x,z])=>new THREE.Vector3(x,0,z));
-  this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate","chant"],routineStep:0,stuckAt:0}];
-  for(const spec of this.vendorSpecs||[]){
-   const seller=marketVendor(this.scene,spec.x+1.72,spec.z,spec.facing,this.m);seller.name='vendor-'+spec.kind;
-   this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z});
-   for(const [index,offset] of [-1.55,0,1.55].entries()){
-    const shopper=avatar(this.scene,{name:"香客",robe:index===1?"#8d9a85":index===0?"#b49a72":"#746c83",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true);
-    shopper.setPosition(41.15,spec.z+offset,Math.PI/2,0);shopper.setPose("greet",1800);
-    this.npcs.push({avatar:shopper,stationary:true,shopper:true,phase:Math.random()*6.28,nextGestureAt:performance.now()+500+Math.random()*1100});
+  const route=[[0,-8],[-8,-8],[-13,-12],[-13,-18],[-8,-20],[-3,-18],[3,-18],[8,-20],[13,-18],[13,-12],[8,-8],[0,-8]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  this.npcs=[{avatar:a,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+2400,routine:["greet","bow","sweep","meditate"],routineStep:0,stuckAt:0}];
+
+  const allVendors=[...(this.vendorSpecs||[]),...(this.roadsideVendorSpecs||[])];
+  for(const spec of allVendors){
+   const sellerX=spec.area==="road"?spec.x+(spec.side===-1?1.72:-1.72):spec.x+1.72;
+   const seller=marketVendor(this.scene,sellerX,spec.z,spec.facing,this.m);seller.name="vendor-"+spec.kind;
+   this.npcs.push({avatar:{root:seller,update(dt,time){seller.rotation.y=spec.facing+Math.sin(time*.0007+spec.z)*.04;seller.userData.animateInteraction?.(time,spec.z);},dispose(){seller.parent?.remove(seller);}},stationary:true,vendor:true,phase:spec.z,kind:spec.kind});
+
+   const count=Math.max(0,Math.min(2,Number(spec.customers)||0));
+   for(let index=0;index<count;index++){
+    const lane=(index-(count-1)/2)*.82;
+    const customerX=spec.area==="road"?(spec.x+(spec.side===-1?3.2:-3.2)):(40.25+lane);
+    const routePoints=spec.area==="road"
+      ?[[customerX,spec.z-2.45+lane],[customerX+.55,spec.z-.3+lane],[customerX,spec.z+2.45+lane],[customerX-.55,spec.z+.4+lane]]
+      :[[customerX,spec.z-2.35+lane],[customerX-.62,spec.z-.15+lane],[customerX,spec.z+2.35+lane],[customerX+.62,spec.z+.45+lane]];
+    const route=routePoints.map(([x,z])=>new THREE.Vector3(x,0,z));
+    const shopper=avatar(this.scene,{name:"香客",robe:index%2?"#8d9a85":"#b49a72",skin:"#c99170",style:"pilgrim"},"market-guest-"+spec.kind+"-"+index,true);
+    shopper.setPosition(route[0].x,route[0].z,Math.PI/2,0);shopper.setPose("walk",900);
+    this.npcs.push({avatar:shopper,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+900+index*950+Math.random()*550,routine:["greet","bow"],routineStep:0,stuckAt:0,shopper:true});
    }
   }
+
+  // Walking pilgrims stay on the public approach road and turn around before the gate.
+  const roadWalkers=[
+   {id:"road-pilgrim-a",x:-2.25,z:35,robe:"#8b9a86",route:[[-2.25,35],[-2.25,23],[-2.25,8],[-2.25,23]]},
+   {id:"road-pilgrim-b",x:2.1,z:10,robe:"#b49a72",route:[[2.1,10],[2.1,25],[2.1,39],[2.1,25]]},
+   {id:"road-pilgrim-c",x:0,z:34,robe:"#777e8c",route:[[0,34],[0,18],[0,7],[0,18]]}
+  ];
+  for(const guest of roadWalkers){
+   const route=guest.route.map(([x,z])=>new THREE.Vector3(x,0,z));
+   const walker=avatar(this.scene,{name:"香客",robe:guest.robe,skin:"#c99170",style:"pilgrim"},guest.id,true);
+   walker.setPosition(route[0].x,route[0].z,Math.PI,0);walker.setPose("walk",900);
+   this.npcs.push({avatar:walker,route,target:route[0].clone(),targetIndex:0,moving:false,nextAt:performance.now()+600+Math.random()*1800,routine:["greet","bow"],routineStep:0,stuckAt:0,roadWalker:true});
+  }
+
   const teaHost=marketVendor(this.scene,0,-56.5,Math.PI,this.m);teaHost.name="tea-house-host";
   this.npcs.push({avatar:{root:teaHost,update(){},dispose(){teaHost.parent?.remove(teaHost);}},stationary:true});
  }
@@ -901,9 +999,9 @@ export class TempleWorld{
     if(dist<.48){
      npc.moving=false;
      const action=npc.routine[npc.routineStep++%npc.routine.length];
-     const duration=action==="meditate"||action==="chant"?6200:action==="sweep"?4800:3400;
+     const duration=npc.shopper||npc.roadWalker?1150:action==="meditate"?6200:action==="sweep"?4800:3400;
      a.setPose(action,duration);
-     npc.nextAt=time+duration+1800+Math.random()*1200;
+     npc.nextAt=time+duration+(npc.shopper||npc.roadWalker?900:1800)+Math.random()*1200;
      npc.stuckAt=0;
     }
     else{
@@ -941,10 +1039,7 @@ export class TempleWorld{
   c.addEventListener("pointerdown",e=>{this.drag=true;this.pointerMoved=false;this.pointerStart={x:e.clientX,y:e.clientY};this.last={x:e.clientX,y:e.clientY};c.setPointerCapture(e.pointerId);});
   c.addEventListener("pointerup",e=>{
    if(!this.drag)return;this.drag=false;
-   if(!this.pointerMoved&&this.local){
-    if(this.hitLocalNameplate(e.clientX,e.clientY)){window.dispatchEvent(new Event("temple:rename"));return;}
-    this.setClickDestination(e.clientX,e.clientY);
-   }
+   if(!this.pointerMoved&&this.local)this.setClickDestination(e.clientX,e.clientY);
   });
   c.addEventListener("pointercancel",()=>this.drag=false);
   c.addEventListener("pointermove",e=>{
@@ -955,17 +1050,6 @@ export class TempleWorld{
    this.last={x:e.clientX,y:e.clientY};
   });
   c.addEventListener("wheel",e=>{this.distance=clamp(this.distance+Math.sign(e.deltaY)*.7,6.5,18);},{passive:true});
- }
- hitLocalNameplate(clientX,clientY){
-  if(!this.local?.tag?.visible)return false;
-  const rect=this.renderer.domElement.getBoundingClientRect();
-  this.pointerNdc.set((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1);
-  this.local.root.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointerNdc,this.camera);
-  if(this.raycaster.intersectObject(this.local.tag,false).length>0)return true;
-  const anchor=this.local.body.localToWorld(new THREE.Vector3(0,.96,-.235)).project(this.camera);
-  if(anchor.z< -1||anchor.z>1)return false;
-  const sx=(anchor.x*.5+.5)*rect.width+rect.left,sy=(-anchor.y*.5+.5)*rect.height+rect.top;
-  return Math.abs(clientX-sx)<=44&&Math.abs(clientY-sy)<=15;
  }
  setClickDestination(clientX,clientY){
   const rect=this.renderer.domElement.getBoundingClientRect();
@@ -1042,6 +1126,10 @@ export class TempleWorld{
  setLanguage(lang){
   for(const stall of this.marketStalls||[]){const sign=stall.userData.marketSign;if(!sign)continue;const label=marketLabel(sign.kind,lang);sign.ctx.clearRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.fillStyle="#3b2b20";sign.ctx.fillRect(0,0,sign.canvas.width,sign.canvas.height);sign.ctx.strokeStyle="#d8bd82";sign.ctx.lineWidth=9;sign.ctx.strokeRect(12,12,744,152);sign.ctx.textAlign="center";sign.ctx.textBaseline="middle";sign.ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 66px serif":"bold 52px sans-serif";sign.ctx.fillStyle="#fff0cc";sign.ctx.fillText(label,384,88,700);sign.map.needsUpdate=true;stall.userData.marketItemLabel=label;}
   if(this.teaSign){const labels={zh:"林间茶庄",en:"FOREST TEA HOUSE",ja:"林間茶屋",ko:"숲속 찻집",th:"โรงน้ำชากลางป่า"};const ctx=this.teaSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#3b2b20";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 72px serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.teaSign.map.needsUpdate=true;}
+  if(this.parkingSign){
+   const labels={zh:"森林停车场",en:"FOREST PARKING",ja:"森林駐車場",ko:"숲속 주차장",th:"ลานจอดรถในป่า"};
+   const ctx=this.parkingSign.ctx;ctx.clearRect(0,0,768,192);ctx.fillStyle="#35453d";ctx.fillRect(0,0,768,192);ctx.strokeStyle="#d8bd82";ctx.lineWidth=10;ctx.strokeRect(12,12,744,168);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=lang==="zh"||lang==="ja"||lang==="ko"?"bold 78px serif":"bold 64px sans-serif";ctx.fillStyle="#fff0cc";ctx.fillText(labels[lang]||labels.zh,384,96,700);this.parkingSign.map.needsUpdate=true;
+  }
  }
  update(dt,input={},time=performance.now(),render=true){
   if(!this.local)return;
