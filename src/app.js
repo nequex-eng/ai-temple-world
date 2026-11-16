@@ -435,7 +435,7 @@ $("beads-reset").addEventListener("click",resetBeads);
 function doAction(action){
  if(action==="beads"){openBeads();return;}
  if(!profile)return;
- if(action==="toilet"&&!world.canAct(action)){world.navigateToAction("toilet");return;}
+ if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");return;}
  if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
