@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 90000,
   expect: { timeout: 20000 },
   use: {
-    baseURL: process.env.BASE_URL || "https://ai-temple-world.pages.dev",
+    baseURL: process.env.BASE_URL || "https://helixtemple.pages.dev",
     ...devices["Desktop Chrome"],
     launchOptions: {
       args: ["--enable-webgl", "--ignore-gpu-blocklist", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
