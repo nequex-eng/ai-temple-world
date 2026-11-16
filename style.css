@@ -238,3 +238,24 @@
 
 .mobile-fullscreen{display:none}
 @media(max-width:660px){.topbar{padding-left:8px;padding-right:8px}.language-select{min-width:54px}.profile-settings{width:31px;min-width:31px;padding:0;justify-content:center}.profile-settings .button-icon{display:inline-flex}#profile-button-label{display:none}.mobile-fullscreen{display:flex;width:31px;min-width:31px;height:31px;padding:0;justify-content:center;font-size:15px}.toast{max-width:92vw;line-height:1.55}}
+
+/* Mobile full-viewport fit and device safe areas. */
+@media(max-width:660px){
+ html,body{position:fixed;inset:0;width:100%;height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+ #world{position:fixed;top:var(--temple-visual-top,0px);left:0;right:auto;bottom:auto;width:var(--temple-visual-width,100vw);height:var(--temple-visual-height,100dvh);min-height:0}
+ .topbar{top:env(safe-area-inset-top,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+ .action-dock{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));max-width:calc(100vw - 16px);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+ .action-dock::-webkit-scrollbar{display:none}
+ .mobile-controls{bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left))}
+ .chat-panel{bottom:calc(112px + env(safe-area-inset-bottom))}
+ .character-chip{bottom:calc(115px + env(safe-area-inset-bottom))}
+}
+.beads-modal{width:min(520px,calc(100vw - 28px))}
+.beads-bracelet-wrap{display:flex;flex-direction:column;align-items:center;gap:9px;margin:12px auto 4px}
+.beads-ring{position:relative;display:block;width:min(74vw,310px);height:min(74vw,310px);max-width:310px;max-height:310px;margin:0 auto;padding:0;border:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(215,187,130,.10) 0 43%,transparent 44%),radial-gradient(circle at 50% 50%,transparent 0 70%,rgba(215,187,130,.18) 70.5% 71.5%,transparent 72%);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;outline:none}
+.beads-ring:active{cursor:grabbing}
+.prayer-bead{position:absolute;width:7px;height:7px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 30% 25%,#c8aa78,#725638 68%,#382b1e);box-shadow:inset 0 1px 1px #f1dfbd66,0 1px 3px #0009;pointer-events:none}
+.prayer-bead.passed{background:radial-gradient(circle at 30% 25%,#fff0c8,#d3a85e 65%,#85613a);box-shadow:0 0 8px #e9c47c88}
+.beads-drag-hint{font-size:10px;line-height:1.6;color:#bcae91;letter-spacing:.03em}
+.beads-modal .danger-button{margin-top:10px}
+@media(max-width:660px){.beads-ring{width:min(72vw,280px);height:min(72vw,280px)}.prayer-bead{width:6px;height:6px}.beads-modal{max-height:calc(var(--temple-visual-height,100dvh) - 24px);overflow-y:auto;overscroll-behavior:contain}}
