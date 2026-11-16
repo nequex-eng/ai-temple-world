@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r7";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r8";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -371,6 +371,7 @@ function avatar(scene,profile={},id="local",isLocal=false,showName=true){
     else if(name==="chant"){v.bodyX=.08;v.headX=.13;v.armX0=-.2;v.armX1=-.2;v.armZ0=.65;v.armZ1=-.65;}
     else if(name==="meditate"){v.bodyY=-.19;v.bodyX=-.025;v.headX=.035;v.legX0=-1.1;v.legX1=-1.1;v.armX0=-1.02;v.armX1=-1.02;v.armZ0=.52;v.armZ1=-.52;}
     else if(name==="tea"){v.bodyY=-.17;v.bodyX=-.035;v.headX=-.12;v.legX0=-1.05;v.legX1=-1.05;v.armX0=-.92;v.armX1=-1.28;v.armZ0=.42;v.armZ1=-.22;}
+    else if(name==="eat"){v.bodyY=-.17;v.bodyX=-.025;v.headX=-.08;v.legX0=-1.05;v.legX1=-1.05;v.armX0=-.75;v.armX1=-1.34;v.armZ0=.38;v.armZ1=-.28;}
     else if(name==="toilet"){v.bodyY=-.24;v.bodyX=.08;v.headX=.12;v.legX0=-.9;v.legX1=-.9;v.armX0=-.12;v.armX1=-.12;v.armZ0=.34;v.armZ1=-.34;}
     else if(name==="greet"){v.armX0=-.75;v.armX1=-.75;v.armZ0=-.42;v.armZ1=.42;}
     else if(name==="incense"){v.armX0=-.6;v.armX1=-.6;}
@@ -637,14 +638,14 @@ export class TempleWorld{
    add(new THREE.BoxGeometry(.9,.48,.9),restaurantDark,restaurant,[x,.24,0]);
    const shrub=add(new THREE.IcosahedronGeometry(.55,1),m.pine,restaurant,[x,.75,0],[0,0,0],false);shrub.scale.set(1,.85,1);
   }
-  const restaurantCanvas=document.createElement("canvas");restaurantCanvas.width=512;restaurantCanvas.height=256;
-  const restaurantCtx=restaurantCanvas.getContext("2d");restaurantCtx.fillStyle="#302b22";restaurantCtx.fillRect(0,0,512,256);
-  restaurantCtx.strokeStyle="#d7b878";restaurantCtx.lineWidth=12;restaurantCtx.strokeRect(13,13,486,230);
+  const restaurantCanvas=document.createElement("canvas");restaurantCanvas.width=256;restaurantCanvas.height=256;
+  const restaurantCtx=restaurantCanvas.getContext("2d");restaurantCtx.fillStyle="#302b22";restaurantCtx.fillRect(0,0,256,256);
+  restaurantCtx.strokeStyle="#d7b878";restaurantCtx.lineWidth=12;restaurantCtx.strokeRect(13,13,230,230);
   restaurantCtx.textAlign="center";restaurantCtx.textBaseline="middle";restaurantCtx.fillStyle="#f1dfb9";
-  restaurantCtx.font='bold 180px "Songti SC","Noto Serif CJK SC",serif';restaurantCtx.fillText("斋",256,128);
+  restaurantCtx.font='bold 190px "Songti SC","Noto Serif CJK SC",serif';restaurantCtx.fillText("斋",128,128);
   const restaurantMap=new THREE.CanvasTexture(restaurantCanvas);restaurantMap.colorSpace=THREE.SRGBColorSpace;
-  add(new THREE.BoxGeometry(2.5,1.28,.16),restaurantDark,restaurant,[0,3.08,4.72]);
-  add(new THREE.PlaneGeometry(2.34,1.12),new THREE.MeshBasicMaterial({map:restaurantMap,toneMapped:false}),restaurant,[0,3.08,4.81],[0,0,0],false);
+  add(new THREE.BoxGeometry(1.48,1.48,.16),restaurantDark,restaurant,[0,3.08,4.72]);
+  add(new THREE.PlaneGeometry(1.34,1.34),new THREE.MeshBasicMaterial({map:restaurantMap,toneMapped:false}),restaurant,[0,3.08,4.81],[0,0,0],false);
   this.restaurantSign={ctx:restaurantCtx,map:restaurantMap,canvas:restaurantCanvas};
   // A full-length Lotus Wish Wall replaces the left courtyard boundary.
   // It runs perpendicular to the mountain gate and faces inward toward visitors.
@@ -1222,7 +1223,7 @@ export class TempleWorld{
    const nearest=cushions.map(([x,z])=>({x,z,d:Math.hypot(p.x-x,p.z-z)})).sort((a,b)=>a.d-b.d)[0];
    if(nearest&&nearest.d<2.35)this.local.setPosition(nearest.x,nearest.z,Math.PI,.54);
   }
-  this.local.setPose(action,(action==="tea"||action==="toilet")?6500:2600);
+  this.local.setPose(action,(action==="tea"||action==="toilet"||action==="eat")?6500:2600);
  }
  getPosition(){const p=this.local?.root.position;return p?{x:p.x,z:p.z,rotation:this.local.root.rotation.y}:{x:0,z:25,rotation:0};}
  currentLocation(){

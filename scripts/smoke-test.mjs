@@ -210,7 +210,8 @@ assert.equal(collidesAt(17.6,25,restaurantCollision),false,"The restaurant's cen
 assert.equal(collidesAt(26.4,25,restaurantCollision),true,"The restaurant rear wall must block passage");
 const restaurantPath=findWalkPath({x:0,z:25,y:0},{x:17,z:25,y:0},restaurantCollision);
 assert.ok(restaurantPath?.length,"A collision-aware route must connect the main approach to restaurant 斋");
-assert.ok(world.includes("eat:[16.8,25]") && world.includes('if(a==="eat")') && app.includes('action==="eat"') && html.includes('data-action="eat"') && !html.includes('data-action="greet"'), "Eat vegetarian must auto-route to 斋");
+assert.ok(world.includes("eat:[16.8,25]") && world.includes('if(a==="eat")') && app.includes('network.action("eat")') && html.includes('data-action="eat"') && !html.includes('data-action="greet"') && worker.includes('near(16.8, 25, 2.8)'), "Eat vegetarian must auto-route, activate and synchronize at the restaurant");
+assert.ok(world.includes('fillText("斋",128,128)') && !world.includes("VEGETARIAN KITCHEN"), "Restaurant sign must show only the character 斋");
 const eatPath=findWalkPath({x:0,z:25,y:0},{x:16.8,z:25},realTempleCollision);
 assert.ok(eatPath?.length,"The entrance of 斋 must be reachable from the front approach");
 const toiletPath=findWalkPath({x:4,z:-61,y:0},{x:10.6,z:-64.0},collision);
@@ -218,7 +219,7 @@ assert.ok(Array.isArray(toiletPath)&&toiletPath.length>0,"The washroom entrance 
 console.log("Smoke test passed: " + ids.length + " unique HTML IDs, " + used.length + " static app references, 5 locales, 3D world and API routes.");
 
 assert.ok(app.includes("let prayerSending=false") && app.includes('$("prayer-form").addEventListener("submit",submitPrayer)') && !app.includes('$("prayer-submit").addEventListener("pointerup"') && network.includes('}, 45000);'), "Wish submission must use one native submit event, remain single-flight, and tolerate slow mobile connections");
-assert.ok(!html.includes('id="mobile-fullscreen"') && read("style.css").includes("height:calc(100vh + 120px)") && read("style.css").includes("right:max(8px,env(safe-area-inset-right))!important") && read("style.css").includes("left:auto!important") && app.includes("mobileSwipeCollapseDone"), "The document must scroll to compact mobile browser chrome and keep actions on the right");
+assert.ok(!html.includes('id="mobile-fullscreen"') && read("style.css").includes("height:calc(100vh + 120px)") && read("style.css").includes("right:max(8px,env(safe-area-inset-right))!important") && read("style.css").includes("left:auto!important") && read("style.css").includes("overflow-y:auto") && app.includes("mobileSwipeCollapseDone"), "The document must scroll to compact mobile browser chrome and keep actions on the right");
 assert.ok(app.includes("mobileSwipeCollapseDone") && app.includes("root.scrollTop=Math.max(root.scrollTop,target)") && html.includes('content="width=device-width,initial-scale=1,viewport-fit=cover"') && !html.includes("user-scalable=no") && read("style.css").includes("touch-action:pinch-zoom"), "Upward swipe scrolls the document to collapse the address bar");
 assert.ok(app.includes('$("abbot-send").addEventListener("pointerup"') && app.includes('lastAbbotSubmitAt') && app.includes('$("abbot-form").addEventListener("submit"'), "Mobile abbot send must support touch, keyboard and duplicate-submit protection");
 assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !world.includes("incensePlaque") && !world.includes("lotusPlaque"), "All floating plaques and signboards must be removed to prevent clipping");
@@ -227,13 +228,13 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-89") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r7",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r7') && html.includes('/style.css?v=20261116-r7'), "Service worker and versioned assets must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-90") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261116-r8",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261116-r8') && html.includes('/style.css?v=20261116-r8'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-89"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-90"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 

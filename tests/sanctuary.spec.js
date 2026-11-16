@@ -156,6 +156,12 @@ test("mobile: virtual joystick, double-tap jump and action dock are usable", asy
   await expect(page.locator("#mobile-controls")).toBeVisible();
   await expect(page.locator("#joystick")).toBeVisible();
   await expect(page.locator(".action-dock")).toBeVisible();
+  const actionDock=await page.locator(".action-dock").boundingBox();
+  const joystick=await page.locator("#joystick").boundingBox();
+  expect(actionDock.x).toBeGreaterThan(joystick.x+joystick.width+20);
+  expect(actionDock.x+actionDock.width).toBeGreaterThan(380);
+  await expect(page.locator('[data-action="greet"]')).toHaveCount(0);
+  await expect(page.locator('[data-action="eat"]')).toBeVisible();
   await expect(page.locator("#open-abbot")).toBeVisible();
 
   await page.locator("#monk-name").fill("Mobile Test");
@@ -193,6 +199,39 @@ test("mobile: virtual joystick, double-tap jump and action dock are usable", asy
   await cleanTestGuest(page);
 });
 
+
+test("one-tap eat action walks into restaurant 斋 and activates", async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  await page.locator("#monk-name").fill("Vegetarian Dining Test");
+  await page.locator("#save-profile").click();
+  await expect(page.locator("#profile-modal")).toHaveClass(/hidden/);
+  await page.evaluate(()=>window.__templeDebug.setPosition(0,25));
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.canAct("eat"))).toBe(false);
+  await page.locator('[data-action="eat"]').click();
+  await expect(page.locator("#toast")).toContainText("正在前往目的地");
+  await expect.poll(()=>page.evaluate(()=>window.__templeDebug.input().pose),{timeout:30000}).toBe("eat");
+  const final=await page.evaluate(()=>window.__templeDebug.position());
+  expect(Math.hypot(final.x-16.8,final.z-25)).toBeLessThan(2.5);
+  await cleanTestGuest(page);
+});
+
+test("mobile page scrolls for browser chrome and action dock stays clear of joystick", async ({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/",{waitUntil:"domcontentloaded"});
+  await expect(page.locator("#loading")).toHaveClass(/hidden/,{timeout:35000});
+  const state=await page.evaluate(()=>{
+    const dock=document.querySelector(".action-dock").getBoundingClientRect();
+    const joystick=document.querySelector("#joystick").getBoundingClientRect();
+    const root=getComputedStyle(document.documentElement);
+    return {scrollHeight:document.documentElement.scrollHeight,innerHeight:window.innerHeight,overflowY:root.overflowY,left:dock.left,right:dock.right,joystickRight:joystick.right};
+  });
+  expect(state.overflowY).toBe("auto");
+  expect(state.scrollHeight).toBeGreaterThan(state.innerHeight);
+  expect(state.left).toBeGreaterThan(state.joystickRight+20);
+  expect(state.right).toBeGreaterThan(380);
+});
 
 test("temple walls block movement and the entrance stairs are climbable", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });

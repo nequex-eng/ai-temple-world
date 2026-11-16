@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261116-r7";
+import { TempleWorld } from "./world.js?v=20261116-r8";
 import { TempleNetwork } from "./network.js?v=20261116-r3";
-import { getText } from "./i18n.js?v=20261116-r7";
+import { getText } from "./i18n.js?v=20261116-r8";
 
 const $=id=>document.getElementById(id);
 const LOCAL_PROFILE="temple-world-profile-v2";
@@ -470,7 +470,7 @@ function doAction(action){
  if(!profile)return;
  if(action==="toilet"&&!world.canAct(action)){if(world.navigateToAction("toilet"))toast(t().walkingToAction||"正在前往厕所");else toast(t().toiletNear||"请前往洗手间入口");return;}
  if(action==="eat"&&!world.canAct(action)){if(world.navigateToAction("eat"))toast(t().walkingToAction||"正在前往斋馆");else toast(t().restaurantNear||"斋馆入口暂时无法到达");return;}
- if(["incense","bell","lotus","tea","meditate","chant"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
+ if(["incense","bell","lotus","tea","meditate","chant","eat"].includes(action)&&!world.canAct(action)&&world.navigateToAction(action)){toast(t().walkingToAction||"正在前往目的地");return;}
  if(!world.canAct(action)){
   const key=action==="toilet"?"toiletNear":action==="incense"?"incenseNear":action==="bell"?"bellNear":action==="meditate"?"meditateNear":"lotusNear";
   toast(t()[key]);return;
@@ -478,7 +478,15 @@ function doAction(action){
  if(action==="tea"){
   world.setLocalPose("tea");world.addEffect("tea");playRitualSound("tea");text("character-state",t().actionText.tea||"品茶");toast(t().teaEnjoy||"静坐品茶，稍歇片刻");network.logActivity(action,"tea-house");return;
  } if(action==="eat"){
-  text("character-state",t().actions.eat||"吃斋");toast(t().restaurantArrived||"已到斋馆");return;
+  world.setLocalPose("eat");actionUntil=performance.now()+6500;
+  text("character-state",t().actions.eat||"吃斋");
+  const diningPosition=world.getPosition();
+  network.move(diningPosition,true);
+  lastSentNetworkPosition={x:diningPosition.x,z:diningPosition.z,rotation:diningPosition.rotation};
+  lastPositionSend=performance.now();
+  network.action("eat");
+  network.logActivity("eat","vegetarian-kitchen");
+  toast(t().restaurantArrived||"已到斋馆，请静心用斋。");return;
  }
 
  if(action==="lotus"){
@@ -748,7 +756,7 @@ async function start(){
   applyLanguage();
   $("loading").classList.add("hidden");
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r7",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261116-r8",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   // Attempt sound immediately on every device. Browsers that block autoplay (notably iOS)
   // are retried on the first genuine touch, click, or key gesture by armDefaultSoundGesture.
