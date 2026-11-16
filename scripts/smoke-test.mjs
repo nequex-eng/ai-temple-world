@@ -2,7 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 import { createTempleCollision, collidesAt, groundHeightAt, moveWithCollision, findWalkPath } from "../src/physics.js";
 import templeWorker from "../worker/index.js";
-import pagesWorker from "./pages-worker.js";
+import pagesWorkerModule from "./pages-worker.js";
 
 const read = path => fs.readFileSync(path, "utf8");
 const html = read("index.html");
@@ -25,10 +25,10 @@ assert.ok(html.includes('type="application/ld+json"') && html.includes('"@type":
 assert.ok(robots.includes("User-agent: *") && robots.includes("Allow: /") && robots.includes("https://helixtemple.com/sitemap.xml"), "robots.txt must allow crawling and advertise the canonical sitemap");
 assert.ok(sitemap.includes("<loc>https://helixtemple.com/</loc>"), "Sitemap URLs must use the canonical host");
 assert.ok(socialImage.includes('<svg') && socialImage.includes("云上禅境") && buildScript.includes('"robots.txt", "sitemap.xml", "og-image.svg"'), "The branded share image and SEO files must ship with Pages");
-const redirectProbe = await pagesWorker.fetch(new Request("https://helixtemple.pages.dev/a/deep/path?utm_source=test&x=1"), { ASSETS: { fetch: async () => new Response("should not reach assets") } });
+const redirectProbe = await pagesWorkerModule.fetch(new Request("https://helixtemple.pages.dev/a/deep/path?utm_source=test&x=1"), { ASSETS: { fetch: async () => new Response("should not reach assets") } });
 assert.equal(redirectProbe.status, 301, "The Pages default hostname must permanently redirect");
 assert.equal(redirectProbe.headers.get("location"), "https://helixtemple.com/a/deep/path?utm_source=test&x=1", "Redirect must preserve path and query string");
-const wwwProbe = await pagesWorker.fetch(new Request("https://www.helixtemple.com/room?x=2"), { ASSETS: { fetch: async () => new Response("should not reach assets") } });
+const wwwProbe = await pagesWorkerModule.fetch(new Request("https://www.helixtemple.com/room?x=2"), { ASSETS: { fetch: async () => new Response("should not reach assets") } });
 assert.equal(wwwProbe.status, 301, "The www host must normalize to the apex domain");
 assert.equal(wwwProbe.headers.get("location"), "https://helixtemple.com/room?x=2", "www normalization must preserve path and query string");
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
