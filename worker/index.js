@@ -322,24 +322,27 @@ export class TempleRoom {
       language: LANGS.has(url.searchParams.get("language")) ? url.searchParams.get("language") : "zh",
       x: Math.max(-78, Math.min(78, Number(url.searchParams.get("x")) || 0)),
       z: Math.max(-78, Math.min(78, Number(url.searchParams.get("z")) || 18)),
-      rotation: 0,
+      rotation: Number.isFinite(Number(url.searchParams.get("rotation"))) ? Number(url.searchParams.get("rotation")) : 0,
       action: "walk",
       joinedAt: Date.now()
     };
-    // Allocate a clear spot in the forecourt on the server, so all clients agree on spawn positions.
-    const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
-    const npcSpots = [[0,-22]];
-    const spawnCandidates = [];
-    for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
-      const x=-11.4+col*1.2,z=-22+row*1.2;
-      if (npcSpots.some(([nx,nz]) => Math.hypot(x-nx,z-nz)<1.18)) continue;
-      if (occupied.some(peer => Math.hypot(x-peer.x,z-peer.z)<1.08)) continue;
-      spawnCandidates.push({x,z});
-    }
-    if (spawnCandidates.length) {
-      let hash=0;for(const ch of player.id)hash=(hash*31+ch.charCodeAt(0))>>>0;
-      const spawn=spawnCandidates[hash%spawnCandidates.length];
-      player.x=spawn.x;player.z=spawn.z;
+    // Allocate a clear forecourt spot only for a first visit. Reconnects resume
+    // at the latest client-reported coordinates instead of snapping back to spawn.
+    if (url.searchParams.get("resume") !== "1") {
+      const occupied = current.map(ws => { try { return ws.deserializeAttachment(); } catch { return null; } }).filter(Boolean);
+      const npcSpots = [[0,-22]];
+      const spawnCandidates = [];
+      for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
+        const x=-11.4+col*1.2,z=-22+row*1.2;
+        if (npcSpots.some(([nx,nz]) => Math.hypot(x-nx,z-nz)<1.18)) continue;
+        if (occupied.some(peer => Math.hypot(x-peer.x,z-peer.z)<1.08)) continue;
+        spawnCandidates.push({x,z});
+      }
+      if (spawnCandidates.length) {
+        let hash=0;for(const ch of player.id)hash=(hash*31+ch.charCodeAt(0))>>>0;
+        const spawn=spawnCandidates[hash%spawnCandidates.length];
+        player.x=spawn.x;player.z=spawn.z;
+      }
     }
     const pair = new WebSocketPair();
     const client = pair[0], server = pair[1];
