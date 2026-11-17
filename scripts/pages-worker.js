@@ -29,6 +29,16 @@ export default {
         }
       });
     }
+    if (incoming.pathname === "/locale") {
+      const country = String(request.cf?.country || "").toUpperCase();
+      const language = country === "CN" || country === "TW" || country === "HK" || country === "MO" ? "zh"
+        : country === "JP" ? "ja"
+        : country === "KR" ? "ko"
+        : country === "TH" ? "th" : "en";
+      return Response.json({ country, language }, {
+        headers: { "Cache-Control": "no-store", "Vary": "CF-IPCountry" }
+      });
+    }
     if (incoming.pathname === "/api" || incoming.pathname.startsWith("/api/")) {
       const upstreamUrl = new URL(incoming.pathname + incoming.search, API_ORIGIN);
       // Preserve JSON bodies and WebSocket Upgrade headers while proxying the API.
