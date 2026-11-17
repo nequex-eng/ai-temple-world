@@ -850,7 +850,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r23",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r24",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});
