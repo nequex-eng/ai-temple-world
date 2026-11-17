@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261117-r23";
+import { TempleWorld } from "./world.js?v=20261117-r24";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
 import { getText } from "./i18n.js?v=20261117-r10";
 
