@@ -1,6 +1,6 @@
 import { TempleWorld } from "./world.js?v=20261116-r22";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
-import { getText } from "./i18n.js?v=20261116-r8";
+import { getText } from "./i18n.js?v=20261117-r9";
 
 const $=id=>document.getElementById(id);
 const storageGet=(key,fallback=null)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
@@ -60,7 +60,7 @@ function applyLanguage(){
   "wish-total":$("wish-total").textContent,"visitors-label":d.todayVisitors,"activities-label":d.todayActivities,
   "wishes-label":d.wishes,"character-state":d.walk,"chat-title":d.chatTitle,"chat-caption":d.chatCaption,
   "chat-welcome":d.chatWelcome,"chat-foot":d.chatFoot,"mobile-caption":d.mobile,"desktop-hint":d.desktop,
-  "profile-title":d.profileTitle,"profile-description":d.profileDesc,"abbot-button-label":d.abbotButton,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
+  "profile-title":d.profileTitle,"profile-description":d.profileDesc,"profile-language-label":d.languageLabel,"abbot-button-label":d.abbotButton,"abbot-title":d.abbotTitle,"abbot-description":d.abbotDescription,"abbot-greeting":d.abbotGreeting,"abbot-send":d.abbotSend,"abbot-status":d.abbotFoot,"label-name":d.name,"label-style":d.style,"delete-data":d.deleteData,
   "label-robe":d.robe,"label-skin":d.skin,"save-profile":d.save,"profile-foot":d.profileFoot,
   "prayer-title":d.prayerTitle,"prayer-description":d.prayerDesc,"prayer-submit":d.prayerSubmit,
   "prayer-list-label":d.prayerList,"prayer-empty":d.prayerEmpty,"prayer-foot":d.prayerFoot,"beads-title":d.beadsTitle,"beads-description":d.beadsDesc,"beads-reset":d.beadsReset,"beads-foot":d.beadsFoot
