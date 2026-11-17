@@ -55,7 +55,7 @@
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261117-r24">
+  <link rel="stylesheet" href="/style.css?v=20261117-r25">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -248,7 +248,7 @@
     window.addEventListener("unhandledrejection", event => showFailure(event.reason?.message || "启动过程发生错误"));
     const module = document.createElement("script");
     module.type = "module";
-    module.src = "/src/app.js?v=20261117-r24";
+    module.src = "/src/app.js?v=20261117-r25";
     module.onerror = () => showFailure("主程序文件未能加载，请检查网络后重试");
     document.body.appendChild(module);
     setTimeout(() => {
