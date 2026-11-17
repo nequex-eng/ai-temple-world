@@ -55,7 +55,7 @@
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261117-r25">
+  <link rel="stylesheet" href="/style.css?v=20261117-r26">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -194,6 +194,15 @@
       <div class="mcdonalds-order-status" id="mcdonalds-order-status" aria-live="polite">选择喜欢的餐品，加入购物袋。</div>
     </section>
   </div>
+  <div class="vow-break-popup hidden" id="vow-break-popup" role="alertdialog" aria-modal="true" aria-labelledby="vow-break-title" aria-describedby="vow-break-message">
+    <section class="vow-break-card">
+      <div class="vow-break-seal" aria-hidden="true">戒</div>
+      <div class="vow-break-eyebrow">KARMA NOTICE · 001</div>
+      <h2 id="vow-break-title">施主，你破戒了。</h2>
+      <p id="vow-break-message">功德簿已清零，轮回系统提示：本次消费不参与赎罪抵扣。阿弥陀佛，本寺不提供忏悔退款服务。</p>
+      <button id="vow-break-close" type="button">我佛慈悲</button>
+    </section>
+  </div>
   <div class="modal-backdrop hidden" id="prayer-modal">
     <section class="modal-card prayer-modal">
       <button class="modal-x" data-close="prayer-modal" aria-label="Close">×</button>
@@ -248,7 +257,7 @@
     window.addEventListener("unhandledrejection", event => showFailure(event.reason?.message || "启动过程发生错误"));
     const module = document.createElement("script");
     module.type = "module";
-    module.src = "/src/app.js?v=20261117-r25";
+    module.src = "/src/app.js?v=20261117-r26";
     module.onerror = () => showFailure("主程序文件未能加载，请检查网络后重试");
     document.body.appendChild(module);
     setTimeout(() => {

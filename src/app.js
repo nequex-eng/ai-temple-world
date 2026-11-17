@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261117-r25";
+import { TempleWorld } from "./world.js?v=20261117-r26";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
-import { getText } from "./i18n.js?v=20261117-r11";
+import { getText } from "./i18n.js?v=20261117-r12";
 
 const $=id=>document.getElementById(id);
 const storageGet=(key,fallback=null)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
@@ -663,7 +663,18 @@ async function sendFortune(drawLot=false){if(fortuneSending)return;const questio
 const mcMenuItems=[{id:"bigmac",zh:"巨无霸",en:"Big Mac",ja:"ビッグマック",ko:"빅맥",th:"บิ๊กแมค",desc:{zh:"经典双层牛肉汉堡",en:"Classic double beef burger",ja:"定番のビーフバーガー",ko:"클래식 더블 비프 버거",th:"เบอร์เกอร์เนื้อสองชั้น"},price:28},{id:"cheeseburger",zh:"双层吉士汉堡",en:"Double Cheeseburger",ja:"ダブルチーズバーガー",ko:"더블 치즈버거",th:"ดับเบิลชีสเบอร์เกอร์",desc:{zh:"牛肉、芝士与酸黄瓜",en:"Beef, cheese and pickles",ja:"ビーフ・チーズ・ピクルス",ko:"소고기, 치즈, 피클",th:"เนื้อ ชีส และแตงกวาดอง"},price:18},{id:"chicken",zh:"麦辣鸡腿堡",en:"Spicy Chicken Burger",ja:"スパイシーチキンバーガー",ko:"스파이시 치킨 버거",th:"เบอร์เกอร์ไก่สไปซี่",desc:{zh:"香辣鸡腿肉与生菜",en:"Spicy chicken with lettuce",ja:"スパイシーチキンとレタス",ko:"매콤한 치킨과 양상추",th:"ไก่รสเผ็ดกับผักกาด"},price:24},{id:"fries",zh:"中薯条",en:"Medium Fries",ja:"マックフライポテト M",ko:"미디엄 프렌치프라이",th:"เฟรนช์ฟรายส์กลาง",desc:{zh:"金黄酥脆",en:"Golden and crispy",ja:"カリッと揚げたポテト",ko:"바삭한 감자튀김",th:"มันฝรั่งทอดกรอบ"},price:12},{id:"cola",zh:"可口可乐（中）",en:"Medium Coca-Cola",ja:"コカ・コーラ M",ko:"미디엄 코카콜라",th:"โค้กกลาง",desc:{zh:"冰爽可乐",en:"Chilled Coca-Cola",ja:"冷たいコーラ",ko:"시원한 코카콜라",th:"โค카콜่าเย็น"},price:10},{id:"sundae",zh:"麦旋风",en:"McFlurry",ja:"マックフルーリー",ko:"맥플러리",th:"แมค플러리",desc:{zh:"香草冰淇淋甜品",en:"Vanilla ice cream dessert",ja:"バニラアイスデザート",ko:"바닐라 아이스크림 디저트",th:"ไอศกรีมวานิลลา"},price:15}];
 function renderMcDonaldsMenu(){const lang=language,menu=$("mcdonalds-menu");menu.replaceChildren();for(const item of mcMenuItems){const card=document.createElement("article");card.className="mcdonalds-item";const copy=document.createElement("div"),name=document.createElement("strong"),desc=document.createElement("small"),price=document.createElement("b"),add=document.createElement("button");name.textContent=item[lang]||item.zh;desc.textContent=item.desc[lang]||item.desc.zh;price.textContent="¥"+item.price;add.type="button";add.className="mcd-add";add.textContent=mcDonaldsCart[item.id]?"＋ "+mcDonaldsCart[item.id]:"＋";add.setAttribute("aria-label",(lang==="zh"?"加入":lang==="ja"?"追加":lang==="ko"?"추가":lang==="th"?"เพิ่ม":"Add")+" "+name.textContent);add.addEventListener("click",()=>{mcDonaldsCart[item.id]=(mcDonaldsCart[item.id]||0)+1;renderMcDonaldsMenu();});copy.append(name,desc);card.append(copy,price,add);menu.append(card);}const total=mcMenuItems.reduce((sum,item)=>sum+item.price*(mcDonaldsCart[item.id]||0),0),count=Object.values(mcDonaldsCart).reduce((sum,n)=>sum+n,0);$("mcdonalds-total").textContent="¥"+total;$("mcdonalds-order").disabled=count===0;$("mcdonalds-cart-label").textContent=({zh:"已选 "+count+" 件",en:count+" items selected",ja:count+" 点選択中",ko:count+"개 선택됨",th:"เลือก "+count+" รายการ"})[lang];$("mcdonalds-order").textContent=({zh:"确认下单",en:"Place order",ja:"注文する",ko:"주문하기",th:"สั่งอาหาร"})[lang];$("mcdonalds-subtitle").textContent=({zh:"点单 · 现点现做",en:"Order · Made fresh",ja:"注文 · ご注文ごとに調理",ko:"주문 · 즉시 조리",th:"สั่งอาหาร · ปรุงสด"})[lang];}
 for(const button of document.querySelectorAll("[data-order-mode]"))button.addEventListener("click",()=>{mcDonaldsMode=button.dataset.orderMode;document.querySelectorAll("[data-order-mode]").forEach(b=>b.classList.toggle("active",b===button));});
-$("mcdonalds-order").addEventListener("click",()=>{const count=Object.values(mcDonaldsCart).reduce((sum,n)=>sum+n,0);if(!count)return;const orderNo=String(Math.floor(100+Math.random()*900));const items=mcMenuItems.filter(item=>mcDonaldsCart[item.id]).map(item=>(item[language]||item.zh)+" × "+mcDonaldsCart[item.id]).join("、");$("mcdonalds-order-status").textContent=(language==="zh"?"订单已提交 · 取餐号 ":"Order placed · Pickup #")+orderNo+" · "+items+" · "+(mcDonaldsMode==="dine"?(language==="zh"?"堂食":"Dine in"):(language==="zh"?"外带":"Takeaway"));$("mcdonalds-order").textContent=({zh:"下单成功",en:"Order placed",ja:"注文完了",ko:"주문 완료",th:"สั่งสำเร็จ"})[language];$("mcdonalds-order").disabled=true;network.logActivity("order","mcdonalds");world.setLocalPose("eat");actionUntil=performance.now()+5500;network.action("eat");});
+function showVowBreakPopup(){
+ const popup=$("vow-break-popup"),copy=t();
+ $("vow-break-title").textContent=copy.mcdBreakTitle;
+ $("vow-break-message").textContent=copy.mcdBreakBody;
+ $("vow-break-close").textContent=copy.mcdBreakClose;
+ popup.classList.remove("hidden");
+ clearTimeout(showVowBreakPopup.timer);
+ showVowBreakPopup.timer=setTimeout(()=>popup.classList.add("hidden"),6200);
+}
+$("vow-break-close").addEventListener("click",()=>{$("vow-break-popup").classList.add("hidden");clearTimeout(showVowBreakPopup.timer);});
+$("vow-break-popup").addEventListener("click",event=>{if(event.target===$("vow-break-popup")){$("vow-break-popup").classList.add("hidden");clearTimeout(showVowBreakPopup.timer);}});
+$("mcdonalds-order").addEventListener("click",()=>{const count=Object.values(mcDonaldsCart).reduce((sum,n)=>sum+n,0);if(!count)return;const orderNo=String(Math.floor(100+Math.random()*900));const items=mcMenuItems.filter(item=>mcDonaldsCart[item.id]).map(item=>(item[language]||item.zh)+" × "+mcDonaldsCart[item.id]).join("、");$("mcdonalds-order-status").textContent=(language==="zh"?"订单已提交 · 取餐号 ":"Order placed · Pickup #")+orderNo+" · "+items+" · "+(mcDonaldsMode==="dine"?(language==="zh"?"堂食":"Dine in"):(language==="zh"?"外带":"Takeaway"));$("mcdonalds-order").textContent=({zh:"下单成功",en:"Order placed",ja:"注文完了",ko:"주문 완료",th:"สั่งสำเร็จ"})[language];$("mcdonalds-order").disabled=true;network.logActivity("order","mcdonalds");world.setLocalPose("eat");actionUntil=performance.now()+5500;network.action("eat");}showVowBreakPopup();});
 $("fortune-ask").addEventListener("click",()=>void sendFortune(false));$("fortune-draw").addEventListener("click",()=>void sendFortune(true));
 $("fortune-question").addEventListener("keydown",e=>{if((e.key==="Enter"||e.keyCode===13)&&!e.shiftKey&&!e.isComposing){e.preventDefault();void sendFortune(false);}});
 $("open-abbot").addEventListener("click",async()=>{
@@ -860,7 +871,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r25",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r26",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});

@@ -150,4 +150,10 @@ TEXT.en.defaultName="Wanderer";TEXT.en.styleOptions=["Monk robe","Pilgrim clothe
 TEXT.ja.defaultName="行者";TEXT.ja.styleOptions=["僧衣","行脚装"];TEXT.ja.robeOptions=["白檀色","月白","松葉色","青灰色","赭色","墨色"];TEXT.ja.skinOptions=["暖色","明るい肌色","濃い肌色","褐色"];
 TEXT.ko.defaultName="행자";TEXT.ko.styleOptions=["승복","행각복"];TEXT.ko.robeOptions=["백단색","월백색","솔잎색","청회색","황토빛","흑연색"];TEXT.ko.skinOptions=["따뜻한 피부톤","밝은 피부톤","짙은 피부톤","구릿빛"];
 TEXT.th.defaultName="ผู้จาริก";TEXT.th.styleOptions=["จีวรพระ","ชุดจาริก"];TEXT.th.robeOptions=["น้ำตาลไม้จันทน์","สีขาวจันทร์","สีเขียวสน","สีเทาอมฟ้า","สีแดงดิน","สีกราไฟต์"];TEXT.th.skinOptions=["ผิวโทนอุ่น","ผิวขาว","ผิวเข้ม","ผิวสีน้ำตาล"];
+
+TEXT.zh.mcdBreakTitle="施主，你破戒了。";TEXT.zh.mcdBreakBody="功德簿已清零，轮回系统提示：本次消费不参与赎罪抵扣。阿弥陀佛，本寺不提供忏悔退款服务。";TEXT.zh.mcdBreakClose="我佛慈悲";
+TEXT.en.mcdBreakTitle="Well, you’ve broken your vows.";TEXT.en.mcdBreakBody="Your merit account is now empty. Karma confirms this purchase is not eligible for redemption. No refunds for repentance.";TEXT.en.mcdBreakClose="Mercy, please";
+TEXT.ja.mcdBreakTitle="檀家さま、戒律を破りましたね。";TEXT.ja.mcdBreakBody="功徳帳は残高ゼロ。因果応報システムによると、このお買い物は罪滅ぼしの対象外です。懺悔の返金は承っておりません。";TEXT.ja.mcdBreakClose="南無阿弥陀仏";
+TEXT.ko.mcdBreakTitle="시주님, 계율을 깨셨습니다.";TEXT.ko.mcdBreakBody="공덕 장부 잔액은 0입니다. 업보 시스템 안내: 이번 결제는 속죄 환급 대상이 아닙니다. 참회는 환불되지 않습니다.";TEXT.ko.mcdBreakClose="부처님 자비를";
+TEXT.th.mcdBreakTitle="โยมเอ๋ย… ศีลขาดเสียแล้ว";TEXT.th.mcdBreakBody="บัญชีบุญเหลือศูนย์ ระบบกรรมแจ้งว่าการซื้อนี้ไม่สามารถนำไปหักลบล้างบาปได้ และทางวัดไม่รับคืนคำสำนึกผิด";TEXT.th.mcdBreakClose="เมตตาธรรมค้ำจุน";
 export const getText=(lang)=>TEXT[lang]||TEXT.zh;

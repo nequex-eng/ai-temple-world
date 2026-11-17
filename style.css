@@ -344,3 +344,15 @@
 
 
 .profile-language-field{display:flex;flex-direction:column;gap:7px;margin:12px 0 16px;font-size:13px;color:var(--muted,#aaa)}.profile-language-field select{width:100%;min-height:42px;padding:9px 12px;border:1px solid var(--line,rgba(255,255,255,.16));border-radius:10px;background:rgba(255,255,255,.06);color:inherit;font:inherit}.profile-language-field option{background:#20231f;color:#fff}
+
+/* Darkly comic karmic receipt shown after a McDonald's order. */
+.vow-break-popup{position:fixed;z-index:30;inset:0;display:grid;place-items:center;padding:22px;background:rgba(8,7,7,.78);backdrop-filter:blur(8px);animation:vowFadeIn .22s ease-out}
+.vow-break-popup.hidden{display:none}
+.vow-break-card{position:relative;width:min(390px,100%);padding:32px 28px 25px;text-align:center;color:#e9dfca;background:radial-gradient(ellipse at 50% 0%,#4a2928 0,#211d1b 58%,#151513 100%);border:1px solid #a88b60;box-shadow:0 24px 90px #000c,inset 0 0 35px #8c30251a}
+.vow-break-seal{width:48px;height:48px;margin:0 auto 15px;display:grid;place-items:center;border:2px solid #a83b32;color:#d45b4d;font:26px/1 var(--serif);transform:rotate(-7deg);box-shadow:0 0 0 3px #a83b3222}
+.vow-break-eyebrow{color:#b89a6b;font:9px/1.5 var(--sans);letter-spacing:.24em}
+.vow-break-card h2{margin:13px 0 12px;color:#f0dfbf;font:500 23px/1.5 var(--serif);letter-spacing:.08em}
+.vow-break-card p{margin:0;color:#c7bba8;font:12px/2 var(--sans)}
+.vow-break-card button{margin-top:22px;padding:10px 28px;border:1px solid #9e8158;background:#3a2b25;color:#e8d5b3;font:12px var(--serif);letter-spacing:.12em}
+.vow-break-card button:active{background:#58402e}
+@keyframes vowFadeIn{from{opacity:0}to{opacity:1}}
