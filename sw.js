@@ -1,4 +1,4 @@
-const CACHE="temple-world-shell-106";
+const CACHE="temple-world-shell-107";
 const SHELL=[
  "/","/index.html","/style.css?v=20261117-r27",
  "/src/app.js?v=20261117-r27","/src/world.js?v=20261117-r27",

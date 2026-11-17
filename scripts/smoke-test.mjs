@@ -341,3 +341,5 @@ assert.ok(i18n.includes('TEXT.en.styleOptions=["Monk robe","Pilgrim clothes"]') 
 
 assert.ok(app.includes('mcdonalds-proximity-label",mcdPromptLabels[language]') && app.includes('麦当劳 · 点击点餐') && app.includes('マクドナルド · タップして注文') && app.includes('맥도날드 · 눌러서 주문') && app.includes('แมคโดนัลด์ · แตะเพื่อสั่ง'), "McDonalds proximity prompt must follow the selected language across all five locales");
 assert.ok(html.includes('id="vow-break-popup"') && html.includes('id="vow-break-title"') && app.includes("function showVowBreakPopup()") && app.includes("showVowBreakPopup();") && style.includes(".vow-break-card") && i18n.includes('TEXT.zh.mcdBreakTitle="施主，你破戒了。"') && i18n.includes('TEXT.en.mcdBreakTitle="Well, you’ve broken your vows."'), "A localized dark-humor vow-break popup must appear after a successful McDonald's order");
+
+assert.ok(app.includes("setInterval(updateStats,60000)") && !/setInterval\\(\\(\\)=>\\{void loadPrayers\\(\\);\\},\\s*\\d+\\)/.test(app) && app.includes("await loadPrayers()"), "Stats polling must be reduced to 60 seconds and prayer wall must not poll; prayer list loads on demand");
