@@ -252,17 +252,17 @@ assert.ok(!world.includes("plaqueSprite(") && !world.includes("gatePlaque") && !
 assert.ok(network.includes("this.welcomeTimer") && network.includes('message?.type === "welcome"') && network.includes("Shared room did not initialize"), "A WebSocket is online only after the shared room sends its welcome snapshot");
 assert.ok(worker.includes("Reconcile every connected client") && worker.includes("target.send(JSON.stringify({ type: \"presence\""), "Heartbeats must reconcile presence for every connected visitor");
 
-assert.ok(read("sw.js").includes("temple-world-shell-105") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261117-r26",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261117-r26') && html.includes('/style.css?v=20261117-r26'), "Service worker and versioned assets must refresh the current client shell");
+assert.ok(read("sw.js").includes("temple-world-shell-106") && app.includes('navigator.serviceWorker.register("/sw.js?v=20261117-r27",{updateViaCache:"none"})') && html.includes('/src/app.js?v=20261117-r27') && html.includes('/style.css?v=20261117-r27'), "Service worker and versioned assets must refresh the current client shell");
 
 assert.ok(read("index.html").includes('data-action="wander"') && read("src/world.js").includes("planWander") && read("src/world.js").includes("wanderBlockedAt"), "Wander action must use automatic path planning and stuck recovery");
 assert.ok(read("index.html").includes('data-action="rest"') && read("src/world.js").includes("zenRestSpots") && read("src/world.js").includes("benchRestSpots") && read("src/world.js").includes('if(action==="rest")'), "Rest action must route to Zen room beds or nearby benches");
 assert.ok(!read("index.html").includes('data-action="sweep"') && !read("src/physics.js").includes("segment(16.5,-60,5,-60,.2)"), "Old sweep action and invisible road barrier must be removed");
-assert.ok(read("sw.js").includes("temple-world-shell-105") && read("index.html").includes("20261117-r26"), "Rest update must refresh cached client assets");
+assert.ok(read("sw.js").includes("temple-world-shell-106") && read("index.html").includes("20261117-r27"), "Rest update must refresh cached client assets");
 assert.ok(!read("index.html").includes('id="restore-view"'), "Mobile restore-view button must be removed");
 assert.ok(!read("src/app.js").includes('$("restore-view")'), "No restore-view reload handler should remain");
 assert.ok(!read("style.css").includes("#restore-view"), "No restore-view button styles should remain");
 assert.ok(read("worker/index.js").includes('u.protocol === "https:" ? origin'), "Anonymous public API must support HTTPS custom domains via CORS");
-assert.ok(read("sw.js").includes("temple-world-shell-105"), "Service worker cache must refresh the current fixes");
+assert.ok(read("sw.js").includes("temple-world-shell-106"), "Service worker cache must refresh the current fixes");
 
 assert.ok(worker.includes('reasoning_effort: "low"') && worker.includes("max_completion_tokens: Math.max(2048, maxTokens * 4)"), "MiniMax Flash must have enough completion budget for reasoning and visible answer text");
 
@@ -319,7 +319,7 @@ for(let i=1;i<=360;i++){
 }
 assert.ok(!physics.includes("22.65, -28.4") && !physics.includes("libraryDeskZ"),"Hidden Sutra Library must not leave invisible collision walls around the lotus pond");
 assert.ok(style.includes("@media (pointer:coarse) and (min-width:661px) and (max-width:1440px)") && style.includes("grid-template-columns:repeat(6,minmax(0,1fr))") && style.includes(".mobile-controls{display:flex") && style.includes("--temple-visual-height"),"iPad portrait/landscape must show touch controls and fit the visual viewport");
-assert.ok(world.includes("physics.js?v=20261116-r18") && app.includes("world.js?v=20261117-r26") && app.includes("network.js?v=20261116-r4") && html.includes("20261117-r26") && read("sw.js").includes("temple-world-shell-105"),"Client assets and the service-worker shell must use the matching startup recovery build");
+assert.ok(world.includes("physics.js?v=20261116-r18") && app.includes("world.js?v=20261117-r27") && app.includes("network.js?v=20261116-r4") && html.includes("20261117-r27") && read("sw.js").includes("temple-world-shell-106"),"Client assets and the service-worker shell must use the matching startup recovery build");
 
 assert.ok(worker.includes('path === "/api/fortune"') && worker.includes("铁板神数") && worker.includes("子平八字") && worker.includes('reserveAiRequest(env, body.player_id, "fortune"'), "Fortune endpoint must enforce traditional divination knowledge and rate limits");
 assert.ok(network.includes('"/api/fortune"') && app.includes("world.onFortuneStall") && app.includes("drawHexagram"), "Fortune stall must open model-powered reading and lot flow");
@@ -339,4 +339,5 @@ assert.match((await fortuneTestResponse.json()).answer, /传统术数文化体�
 
 assert.ok(i18n.includes('TEXT.en.styleOptions=["Monk robe","Pilgrim clothes"]') && i18n.includes('TEXT.en.skinOptions=["Warm","Light","Deep","Bronze"]') && app.includes('setLocalizedOptions("monk-skin"') && app.includes('setLocalizedOptions("monk-robe"') && app.includes('setLocalizedOptions("monk-style"'), "Every character-creator dropdown must be rebuilt from the active locale, including skin tone, robe color and outfit style");
 
+assert.ok(app.includes('mcdonalds-proximity-label",mcdPromptLabels[language]') && app.includes('麦当劳 · 点击点餐') && app.includes('マクドナルド · タップして注文') && app.includes('맥도날드 · 눌러서 주문') && app.includes('แมคโดนัลด์ · แตะเพื่อสั่ง'), "McDonalds proximity prompt must follow the selected language across all five locales");
 assert.ok(html.includes('id="vow-break-popup"') && html.includes('id="vow-break-title"') && app.includes("function showVowBreakPopup()") && app.includes("showVowBreakPopup();") && style.includes(".vow-break-card") && i18n.includes('TEXT.zh.mcdBreakTitle="施主，你破戒了。"') && i18n.includes('TEXT.en.mcdBreakTitle="Well, you’ve broken your vows."'), "A localized dark-humor vow-break popup must appear after a successful McDonald's order");

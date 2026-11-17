@@ -157,3 +157,10 @@ TEXT.ja.mcdBreakTitle="檀家さま、戒律を破りましたね。";TEXT.ja.mc
 TEXT.ko.mcdBreakTitle="시주님, 계율을 깨셨습니다.";TEXT.ko.mcdBreakBody="공덕 장부 잔액은 0입니다. 업보 시스템 안내: 이번 결제는 속죄 환급 대상이 아닙니다. 참회는 환불되지 않습니다.";TEXT.ko.mcdBreakClose="부처님 자비를";
 TEXT.th.mcdBreakTitle="โยมเอ๋ย… ศีลขาดเสียแล้ว";TEXT.th.mcdBreakBody="บัญชีบุญเหลือศูนย์ ระบบกรรมแจ้งว่าการซื้อนี้ไม่สามารถนำไปหักลบล้างบาปได้ และทางวัดไม่รับคืนคำสำนึกผิด";TEXT.th.mcdBreakClose="เมตตาธรรมค้ำจุน";
 export const getText=(lang)=>TEXT[lang]||TEXT.zh;
+
+// Localized McDonalds proximity prompt.
+TEXT.zh.mcdPrompt="麦当劳 · 点击点餐";
+TEXT.en.mcdPrompt="McDonald’s · Tap to order";
+TEXT.ja.mcdPrompt="マクドナルド · タップして注文";
+TEXT.ko.mcdPrompt="맥도날드 · 눌러서 주문";
+TEXT.th.mcdPrompt="แมคโดนัลด์ · แตะเพื่อสั่ง";

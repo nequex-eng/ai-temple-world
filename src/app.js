@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261117-r26";
+import { TempleWorld } from "./world.js?v=20261117-r27";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
-import { getText } from "./i18n.js?v=20261117-r12";
+import { getText } from "./i18n.js?v=20261117-r13";
 
 const $=id=>document.getElementById(id);
 const storageGet=(key,fallback=null)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
@@ -48,6 +48,9 @@ function applyLanguage(){
  const fortuneCopy={zh:{title:"命理问卦 · 抽签解签",description:"依据易经卦象、阴阳五行、干支八字等传统术数进行文化解读。出生资料仅用于本次推演，不保存。",birth:"出生资料（选填）",birthHint:"出生年月日、出生时辰、性别、出生地；注明公历或农历，不详可留空",question:"想问的事情",questionHint:"例如：近期事业发展如何？",ask:"问命理",draw:"摇签起卦",foot:"易经 · 八卦 · 生辰八字 · 铁板神数 · 六爻",welcome:"请写下所问之事，也可摇签起卦。传统术数仅供文化体验与参考。"},en:{title:"Fortune Reading · Draw a Lot",description:"A cultural reading based on the I Ching, yin-yang and five elements, and Four Pillars. Birth details are used for this reading only and are not stored.",birth:"Birth details (optional)",birthHint:"Date, time, gender, birthplace; specify Gregorian or lunar calendar. Leave unknown details blank.",question:"Your question",questionHint:"For example: How might my career develop?",ask:"Read my fortune",draw:"Draw a lot",foot:"I Ching · Bagua · Four Pillars · Tie Ban Shen Shu · Six Lines",welcome:"Write your question or draw a lot. Traditional divination is offered for cultural experience and reflection."},ja:{title:"運勢占い・易占",description:"易経、陰陽五行、四柱推命など伝統的な術数文化に基づく解釈です。出生情報は今回のみ使用し、保存しません。",birth:"出生情報（任意）",birthHint:"生年月日・出生時刻・性別・出生地。新暦か旧暦かを明記。不明な項目は空欄で構いません。",question:"相談したいこと",questionHint:"例：最近の仕事運について",ask:"占う",draw:"おみくじ・卦を立てる",foot:"易経・八卦・四柱推命・鉄板神数・六爻",welcome:"質問を書くか、卦を立ててください。伝統文化としての参考体験です。"},ko:{title:"운세 풀이 · 주역 점괘",description:"주역, 음양오행, 사주명리 등 전통 술수 문화에 따른 해석입니다. 출생 정보는 이번 풀이에만 사용하며 저장하지 않습니다.",birth:"출생 정보(선택)",birthHint:"생년월일, 출생 시각, 성별, 출생지와 양력/음력을 적어 주세요. 모르면 비워 두세요.",question:"궁금한 점",questionHint:"예: 앞으로의 직업운은 어떨까요?",ask:"운세 보기",draw:"제비 뽑아 괘 세우기",foot:"주역 · 팔괘 · 사주 · 철판신수 · 육효",welcome:"질문을 적거나 괘를 뽑아 보세요. 전통문화 체험 및 참고용입니다."},th:{title:"ทำนายดวง · เสี่ยงเซียมซี",description:"การตีความตามวัฒนธรรมศาสตร์ดั้งเดิม เช่น อี้จิง หยินหยาง ธาตุทั้งห้า และดวงจีน ข้อมูลวันเกิดใช้เฉพาะครั้งนี้และไม่บันทึก",birth:"ข้อมูลวันเกิด (ไม่บังคับ)",birthHint:"วันเดือนปี เวลาเกิด เพศ และสถานที่เกิด ระบุปฏิทินสากลหรือจันทรคติ หากไม่ทราบเว้นว่างได้",question:"คำถามของคุณ",questionHint:"เช่น แนวโน้มการงานในช่วงนี้เป็นอย่างไร",ask:"ทำนาย",draw:"เสี่ยงเซียมซีตั้ง卦",foot:"อี้จิง · ปากว้า · ดวงจีน · เถี่ยป่านเสินซู่ · ลิ่วเหยา",welcome:"เขียนคำถามหรือเสี่ยงเซียมซีได้ เป็นประสบการณ์วัฒนธรรมเพื่อประกอบการพิจารณาเท่านั้น。"}}[language];
  const fortunePromptLabels={zh:"算命求签 · 点击问命",en:"FORTUNE READING · TAP TO ASK",ja:"占い・おみくじ · タップして占う",ko:"운세 · 점괘 보기",th:"ดูดวง · แตะเพื่อทำนาย"};
  text("fortune-proximity-label",fortunePromptLabels[language]||fortunePromptLabels.zh);
+ const mcdPromptLabels={zh:"麦当劳 · 点击点餐",en:"McDonald’s · Tap to order",ja:"マクドナルド · タップして注文",ko:"맥도날드 · 눌러서 주문",th:"แมคโดนัลด์ · แตะเพื่อสั่ง"};
+ text("mcdonalds-proximity-label",mcdPromptLabels[language]||mcdPromptLabels.zh);
+ $("mcdonalds-proximity").setAttribute("aria-label",({zh:"打开麦当劳点餐菜单",en:"Open McDonald’s ordering menu",ja:"マクドナルドの注文メニューを開く",ko:"맥도날드 주문 메뉴 열기",th:"เปิดเมนูสั่งอาหารแมคโดนัลด์"})[language]||"Open McDonald’s ordering menu");
  for(const [id,value] of Object.entries({"fortune-title":fortuneCopy.title,"fortune-description":fortuneCopy.description,"fortune-birth-label":fortuneCopy.birth,"fortune-question-label":fortuneCopy.question,"fortune-ask":fortuneCopy.ask,"fortune-draw":fortuneCopy.draw,"fortune-foot":fortuneCopy.foot,"fortune-clear":({zh:"清空",en:"Clear",ja:"クリア",ko:"비우기",th:"ล้าง"})[language]}))text(id,value);
  $("fortune-birth").placeholder=fortuneCopy.birthHint;$("fortune-question").placeholder=fortuneCopy.questionHint;
  if(!$("fortune-messages").dataset.started)$("fortune-messages").firstElementChild.textContent=fortuneCopy.welcome;
@@ -871,7 +874,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r26",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r27",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});
