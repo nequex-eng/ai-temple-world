@@ -1,6 +1,6 @@
-import { TempleWorld } from "./world.js?v=20261117-r24";
+import { TempleWorld } from "./world.js?v=20261117-r25";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
-import { getText } from "./i18n.js?v=20261117-r10";
+import { getText } from "./i18n.js?v=20261117-r11";
 
 const $=id=>document.getElementById(id);
 const storageGet=(key,fallback=null)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
@@ -69,9 +69,19 @@ function applyLanguage(){
  document.title=(d.brandName||"云上禅境")+" · AI Temple World";
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);$("open-profile").title=d.profile;$("open-profile").setAttribute("aria-label",d.profile);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
- $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
- $("monk-robe").options.forEach((option,index)=>{if(d.robeOptions?.[index])option.textContent=d.robeOptions[index];});
- $("monk-skin").options.forEach((option,index)=>{if(d.skinOptions?.[index])option.textContent=d.skinOptions[index];});
+ // Rebuild native select options on every locale change. Updating only
+ // option.textContent can leave stale labels in some mobile browser pickers.
+ const setLocalizedOptions=(id,values)=>{
+  const select=$(id),selected=select.value;
+  select.replaceChildren(...values.map(item=>new Option(item.label,item.value)));
+  select.value=selected;
+ };
+ setLocalizedOptions("monk-style",[{value:"monk",label:d.styleOptions?.[0]||d.monk},{value:"pilgrim",label:d.styleOptions?.[1]||d.pilgrim}]);
+ setLocalizedOptions("monk-robe",["#b49a72","#d5c9a8","#8caa8b","#8e9db4","#9b756f","#6d7770"].map((value,index)=>({value,label:d.robeOptions?.[index]||value})));
+ setLocalizedOptions("monk-skin",["#d7ad87","#edc9a4","#a87553","#825b46"].map((value,index)=>({value,label:d.skinOptions?.[index]||value})));
+ $("monk-style").setAttribute("aria-label",d.style);
+ $("monk-robe").setAttribute("aria-label",d.robe);
+ $("monk-skin").setAttribute("aria-label",d.skin);
  $("monk-name").placeholder=d.defaultName||"Wanderer";
  if(!$("monk-name").value||$("monk-name").value==="行者")$("monk-name").value=d.defaultName||"Wanderer";
  if(!$("preview-name").textContent||$("preview-name").textContent==="行者")text("preview-name",d.defaultName||"Wanderer");
@@ -850,7 +860,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r24",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r25",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});
