@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261117-r28";
+import { TempleWorld } from "./world.js?v=20261117-r29";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
 import { getText } from "./i18n.js?v=20261117-r13";
 
@@ -874,7 +874,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r28",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r29",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});

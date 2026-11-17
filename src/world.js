@@ -128,12 +128,7 @@ function hall(scene,cfg,m){
  // passage remains visibly open and wide enough for mobile and desktop avatars.
  add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[-doorW*.72,.54+h*.38,d/2-.06],[0,-1.38,0]);
  add(new THREE.BoxGeometry(doorW*.28,h*.75,.18),m.darkWood,g,[doorW*.72,.54+h*.38,d/2-.06],[0,1.38,0]);
- for(const side of [-1,1]){
-  const px=side*w*.46;
-  add(new THREE.BoxGeometry(w*.14,h*.4,.13),m.darkWood,g,[px,.54+h*.55,d/2+.02]);
-  for(let j=-2;j<=2;j++)add(new THREE.BoxGeometry(.035,h*.38,.05),m.goldDark,g,[px+j*w*.034,.54+h*.55,d/2+.1],[0,0,0],false);
-  for(let j=0;j<4;j++)add(new THREE.BoxGeometry(w*.17,.035,.05),m.goldDark,g,[px,.54+h*.37+j*h*.095,d/2+.1],[0,0,0],false);
- }
+  // The square sixteen-panel lattice ornaments at both ends of the Great Hall have been removed; keep the wall surface clean.
  add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.54+h-.24,d/2+.08]);
  add(new THREE.BoxGeometry(w+1.8,.42,.6),m.darkWood,g,[0,.54+h-.24,-d/2-.08]);
  const roofMat=m.roof,ry=.54+h+2.25,ey=.54+h+1.15;

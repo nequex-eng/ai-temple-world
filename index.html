@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#16251f">
-  <meta name="temple-build" content="20261117-r28">
+  <meta name="temple-build" content="20261117-r29">
   <meta name="description" content="一座向世界敞开的数字寺院。创建自己的小和尚，在山门、殿宇、莲池与菩提树下自由行走、礼敬、静坐、交流。">
   <link rel="canonical" href="https://helixtemple.com/">
   <meta property="og:type" content="website">
@@ -55,7 +55,7 @@
   <title>云上禅境 · AI Temple World</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/lotus.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=20261117-r28">
+  <link rel="stylesheet" href="/style.css?v=20261117-r29">
   <link rel="modulepreload" href="/src/vendor/three.module.js">
   <script type="importmap">{"imports":{"three":"/src/vendor/three.module.js"}}</script>
 </head>
@@ -257,7 +257,7 @@
     window.addEventListener("unhandledrejection", event => showFailure(event.reason?.message || "启动过程发生错误"));
     const module = document.createElement("script");
     module.type = "module";
-    module.src = "/src/app.js?v=20261117-r28";
+    module.src = "/src/app.js?v=20261117-r29";
     module.onerror = () => showFailure("主程序文件未能加载，请检查网络后重试");
     document.body.appendChild(module);
     setTimeout(() => {
