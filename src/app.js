@@ -8,7 +8,10 @@ const storageSet=(key,value)=>{try{localStorage.setItem(key,String(value));retur
 const storageRemove=key=>{try{localStorage.removeItem(key);return true;}catch{return false;}};
 window.__templeSetBootStage=stage=>{window.__TEMPLE_BOOT_STAGE=String(stage||"starting");const note=$("loading-note");if(note)note.textContent=String(stage||"正在启动");};
 const LOCAL_PROFILE="temple-world-profile-v2";
-let language=storageGet("temple-language")||"zh";
+const savedLanguage=storageGet("temple-language");
+const browserLanguage=(navigator.languages||[navigator.language||""]).map(value=>String(value).toLowerCase());
+const detectBrowserLanguage=()=>{const value=browserLanguage[0]||"";return value.startsWith("ja")?"ja":value.startsWith("ko")?"ko":value.startsWith("th")?"th":value.startsWith("zh")?"zh":"en";};
+let language=savedLanguage||detectBrowserLanguage();
 if(!["zh","en","ja","ko","th"].includes(language))language="zh";
 let profile=null,abbotHistory=[],fortuneHistory=[],fortuneStallNearby=false,vendorAmbienceGain=null,onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
 let soundPreference=true;try{storageSet("temple-sound-enabled","true");}catch{}
@@ -67,6 +70,8 @@ function applyLanguage(){
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);$("open-profile").title=d.profile;$("open-profile").setAttribute("aria-label",d.profile);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
+ if($("profile-language"))$("profile-language").value=language;
+ if($("language"))$("language").value=language;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
  text("action-tea",d.actions.tea||({zh:"喝茶",ja:"お茶を飲む",ko:"차 마시기",th:"ดื่มชา",en:"Drink tea"})[language]||"喝茶");
  updateLocation(true);renderPresence();if(profile)text("character-state",d.walk);syncSmoothToggle();
@@ -559,10 +564,14 @@ $("save-profile").addEventListener("click",saveProfile);
 $("delete-data").addEventListener("click",async()=>{if(!window.confirm(t().deleteConfirm))return;try{network.close();await network.deleteMyData();storageRemove(LOCAL_PROFILE);storageRemove("temple-world-player-id");toast(t().dataDeleted);setTimeout(()=>location.reload(),700);}catch{toast(t().deleteFailed);}});
 ["monk-name","monk-robe","monk-skin"].forEach(id=>$(id).addEventListener("input",updatePreview));
 document.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>$(button.dataset.close).classList.add("hidden")));
-$("language").value=language;$("language").addEventListener("change",async e=>{
- language=e.target.value;storageSet("temple-language",language);applyLanguage();
+$("language").value=language;
+async function changeLanguage(nextLanguage){
+ if(!["zh","en","ja","ko","th"].includes(nextLanguage))return;
+ language=nextLanguage;storageSet("temple-language",language);applyLanguage();
  if(profile){try{await network.saveProfile(profile,language);}catch{}network.close();network.connect({...profile,language},world.getPosition());}
-});
+}
+$("language").addEventListener("change",e=>{void changeLanguage(e.target.value);});
+$("profile-language")?.addEventListener("change",e=>{void changeLanguage(e.target.value);});
 $("chat-form").addEventListener("submit",e=>{
  e.preventDefault();const input=$("chat-input"),message=input.value.trim();if(!message)return;
  const messageId=network.chat(message);
@@ -825,7 +834,13 @@ async function start(){
   // The local 3D scene is ready before remote requests begin. Never let cloud
   // services or browser storage keep the full-screen cover in place.
   window.__templeSetBootStage?.("正在完成界面初始化");
-  try{applyLanguage();}
+  try{
+   if(!savedLanguage){
+    try{const response=await fetch("/locale",{headers:{Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(1800)});if(response.ok){const result=await response.json();if(["zh","en","ja","ko","th"].includes(result.language))language=result.language;}}
+    catch{}
+   }
+   applyLanguage();
+  }
   catch(error){console.error("Temple interface initialization failed:",error);window.__templeShowBootFailure?.(error?.message||"界面初始化失败");}
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
