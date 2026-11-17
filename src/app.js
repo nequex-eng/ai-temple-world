@@ -1,6 +1,6 @@
 import { TempleWorld } from "./world.js?v=20261117-r23";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
-import { getText } from "./i18n.js?v=20261117-r9";
+import { getText } from "./i18n.js?v=20261117-r10";
 
 const $=id=>document.getElementById(id);
 const storageGet=(key,fallback=null)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
@@ -70,6 +70,11 @@ function applyLanguage(){
  $("chat-input").placeholder=d.chatPlaceholder;$("prayer-input").placeholder=d.prayerPlaceholder;$("abbot-input").placeholder=d.abbotPlaceholder;$("open-abbot").title=d.abbotButton;$("open-abbot").setAttribute("aria-label",d.abbotButton);$("open-profile").title=d.profile;$("open-profile").setAttribute("aria-label",d.profile);
  $("open-prayers").title=d.prayers;$("open-prayers").setAttribute("aria-label",d.prayers);
  $("monk-style").options[0].text=d.monk;$("monk-style").options[1].text=d.pilgrim;
+ $("monk-robe").options.forEach((option,index)=>{if(d.robeOptions?.[index])option.textContent=d.robeOptions[index];});
+ $("monk-skin").options.forEach((option,index)=>{if(d.skinOptions?.[index])option.textContent=d.skinOptions[index];});
+ $("monk-name").placeholder=d.defaultName||"Wanderer";
+ if(!$("monk-name").value||$("monk-name").value==="行者")$("monk-name").value=d.defaultName||"Wanderer";
+ if(!$("preview-name").textContent||$("preview-name").textContent==="行者")text("preview-name",d.defaultName||"Wanderer");
  if($("profile-language"))$("profile-language").value=language;
  if($("language"))$("language").value=language;
  for(const [key,value] of Object.entries(d.actions))text("action-"+key,value);
@@ -171,12 +176,12 @@ async function loadProfile(){
  const remote=await network.loadProfile();
  profile=remote?{name:remote.name,robe:remote.robe,skin:remote.skin,style:remote.style}:local;
  if(profile){
-  $("monk-name").value=profile.name||"行者";$("monk-robe").value=profile.robe||"#b49a72";
+  $("monk-name").value=profile.name||(t().defaultName||"Wanderer");$("monk-robe").value=profile.robe||"#b49a72";
   $("monk-skin").value=profile.skin||"#d7ad87";$("monk-style").value=profile.style||"monk";
   setProfileUI();world.setLocalProfile(profile,network.playerId);network.connect({...profile,language},world.getPosition());
  }else{
-  profile={name:"行者",robe:"#b49a72",skin:"#d7ad87",style:"monk"};
-  $("monk-name").value="行者";$("monk-robe").value=profile.robe;$("monk-skin").value=profile.skin;
+  profile={name:t().defaultName||"Wanderer",robe:"#b49a72",skin:"#d7ad87",style:"monk"};
+  $("monk-name").value=profile.name;$("monk-robe").value=profile.robe;$("monk-skin").value=profile.skin;
   $("profile-modal").classList.remove("hidden");
   updatePreview();
   world.setLocalProfile(profile,network.playerId);
@@ -190,13 +195,13 @@ function setProfileUI(){
 }
 function openProfileEditor(){
  if(!profile)return;
- $("monk-name").value=profile.name||"行者";$("monk-robe").value=profile.robe||"#b49a72";
+ $("monk-name").value=profile.name||(t().defaultName||"Wanderer");$("monk-robe").value=profile.robe||"#b49a72";
  $("monk-skin").value=profile.skin||"#d7ad87";$("monk-style").value=profile.style||"monk";
  $("profile-modal").classList.remove("hidden");updatePreview();
 }
 async function saveProfile(){
  profile={
-  name:$("monk-name").value.trim().slice(0,18)||"行者",
+  name:$("monk-name").value.trim().slice(0,18)||(t().defaultName||"Wanderer"),
   robe:$("monk-robe").value,skin:$("monk-skin").value,style:$("monk-style").value
  };
  storageSet(LOCAL_PROFILE,JSON.stringify(profile));
@@ -209,7 +214,7 @@ async function saveProfile(){
  $("profile-modal").classList.add("hidden");renderPresence();
 }
 function updatePreview(){
- const name=$("monk-name").value.trim()||"行者";text("preview-name",name);
+ const name=$("monk-name").value.trim()||(t().defaultName||"Wanderer");text("preview-name",name);
  $("preview-body").style.background=$("monk-robe").value;
  $("preview-head").style.background=$("monk-skin").value;
 }
@@ -575,7 +580,7 @@ $("profile-language")?.addEventListener("change",e=>{void changeLanguage(e.targe
 $("chat-form").addEventListener("submit",e=>{
  e.preventDefault();const input=$("chat-input"),message=input.value.trim();if(!message)return;
  const messageId=network.chat(message);
- if(messageId){appendChat({id:network.playerId,name:profile?.name||"行者"},message,language,messageId);input.value="";}else toast(t().chatError);
+ if(messageId){appendChat({id:network.playerId,name:profile?.name||(t().defaultName||"Wanderer")},message,language,messageId);input.value="";}else toast(t().chatError);
 });
 function setChatPanelOpen(open){
  $("chat-panel").classList.toggle("collapsed",!open);
@@ -707,7 +712,7 @@ async function submitPrayer(e){
  const submit=$("prayer-submit"),form=$("prayer-form");
  submit.disabled=true;form.setAttribute("aria-busy","true");
  try{
-  const saved=await network.postPrayer(message,language,profile?.name||"行者");
+  const saved=await network.postPrayer(message,language,profile?.name||(t().defaultName||"Wanderer"));
   if(!saved?.ok||!saved?.prayer)throw new Error(saved?.error||"心愿没有成功保存，请稍后重试");
   input.value="";
   toast(t().prayerSuccess);
