@@ -1,4 +1,4 @@
-import { TempleWorld } from "./world.js?v=20261117-r29";
+import { TempleWorld } from "./world.js?v=20261118-r30";
 import { TempleNetwork } from "./network.js?v=20261116-r4";
 import { getText } from "./i18n.js?v=20261117-r13";
 
@@ -13,7 +13,7 @@ const browserLanguage=(navigator.languages||[navigator.language||""]).map(value=
 const detectBrowserLanguage=()=>{const value=browserLanguage[0]||"";return value.startsWith("ja")?"ja":value.startsWith("ko")?"ko":value.startsWith("th")?"th":value.startsWith("zh")?"zh":"en";};
 let language=savedLanguage||detectBrowserLanguage();
 if(!["zh","en","ja","ko","th"].includes(language))language="zh";
-let profile=null,abbotHistory=[],fortuneHistory=[],fortuneStallNearby=false,vendorAmbienceGain=null,onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null;
+let profile=null,abbotHistory=[],fortuneHistory=[],fortuneStallNearby=false,vendorAmbienceGain=null,onlinePlayers=new Map(),sharedPrayers=[],actionUntil=0,lastPositionSend=0,lastSentNetworkPosition=null,lastMobileRender=0,lastActivity=0,joy={x:0,y:0},keys={},audio=null,audioMaster=null,ambienceGain=null,effectsGain=null,stickPointer=null,soundEnabled=false,ambientNodes=null,templeBirds=null,templeChant=null,templeBell=null,lastFootstep=0,audioFailureShown=false,birdRetryAt=0,audioFailureReason="",bellHits=0,audioStarting=null,nightInsectsGain=null;
 let soundPreference=true;try{storageSet("temple-sound-enabled","true");}catch{}
 const touchAudioGate=matchMedia("(pointer: coarse)").matches||matchMedia("(max-width: 700px)").matches;
 let prayerWallPromptOpen=false,mcDonaldsNearby=false,mcDonaldsCart={},mcDonaldsMode="dine";
@@ -288,6 +288,7 @@ async function ensureAudio(){
     const wind=audio.createGain();wind.gain.value=.075;noise.connect(low);low.connect(wind);wind.connect(ambienceGain||audioMaster);noise.start();
     const lfo=audio.createOscillator(),lfoGain=audio.createGain();lfo.frequency.value=.065;lfoGain.gain.value=.018;lfo.connect(lfoGain);lfoGain.connect(wind.gain);lfo.start();ambientNodes={noise,low,wind,lfo,lfoGain};
    }
+   if(!nightInsectsGain){nightInsectsGain=audio.createGain();nightInsectsGain.gain.value=0;nightInsectsGain.connect(ambienceGain||audioMaster);for(const [hz,rate,depth] of [[3150,4.6,.0032],[3820,5.1,.0026]]){const tone=audio.createOscillator(),toneGain=audio.createGain(),pulse=audio.createOscillator(),pulseGain=audio.createGain();tone.type="sine";tone.frequency.value=hz;toneGain.gain.value=.0038;pulse.type="square";pulse.frequency.value=rate;pulseGain.gain.value=depth;pulse.connect(pulseGain);pulseGain.connect(toneGain.gain);tone.connect(toneGain);toneGain.connect(nightInsectsGain);tone.start();pulse.start();}}
    if(!vendorAmbienceGain){const chatterBuffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),chatterData=chatterBuffer.getChannelData(0);for(let i=0;i<chatterData.length;i++)chatterData[i]=(Math.random()*2-1)*.12;const chatter=audio.createBufferSource();chatter.buffer=chatterBuffer;chatter.loop=true;const band=audio.createBiquadFilter();band.type="bandpass";band.frequency.value=620;band.Q.value=.42;vendorAmbienceGain=audio.createGain();vendorAmbienceGain.gain.value=.0001;chatter.connect(band);band.connect(vendorAmbienceGain);vendorAmbienceGain.connect(ambienceGain||audioMaster);chatter.start();const voices=[];for(const [hz,rate,depth] of [[145,.23,22],[188,.17,17],[264,.29,26]]){const osc=audio.createOscillator(),voiceGain=audio.createGain(),mod=audio.createOscillator(),modGain=audio.createGain();osc.type="sine";osc.frequency.value=hz;voiceGain.gain.value=.006;mod.frequency.value=rate;modGain.gain.value=.003;mod.connect(modGain);modGain.connect(voiceGain.gain);osc.connect(voiceGain);voiceGain.connect(vendorAmbienceGain);osc.start();mod.start();voices.push({osc,voiceGain,mod,modGain});}vendorAmbienceGain.userData={chatter,band,voices};}
    if(!templeBirds)templeBirds=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg",{loop:true,volume:.27*audioVolumes.ambience,label:"庭院鸟鸣"});
    if(!templeChant)templeChant=createTempleMedia("https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg/20260602_145912_Dingjue_Om_mani_padme_hum.ogg.mp3","https://upload.wikimedia.org/wikipedia/commons/e/e8/20260602_145912_Dingjue_Om_mani_padme_hum.ogg",{loop:true,volume:0,label:"殿内诵经"});
@@ -312,7 +313,11 @@ function updateSoundscape(){
  if(night){
   if(templeBirds){templeBirds.volume=0;templeBirds.pause();try{templeBirds.currentTime=0;}catch{}}
   if(templeChant){templeChant.volume=0;templeChant.pause();try{templeChant.currentTime=0;}catch{}}
+  if(nightInsectsGain&&audio?.state==="running")nightInsectsGain.gain.setTargetAtTime(.9*audioVolumes.ambience,audio.currentTime,1.8);
+  if(ambientNodes?.wind&&audio?.state==="running")ambientNodes.wind.gain.setTargetAtTime(.105,audio.currentTime,2.4);
  }else{
+  if(nightInsectsGain&&audio?.state==="running")nightInsectsGain.gain.setTargetAtTime(0,audio.currentTime,1.2);
+  if(ambientNodes?.wind&&audio?.state==="running")ambientNodes.wind.gain.setTargetAtTime(.075,audio.currentTime,2.4);
   if(templeBirds){templeBirds.volume=.27*audioVolumes.ambience;if(templeBirds.paused&&performance.now()>birdRetryAt){birdRetryAt=performance.now()+5000;void mediaPlay(templeBirds,"庭院鸟鸣");}}
   if(templeChant&&world.local){const p=world.getPosition(),hallDistance=Math.hypot(p.x,p.z+37);const chantVolume=Math.max(0,1-hallDistance/42)*.50*audioVolumes.chant;templeChant.volume=chantVolume;if(chantVolume>.006){if(templeChant.paused||templeChant.muted)void mediaPlay(templeChant,"殿内诵经");}else if(!templeChant.paused)templeChant.pause();}
  }
@@ -322,11 +327,12 @@ function updateSoundscape(){
   const proximity=Math.max(0,1-nearest/13),level=proximity*proximity*(night?.055:.145)*audioVolumes.ambience;
   vendorAmbienceGain.gain.setTargetAtTime(level,audio.currentTime,.7);
  }
- if(night)return;
  const p=world.getPosition(),bellDistance=Math.hypot(p.x-8,p.z+41);
- if(bellDistance<34&&performance.now()>(updateSoundscape.nextBell||0)){
-  playBell(false,Math.max(.3,Math.min(.65,(1-bellDistance/38)*.65)));
-  updateSoundscape.nextBell=performance.now()+42000+Math.random()*28000;
+ const bellRange=night?46:34;
+ if(bellDistance<bellRange&&performance.now()>(updateSoundscape.nextBell||0)){
+  const proximity=Math.max(0,1-bellDistance/(bellRange+8));
+  playBell(false,(night?.24:.3)+proximity*(night?.24:.35));
+  updateSoundscape.nextBell=performance.now()+(night?52000:42000)+Math.random()*(night?26000:28000);
  }
 }
 function playFootstep(){
@@ -874,7 +880,7 @@ async function start(){
   $("loading").classList.add("hidden");
   window.__TEMPLE_BOOT_COMPLETE=true;
   requestAnimationFrame(frame);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261117-r29",{updateViaCache:"none"}).catch(()=>{});}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js?v=20261118-r30",{updateViaCache:"none"}).catch(()=>{});}
   armDefaultSoundGesture();
   void setSound(true,{quiet:true,save:true});
   void network.health().catch(()=>{});

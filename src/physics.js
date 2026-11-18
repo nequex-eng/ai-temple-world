@@ -9,7 +9,8 @@ export function createTempleCollision(halls) {
   const segments = [];
   const circles = [
     // Only retain colliders that correspond to visible solid scene objects.
-    circle(0, -39.5, 2.2), circle(0, -19.5, 1.58), circle(19, -32.5, 4.05),
+    circle(0, -39.5, 2.2), circle(0, -19.5, 1.88), circle(19, -32.5, 4.05),
+    circle(-5.5,-22,.38), circle(5.5,-22,.38),
     circle(-4.8, -1.2, .55), circle(4.8, -1.2, .55), 
     circle(-56.85, 8.45, .28), circle(-47.15, 8.45, .28),
     circle(-56.85, 15.55, .28), circle(-47.15, 15.55, .28), circle(-52, 11.65, .78),

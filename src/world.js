@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261116-r18";
+import { createTempleCollision, moveWithCollision, groundHeightAt, collidesAt, findWalkPath } from "./physics.js?v=20261118-r19";
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const HALL_CUSHION_OFFSETS=[
@@ -1371,6 +1371,9 @@ export class TempleWorld{
   const total=180,start=hash%total;let spawn=null;
   for(let step=0;step<total;step++){
    const slot=(start+step)%total,x=-11.4+(slot%20)*1.2,z=-22+Math.floor(slot/20)*1.2;
+   const nearCenser=Math.hypot(x,z+19.5)<2.75;
+   const nearRoadLamp=[-5.5,5.5].some(lampX=>Math.hypot(x-lampX,z+22)<1.45);
+   if(nearCenser||nearRoadLamp)continue;
    const occupied=[...this.remotes.values(),...(this.npcs||[]).map(n=>n.avatar)].some(a=>Math.hypot(a.root.position.x-x,a.root.position.z-z)<1.0);
    if(!collidesAt(x,z,this.collision)&&!occupied){spawn={x,z};break;}
   }

@@ -366,6 +366,8 @@ export class TempleRoom {
       const spawnCandidates = [];
       for (let row=0;row<9;row++) for (let col=0;col<20;col++) {
         const x=-11.4+col*1.2,z=-22+row*1.2;
+        if (Math.hypot(x,z+19.5)<2.75) continue;
+        if ([-5.5,5.5].some(lampX=>Math.hypot(x-lampX,z+22)<1.45)) continue;
         if (npcSpots.some(([nx,nz]) => Math.hypot(x-nx,z-nz)<1.18)) continue;
         if (occupied.some(peer => Math.hypot(x-peer.x,z-peer.z)<1.08)) continue;
         spawnCandidates.push({x,z});
