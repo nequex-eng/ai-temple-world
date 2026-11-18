@@ -214,7 +214,7 @@ assert.ok(world.includes("new THREE.InstancedMesh") && world.includes("addInstan
 assert.ok(world.includes('toilet:[10.6,-64.0]') && world.includes('a==="toilet"') && world.includes('name==="toilet"') && html.includes('data-action="toilet"') && app.includes('action==="toilet"') && worker.includes('near(10.6, -64.5, 2.8)') && app.includes("network.move(restroomPosition,true)") && app.indexOf("network.move(restroomPosition,true)") < app.indexOf("network.action(action);network.logActivity(action,\"washroom\")") && i18n.includes('toilet:"如厕"') && i18n.includes('toilet:"Use restroom"'), "Restroom action must route to the open doorway and pass server-side location validation");
 assert.ok(app.includes("chat-floater") && app.includes("setChatPanelOpen") && !app.includes("temple:rename") && !world.includes("temple:rename"), "Chat bubbles must remain while name-tap rename is removed");
 assert.ok(app.includes("lastSentNetworkPosition") && app.includes("renderFrame"), "Mobile network/render throttling missing");
-assert.ok(read("src/physics.js").includes("circle(0, -19.5, 1.58)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "The censer collider must be offset from the stair approach while gate collision remains");
+assert.ok(read("src/physics.js").includes("circle(0, -19.5, 1.88)") && read("src/physics.js").includes("circle(-4.8, -1.2, .55)"), "The censer collider must be offset from the stair approach while gate collision remains");
 assert.ok(worker.includes("export class TempleRoom"), "Durable Object class missing");
 for (const table of ["profiles", "activities", "prayers", "visits", "offerings"]) {
   assert.ok(worker.includes(table), "Worker missing D1 table reference: " + table);
