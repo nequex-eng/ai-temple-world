@@ -304,7 +304,7 @@ for(const [x,z] of [[-50.5,-48.5],[-72,-48.5],[-72,-73.5],[-50.5,-73.5],[-50.5,-
 
 assert.ok(world.includes("this.abbotAvatar=abbot") && world.includes("abbot:true") && world.includes("planAbbotWander(npc,time)") && world.includes("roamingPoints"), "A named abbot must use dynamic collision-aware roaming");
 assert.ok(world.includes('this.gardenRoutes=[this.gardenRoute,[[50.5,-61]') && world.includes('choice={route,path}') && world.includes('flower.position.set(53.6,.23,z)') && physics.includes('for(const bx of [57,62,67])'), "The eastern forest vegetable and flower garden and nearest-garden selection must exist");
-assert.ok(world.includes('this.incensePosition=new THREE.Vector3(0,0,-19.5)') && world.includes('destinations={incense:[0,-19.5]') && physics.includes('circle(0, -19.5, 1.58)') && worker.includes('!near(0, -19.5, 6.8)'), "The censer must be centered before the Great Hall in client, collision and server validation");
+assert.ok(world.includes('this.incensePosition=new THREE.Vector3(0,0,-19.5)') && world.includes('destinations={incense:[0,-19.5]') && physics.includes('circle(0, -19.5, 1.88)') && worker.includes('!near(0, -19.5, 6.8)'), "The censer must be centered before the Great Hall in client, collision and server validation");
 assert.ok(app.includes("hallDistance/42)*.50*audioVolumes.chant") && app.includes("templeChant.volume=chantVolume"), "Daytime chanting must fade in audibly across the Great Hall approach");
 const dualGardenCollision=createTempleCollision([]);
 assert.ok(findWalkPath({x:0,z:0},{x:-50.5,z:-61},dualGardenCollision)?.length, "Western garden must remain reachable from the courtyard");
